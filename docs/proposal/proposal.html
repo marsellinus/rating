@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<title>Proposal RATIG</title>
+<style>
+  /* ---------- Design tokens ---------- */
+  :root {
+    --ink: #1a1c1e;
+    --ink-2: #43474e;
+    --ink-3: #73777f;
+    --line: #e3e5e8;
+    --bg: #ffffff;
+    --bg-soft: #f6f8f7;
+    --brand: #2e7d32;
+    --brand-dark: #1b5e20;
+    --brand-soft: #e6f4ea;
+    --accent: #0b6bcb;
+    --accent-soft: #e7f0fb;
+    --warn: #b26a00;
+    --warn-soft: #fdf1e0;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.62;
+    font-size: 14.5px;
+  }
+  @page { size: A4; margin: 16mm 15mm; }
+
+  /* ---------- Layout ---------- */
+  .wrap { max-width: 780px; margin: 0 auto; padding: 0 8px; }
+  section { margin: 0 0 34px; break-inside: avoid-page; }
+  h1, h2, h3 { line-height: 1.25; margin: 0; }
+  h2 {
+    font-size: 21px; font-weight: 700; letter-spacing: -.01em;
+    margin: 0 0 14px; display: flex; align-items: center; gap: 10px;
+  }
+  h2 .num {
+    flex: 0 0 auto;
+    width: 30px; height: 30px; border-radius: 9px;
+    background: var(--brand); color: #fff;
+    font-size: 15px; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  h3 { font-size: 15.5px; font-weight: 600; margin: 20px 0 6px; color: var(--ink); }
+  p { margin: 8px 0; color: var(--ink-2); }
+  ul { margin: 8px 0; padding-left: 20px; color: var(--ink-2); }
+  li { margin: 4px 0; }
+  strong { color: var(--ink); }
+  .muted { color: var(--ink-3); font-size: 13px; }
+
+  /* ---------- Cover ---------- */
+  .cover {
+    background:
+      radial-gradient(1100px 480px at 88% -12%, rgba(255,255,255,.28), transparent 60%),
+      linear-gradient(140deg, #1b5e20 0%, #2e7d32 52%, #43a047 100%);
+    color: #fff; border-radius: 22px;
+    padding: 46px 44px 40px; margin-bottom: 30px;
+    break-inside: avoid;
+  }
+  .cover .kicker {
+    font-size: 12px; font-weight: 700; letter-spacing: .16em;
+    text-transform: uppercase; opacity: .9;
+  }
+  .cover h1 { font-size: 47px; font-weight: 800; letter-spacing: -.02em; margin: 12px 0 6px; }
+  .cover .tagline { font-size: 17px; opacity: .96; max-width: 34em; }
+  .cover .pills { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill {
+    background: rgba(255,255,255,.16);
+    border: 1px solid rgba(255,255,255,.28);
+    border-radius: 999px; padding: 5px 13px; font-size: 12.5px; font-weight: 600;
+  }
+  .cover .meta {
+    margin-top: 26px; padding-top: 18px;
+    border-top: 1px solid rgba(255,255,255,.28);
+    display: flex; gap: 40px; font-size: 13px;
+  }
+  .cover .meta .lbl { opacity: .82; font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; }
+  .cover .meta .val { font-weight: 600; margin-top: 2px; }
+
+  /* ---------- Cards ---------- */
+  .card {
+    background: var(--bg-soft); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 18px 20px;
+    break-inside: avoid;
+  }
+  .grid { display: grid; gap: 14px; }
+  .g2 { grid-template-columns: 1fr 1fr; }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+
+  .stat {
+    background: #fff; border: 1px solid var(--line); border-radius: var(--radius-sm);
+    padding: 14px 16px; text-align: left;
+  }
+  .stat .n { font-size: 24px; font-weight: 800; color: var(--brand-dark); letter-spacing: -.02em; }
+  .stat .l { font-size: 12.5px; color: var(--ink-3); margin-top: 2px; }
+
+  .callout {
+    border-left: 4px solid var(--brand); background: var(--brand-soft);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 12px 16px; margin: 14px 0; color: var(--ink-2);
+  }
+  .callout.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+  .callout.info { border-left-color: var(--accent); background: var(--accent-soft); }
+  .callout .t { font-weight: 700; color: var(--ink); }
+
+  /* ---------- Team ---------- */
+  .team { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .member {
+    background: #fff; border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 20px 16px; text-align: center;
+    break-inside: avoid;
+  }
+  .avatar {
+    width: 58px; height: 58px; border-radius: 50%; margin: 0 auto 10px;
+    background: linear-gradient(140deg, var(--brand), #66bb6a);
+    color: #fff; font-weight: 800; font-size: 21px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .member .name { font-weight: 700; font-size: 14.5px; }
+  .member .role { font-size: 12px; color: var(--brand-dark); font-weight: 600; margin-top: 2px; }
+  .member .nim { font-size: 12px; color: var(--ink-3); margin-top: 6px; }
+
+  /* ---------- Flow ---------- */
+  .flow { display: flex; align-items: stretch; gap: 8px; flex-wrap: wrap; }
+  .step {
+    flex: 1 1 0; min-width: 118px;
+    background: #fff; border: 1px solid var(--line); border-radius: var(--radius-sm);
+    padding: 12px; position: relative;
+  }
+  .step .idx {
+    width: 22px; height: 22px; border-radius: 7px; background: var(--brand-soft);
+    color: var(--brand-dark); font-weight: 700; font-size: 12px;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 7px;
+  }
+  .step .t { font-weight: 600; font-size: 13px; }
+  .step .d { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+
+  /* ---------- Table ---------- */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13.5px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th { background: var(--brand-soft); color: var(--brand-dark); font-weight: 700; font-size: 12.5px; }
+  tbody tr:nth-child(even) { background: #fbfcfb; }
+  td strong { color: var(--ink); }
+
+  /* ---------- Feature rows ---------- */
+  .feat { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px dashed var(--line); }
+  .feat:last-child { border-bottom: 0; }
+  .feat .ico {
+    flex: 0 0 auto; width: 34px; height: 34px; border-radius: 10px;
+    background: var(--accent-soft); color: var(--accent);
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
+  }
+  .feat .t { font-weight: 700; }
+  .feat .d { font-size: 13px; color: var(--ink-2); }
+
+  /* ---------- Figures ---------- */
+  .figure { margin: 14px 0; break-inside: avoid; }
+  .figure img { width: 100%; display: block; border: 1px solid var(--line); border-radius: var(--radius-sm); }
+  .figure figcaption { font-size: 12.5px; color: var(--ink-3); margin-top: 7px; text-align: center; }
+  .figrow { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  /* ---------- Section divider ---------- */
+  .rule { height: 1px; background: var(--line); border: 0; margin: 30px 0; }
+  .pagebreak { break-before: page; }
+
+  footer { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--line);
+           font-size: 12px; color: var(--ink-3); text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= COVER ================= -->
+  <div class="cover">
+    <div class="kicker">Proposal Proyek</div>
+    <h1>RATIG</h1>
+    <div class="tagline">
+      Sistem pemeriksaan kelelahan pekerja berbasis waktu reaksi —
+      cepat, objektif, dan tetap berjalan tanpa internet.
+    </div>
+    <div class="pills">
+      <span class="pill">Android</span>
+      <span class="pill">Jetpack Compose</span>
+      <span class="pill">Material 3</span>
+      <span class="pill">Offline-First</span>
+      <span class="pill">Supabase</span>
+    </div>
+    <div class="meta">
+      <div>
+        <div class="lbl">Program Studi</div>
+        <div class="val">Teknologi Informasi</div>
+      </div>
+      <div>
+        <div class="lbl">Versi</div>
+        <div class="val">1.0.0</div>
+      </div>
+      <div>
+        <div class="lbl">Tanggal</div>
+        <div class="val">2026</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TEAM ================= -->
+  <section>
+    <h2><span class="num">1</span> Perkenalan Kelompok</h2>
+    <p>
+      Proposal ini disusun oleh kelompok yang terdiri dari <strong>3 orang</strong>
+      dengan pembagian peran sebagai berikut.
+    </p>
+    <div class="team">
+      <div class="member">
+        <div class="avatar">1</div>
+        <div class="name">Nama Anggota 1</div>
+        <div class="role">Ketua / Android Developer</div>
+        <div class="nim">NIM: 0000000001</div>
+      </div>
+      <div class="member">
+        <div class="avatar">2</div>
+        <div class="name">Nama Anggota 2</div>
+        <div class="role">UI/UX &amp; Backend</div>
+        <div class="nim">NIM: 0000000002</div>
+      </div>
+      <div class="member">
+        <div class="avatar">3</div>
+        <div class="name">Nama Anggota 3</div>
+        <div class="role">Pengujian &amp; Dokumentasi</div>
+        <div class="nim">NIM: 0000000003</div>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:10px">
+      * Ganti nama, peran, dan NIM di atas sesuai data kelompok Anda.
+    </p>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ================= RINGKASAN ================= -->
+  <section>
+    <h2><span class="num">2</span> Ringkasan Proyek</h2>
+    <p>
+      <strong>RATIG</strong> (Reaction Time Fatigue) adalah aplikasi Android untuk
+      memeriksa tingkat kelelahan pekerja melalui pengukuran <strong>waktu reaksi</strong>.
+      Pemeriksaan berlangsung beberapa menit, hasilnya langsung tampil, dan data
+      tersimpan aman serta tersinkron otomatis.
+    </p>
+    <div class="callout">
+      <span class="t">Prinsip utama:</span> RATIG adalah <strong>alat bantu keputusan</strong>
+      bagi pemeriksa (paramedis/SHE). Hasilnya bukan diagnosis medis dan bukan
+      keputusan akhir kelayakan kerja.
+    </div>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="stat"><div class="n">4</div><div class="l">Mode pemeriksaan</div></div>
+      <div class="stat"><div class="n">3</div><div class="l">Peran pengguna</div></div>
+      <div class="stat"><div class="n">100%</div><div class="l">Dapat berjalan offline</div></div>
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ================= LATAR BELAKANG ================= -->
+  <section>
+    <h2><span class="num">3</span> Latar Belakang &amp; Tujuan</h2>
+    <h3>Masalah</h3>
+    <ul>
+      <li>Kelelahan menurunkan kewaspadaan dan meningkatkan risiko kecelakaan kerja.</li>
+      <li>Kelelahan bersifat subjektif — pekerja sering merasa “masih kuat”.</li>
+      <li>Pemeriksaan manual lambat dan sulit dibandingkan antar-waktu.</li>
+      <li>Pencatatan kertas/spreadsheet menyulitkan pemantauan menyeluruh.</li>
+    </ul>
+    <h3>Tujuan</h3>
+    <ul>
+      <li>Mendeteksi dini penurunan kondisi pekerja secara objektif.</li>
+      <li>Mempercepat pemeriksaan: satu petugas melayani banyak pekerja.</li>
+      <li>Mendokumentasikan hasil secara rapi, aman, dan dapat diaudit.</li>
+      <li>Memantau tren kelelahan per departemen, shift, dan waktu.</li>
+      <li>Melindungi privasi pekerja.</li>
+    </ul>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ================= ALUR ================= -->
+  <section>
+    <h2><span class="num">4</span> Cara Kerja</h2>
+    <div class="flow">
+      <div class="step"><div class="idx">1</div><div class="t">Identifikasi</div><div class="d">Pindai NIK/QR atau input manual</div></div>
+      <div class="step"><div class="idx">2</div><div class="t">Pemeriksaan</div><div class="d">Pekerja menyelesaikan tes</div></div>
+      <div class="step"><div class="idx">3</div><div class="t">Hasil</div><div class="d">Tampil seketika + kategori</div></div>
+      <div class="step"><div class="idx">4</div><div class="t">Sinkronisasi</div><div class="d">Tersimpan lokal → terkirim otomatis</div></div>
+    </div>
+    <div class="callout info" style="margin-top:16px">
+      <span class="t">Offline-first:</span> pemeriksaan tetap berjalan tanpa sinyal.
+      Data disimpan di perangkat lalu terkirim otomatis saat kembali online.
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ================= FITUR ================= -->
+  <section>
+    <h2><span class="num">5</span> Fitur Utama</h2>
+
+    <div class="feat">
+      <div class="ico">◎</div>
+      <div>
+        <div class="t">Empat Mode Pemeriksaan</div>
+        <div class="d">Klasik (RGB), Warna Acak, Tombol Acak, dan Inhibisi (Go/No-Go).
+        Hanya mode Klasik diklasifikasi; mode lain memberi data pengamatan dan tidak
+        digabung menjadi satu skor.</div>
+      </div>
+    </div>
+    <div class="feat">
+      <div class="ico">⏱</div>
+      <div>
+        <div class="t">Akurasi Tinggi</div>
+        <div class="d">Waktu diukur dengan <strong>monotonic clock</strong>, bukan jam dinding,
+        sehingga hasil tetap akurat meski perangkat lambat.</div>
+      </div>
+    </div>
+    <div class="feat">
+      <div class="ico">⇄</div>
+      <div>
+        <div class="t">Sinkronisasi Otomatis</div>
+        <div class="d">Sinkronisasi latar belakang yang idempotent dengan percobaan ulang
+        bertahap. Halaman <em>Status Sinkronisasi</em> menunjukkan data yang menunggu atau
+        perlu perhatian.</div>
+      </div>
+    </div>
+    <div class="feat">
+      <div class="ico">▤</div>
+      <div>
+        <div class="t">Identifikasi Cepat (NIK/QR)</div>
+        <div class="d">Input NIK manual (disamarkan) atau pemindai barcode/QR lewat kamera.</div>
+      </div>
+    </div>
+    <div class="feat">
+      <div class="ico">◍</div>
+      <div>
+        <div class="t">Tiga Peran dengan Halaman Berbeda</div>
+        <div class="d">Super Admin, Admin, dan Pengguna — masing-masing dengan hak akses
+        yang ditegakkan di server, bukan hanya di aplikasi.</div>
+      </div>
+    </div>
+    <div class="feat">
+      <div class="ico">⚿</div>
+      <div>
+        <div class="t">Keamanan &amp; Privasi</div>
+        <div class="d">Tanpa kunci layanan di aplikasi, NIK selalu disamarkan, hasil final
+        permanen, dan setiap tindakan penting tercatat di audit log.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="pagebreak"></div>
+
+  <!-- ================= PERAN ================= -->
+  <section>
+    <h2><span class="num">6</span> Peran Pengguna</h2>
+    <table>
+      <thead>
+        <tr><th style="width:26%">Peran</th><th>Halaman &amp; Tugas</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Super Admin</strong></td><td>Semua fitur: kelola admin &amp; pengguna, protokol, aturan, data master, audit, dan pemantauan penuh.</td></tr>
+        <tr><td><strong>Admin</strong></td><td>Kelola pengguna (peran Pengguna) + pemantauan dan laporan.</td></tr>
+        <tr><td><strong>Pengguna</strong></td><td>Menjalankan tes dan melihat riwayat pemeriksaan sendiri.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ================= TAMPILAN ================= -->
+  <section>
+    <h2><span class="num">7</span> Tampilan Aplikasi</h2>
+    <p>Antarmuka dirancang dengan <strong>Material Design 3</strong>: bersih, konsisten,
+    dan mudah dipakai di lapangan.</p>
+
+    <div class="figrow">
+      <figure class="figure">
+        <img src="ui/02_dashboard_superadmin.png" alt="Dasbor Super Admin" />
+        <figcaption>Dasbor Super Admin — pemantauan menyeluruh</figcaption>
+      </figure>
+      <figure class="figure">
+        <img src="ui/06_pengguna_semua.png" alt="Manajemen pengguna" />
+        <figcaption>Manajemen pengguna dengan tiga peran</figcaption>
+      </figure>
+    </div>
+
+    <figure class="figure">
+      <img src="ui/11_detail_sesi.png" alt="Detail sesi" />
+      <figcaption>Detail sesi pemeriksaan — metrik dan kategori hasil</figcaption>
+    </figure>
+
+    <div class="figrow">
+      <figure class="figure">
+        <img src="ui/20_dashboard_user.png" alt="Beranda pengguna" />
+        <figcaption>Beranda Pengguna</figcaption>
+      </figure>
+      <figure class="figure">
+        <img src="ui/07_tambah_pengguna_dialog.png" alt="Tambah pengguna" />
+        <figcaption>Tambah pengguna (Admin/Super Admin)</figcaption>
+      </figure>
+    </div>
+    <p class="muted">Galeri lengkap 21 layar tersedia pada dokumen <em>RATIG-UI-Gallery.pdf</em>.</p>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ================= TEKNOLOGI ================= -->
+  <section>
+    <h2><span class="num">8</span> Teknologi</h2>
+    <div class="grid g2">
+      <div class="card">
+        <h3 style="margin-top:0">Aplikasi</h3>
+        <ul style="margin-bottom:0">
+          <li>Android Native (Kotlin)</li>
+          <li>Jetpack Compose (Material 3)</li>
+          <li>Room (database lokal)</li>
+          <li>WorkManager (sinkronisasi)</li>
+          <li>CameraX + ML Kit (pemindai)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">Backend</h3>
+        <ul style="margin-bottom:0">
+          <li>Supabase (PostgreSQL)</li>
+          <li>Supabase Auth</li>
+          <li>Row Level Security</li>
+          <li>Edge Functions</li>
+          <li>Kebijakan akses per peran</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ================= MANFAAT ================= -->
+  <section>
+    <h2><span class="num">9</span> Manfaat yang Diharapkan</h2>
+    <table>
+      <thead>
+        <tr><th style="width:48%">Sebelum</th><th>Sesudah memakai RATIG</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Pemeriksaan manual, hasil subjektif</td><td>Pengukuran objektif &amp; konsisten</td></tr>
+        <tr><td>Sulit memantau seluruh pekerja</td><td>Dashboard pemantauan real-time</td></tr>
+        <tr><td>Data di kertas/spreadsheet</td><td>Data digital, otomatis, dapat diaudit</td></tr>
+        <tr><td>Bergantung jaringan</td><td>Tetap berjalan offline</td></tr>
+        <tr><td>Risiko data pribadi tersebar</td><td>Privasi terlindungi berlapis</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ================= TAHAPAN ================= -->
+  <section>
+    <h2><span class="num">10</span> Tahapan Pelaksanaan</h2>
+    <div class="flow">
+      <div class="step"><div class="idx">1</div><div class="t">Persiapan</div><div class="d">Konfigurasi server &amp; data awal</div></div>
+      <div class="step"><div class="idx">2</div><div class="t">Penerapan</div><div class="d">Pemasangan &amp; pelatihan</div></div>
+      <div class="step"><div class="idx">3</div><div class="t">Uji Coba</div><div class="d">Pemeriksaan perdana</div></div>
+      <div class="step"><div class="idx">4</div><div class="t">Operasional</div><div class="d">Penggunaan rutin</div></div>
+      <div class="step"><div class="idx">5</div><div class="t">Evaluasi</div><div class="d">Tinjauan berkala</div></div>
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ================= PENUTUP ================= -->
+  <section>
+    <h2><span class="num">11</span> Penutup</h2>
+    <p>
+      RATIG dirancang agar <strong>sederhana bagi pengguna, kuat di belakang layar</strong>.
+      Petugas cukup memindai dan menjalankan tes; keamanan, akurasi, dan pencatatan
+      ditangani otomatis. Dengan RATIG, pemeriksaan kelelahan menjadi lebih cepat,
+      objektif, dan dapat dipantau menyeluruh — mendukung lingkungan kerja yang lebih aman.
+    </p>
+    <div class="callout warn">
+      <span class="t">Catatan:</span> hasil RATIG bersifat alat bantu keputusan dan
+      tidak menggantikan penilaian medis atau keputusan resmi perusahaan.
+    </div>
+  </section>
+
+  <footer>
+    RATIG — Proposal Proyek · Dokumen ini dibuat untuk keperluan akademik/proyek.
+  </footer>
+
+</div>
+</body>
+</html>

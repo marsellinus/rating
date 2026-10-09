@@ -4,6 +4,20 @@
 
 ---
 
+## Perkenalan Kelompok
+
+Proposal ini disusun oleh kelompok yang terdiri dari **3 orang**:
+
+| No | Nama | Peran | NIM |
+|---|---|---|---|
+| 1 | _Nama Anggota 1_ | Ketua / Android Developer | _0000000001_ |
+| 2 | _Nama Anggota 2_ | UI/UX & Backend | _0000000002_ |
+| 3 | _Nama Anggota 3_ | Pengujian & Dokumentasi | _0000000003_ |
+
+> Ganti nama, peran, dan NIM di atas sesuai data kelompok Anda.
+
+---
+
 ## Ringkasan Singkat
 
 RATIG adalah aplikasi Android untuk memeriksa tingkat kelelahan pekerja
