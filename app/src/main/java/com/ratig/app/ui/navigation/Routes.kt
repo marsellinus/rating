@@ -7,6 +7,7 @@ package com.ratig.app.ui.navigation
  */
 object Routes {
     const val SPLASH = "splash"
+    const val SETUP = "setup"
     const val ONBOARDING = "onboarding"
     const val LOGIN = "login"
     const val PENDING_APPROVAL = "pending_approval"

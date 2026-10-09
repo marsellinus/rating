@@ -94,3 +94,33 @@ val RatigTypography = Typography(
         lineHeight = 16.sp,
     ),
 )
+
+/**
+ * Returns a copy of this typography with every text style scaled by [factor].
+ * Used by the setup screen so users can enlarge the whole UI; a factor of 1.0
+ * returns the typography unchanged.
+ */
+fun Typography.scaled(factor: Float): Typography {
+    if (factor == 1f) return this
+    fun TextStyle.s(): TextStyle = copy(
+        fontSize = fontSize * factor,
+        lineHeight = lineHeight * factor,
+    )
+    return Typography(
+        displayLarge = displayLarge.s(),
+        displayMedium = displayMedium.s(),
+        displaySmall = displaySmall.s(),
+        headlineLarge = headlineLarge.s(),
+        headlineMedium = headlineMedium.s(),
+        headlineSmall = headlineSmall.s(),
+        titleLarge = titleLarge.s(),
+        titleMedium = titleMedium.s(),
+        titleSmall = titleSmall.s(),
+        bodyLarge = bodyLarge.s(),
+        bodyMedium = bodyMedium.s(),
+        bodySmall = bodySmall.s(),
+        labelLarge = labelLarge.s(),
+        labelMedium = labelMedium.s(),
+        labelSmall = labelSmall.s(),
+    )
+}

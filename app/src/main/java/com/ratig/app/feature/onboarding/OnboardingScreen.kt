@@ -43,71 +43,50 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ratig.app.core.i18n.LocalStrings
+import com.ratig.app.core.i18n.S
 import com.ratig.app.data.offline.RememberLoginStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 
-/** One onboarding page: a large icon, a short title, and simple steps. */
 private data class OnboardingPage(
     val icon: ImageVector,
-    val title: String,
-    val intro: String,
-    val steps: List<String>,
+    val title: S,
+    val intro: S,
+    val steps: List<S>,
 )
 
 private val PAGES = listOf(
     OnboardingPage(
         icon = Icons.Rounded.TouchApp,
-        title = "Selamat Datang di RATIG",
-        intro = "Aplikasi ini membantu memeriksa kelelahan pekerja dengan cepat " +
-            "dan mudah. Hanya butuh beberapa menit.",
-        steps = listOf(
-            "Anda cukup mengikuti petunjuk di layar.",
-            "Tidak perlu keahlian khusus — ikuti saja langkahnya.",
-            "Gambar dan tulisan dibuat besar agar mudah dibaca.",
-        ),
+        title = S.ONB_WELCOME_TITLE,
+        intro = S.ONB_WELCOME_INTRO,
+        steps = listOf(S.ONB_WELCOME_S1, S.ONB_WELCOME_S2, S.ONB_WELCOME_S3),
     ),
     OnboardingPage(
         icon = Icons.Rounded.Badge,
-        title = "1. Pilih Pekerja",
-        intro = "Tentukan siapa yang akan diperiksa.",
-        steps = listOf(
-            "Buka menu \"Pekerja\" di bagian bawah.",
-            "Cari nama pekerja, atau pindai kartu (NIK/QR).",
-            "Ketuk nama pekerja untuk membuka datanya.",
-        ),
+        title = S.ONB_PICK_TITLE,
+        intro = S.ONB_PICK_INTRO,
+        steps = listOf(S.ONB_PICK_S1, S.ONB_PICK_S2, S.ONB_PICK_S3),
     ),
     OnboardingPage(
         icon = Icons.Rounded.Fingerprint,
-        title = "2. Jalankan Pemeriksaan",
-        intro = "Pekerja mengerjakan tes waktu reaksi singkat.",
-        steps = listOf(
-            "Ketuk tombol \"Mulai Tes\".",
-            "Bacakan petunjuk singkat di layar.",
-            "Pekerja menyentuh layar saat muncul tanda.",
-            "Selesaikan sampai semua percobaan habis.",
-        ),
+        title = S.ONB_RUN_TITLE,
+        intro = S.ONB_RUN_INTRO,
+        steps = listOf(S.ONB_RUN_S1, S.ONB_RUN_S2, S.ONB_RUN_S3, S.ONB_RUN_S4),
     ),
     OnboardingPage(
         icon = Icons.Rounded.CheckCircle,
-        title = "3. Lihat Hasil",
-        intro = "Hasil muncul langsung setelah tes selesai.",
-        steps = listOf(
-            "Baca ringkasan: rata-rata waktu reaksi dan kategori.",
-            "Ketuk \"Finalisasi\" untuk menyimpan hasil.",
-            "Hasil yang sudah disimpan tidak dapat diubah.",
-        ),
+        title = S.ONB_RESULT_TITLE,
+        intro = S.ONB_RESULT_INTRO,
+        steps = listOf(S.ONB_RESULT_S1, S.ONB_RESULT_S2, S.ONB_RESULT_S3),
     ),
     OnboardingPage(
         icon = Icons.Rounded.CloudDone,
-        title = "4. Aman Tanpa Internet",
-        intro = "Aplikasi tetap berfungsi walaupun tidak ada sinyal.",
-        steps = listOf(
-            "Hasil disimpan di perangkat lebih dulu.",
-            "Saat ada internet, data terkirim otomatis.",
-            "Buka \"Status Sinkronisasi\" untuk melihat statusnya.",
-        ),
+        title = S.ONB_OFFLINE_TITLE,
+        intro = S.ONB_OFFLINE_INTRO,
+        steps = listOf(S.ONB_OFFLINE_S1, S.ONB_OFFLINE_S2, S.ONB_OFFLINE_S3),
     ),
 )
 
@@ -133,6 +112,7 @@ fun OnboardingRoute(onDone: () -> Unit, viewModel: OnboardingViewModel = hiltVie
     val pagerState = rememberPagerState(pageCount = { PAGES.size })
     val scope = rememberCoroutineScope()
     val isLast = pagerState.currentPage == PAGES.lastIndex
+    val strings = LocalStrings.current
     val finish = { viewModel.finish(onDone) }
 
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -141,7 +121,7 @@ fun OnboardingRoute(onDone: () -> Unit, viewModel: OnboardingViewModel = hiltVie
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.End,
             ) {
-                TextButton(onClick = finish) { Text("Lewati") }
+                TextButton(onClick = finish) { Text(strings.t(S.ONB_SKIP)) }
             }
 
             HorizontalPager(
@@ -189,7 +169,7 @@ fun OnboardingRoute(onDone: () -> Unit, viewModel: OnboardingViewModel = hiltVie
                 shape = MaterialTheme.shapes.medium,
             ) {
                 Text(
-                    text = if (isLast) "Mulai Menggunakan" else "Lanjut",
+                    text = strings.t(if (isLast) S.ONB_START else S.ONB_NEXT),
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Spacer(Modifier.width(8.dp))
@@ -201,6 +181,7 @@ fun OnboardingRoute(onDone: () -> Unit, viewModel: OnboardingViewModel = hiltVie
 
 @Composable
 private fun OnboardingPageContent(page: OnboardingPage) {
+    val strings = LocalStrings.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -225,14 +206,14 @@ private fun OnboardingPageContent(page: OnboardingPage) {
         }
         Spacer(Modifier.height(28.dp))
         Text(
-            text = page.title,
+            text = strings.t(page.title),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(12.dp))
         Text(
-            text = page.intro,
+            text = strings.t(page.intro),
             style = MaterialTheme.typography.bodyLarge,
             fontSize = 18.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -261,7 +242,7 @@ private fun OnboardingPageContent(page: OnboardingPage) {
                     }
                     Spacer(Modifier.width(14.dp))
                     Text(
-                        text = step,
+                        text = strings.t(step),
                         style = MaterialTheme.typography.bodyLarge,
                         fontSize = 17.sp,
                         modifier = Modifier.padding(top = 4.dp),

@@ -22,10 +22,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
+import com.ratig.app.core.i18n.LocalStrings
+import com.ratig.app.core.i18n.S
 import com.ratig.app.domain.model.UserRole
 import com.ratig.app.domain.repository.SessionState
 
-private data class BottomDest(val route: String, val label: String, val icon: ImageVector)
+private data class BottomDest(val route: String, val label: S, val icon: ImageVector)
 
 /**
  * Root app scaffold + navigation graph.
@@ -38,13 +40,14 @@ fun RatigNavHost(
     sessionState: SessionState,
 ) {
     val role = (sessionState as? SessionState.Authenticated)?.profile?.role
+    val strings = LocalStrings.current
     val bottomDests = buildList {
-        add(BottomDest(Routes.DASHBOARD, "Beranda", Icons.Outlined.Home))
+        add(BottomDest(Routes.DASHBOARD, S.NAV_HOME, Icons.Outlined.Home))
         if (role != null) {
-            add(BottomDest(Routes.WORKERS, "Pekerja", Icons.Outlined.People))
+            add(BottomDest(Routes.WORKERS, S.NAV_WORKERS, Icons.Outlined.People))
         }
-        add(BottomDest(Routes.HISTORY, "Riwayat", Icons.Outlined.History))
-        add(BottomDest(Routes.PROFILE, "Profil", Icons.Outlined.Person))
+        add(BottomDest(Routes.HISTORY, S.NAV_HISTORY, Icons.Outlined.History))
+        add(BottomDest(Routes.PROFILE, S.NAV_PROFILE, Icons.Outlined.Person))
     }
 
     Scaffold(
@@ -64,8 +67,8 @@ fun RatigNavHost(
                                     restoreState = true
                                 }
                             },
-                            icon = { Icon(dest.icon, contentDescription = dest.label) },
-                            label = { Text(dest.label) },
+                            icon = { Icon(dest.icon, contentDescription = strings.t(dest.label)) },
+                            label = { Text(strings.t(dest.label)) },
                         )
                     }
                 }
@@ -84,6 +87,22 @@ fun RatigNavHost(
                     onGoHome = { navController.navigate(Routes.DASHBOARD) { popUpTo(Routes.SPLASH) { inclusive = true } } },
                     onGoConfigError = { navController.navigate(Routes.CONFIG_ERROR) { popUpTo(Routes.SPLASH) { inclusive = true } } },
                     onGoOnboarding = { navController.navigate(Routes.ONBOARDING) { popUpTo(Routes.SPLASH) { inclusive = true } } },
+                    onGoSetup = { navController.navigate(Routes.SETUP) { popUpTo(Routes.SPLASH) { inclusive = true } } },
+                )
+            }
+
+            composable(Routes.SETUP) {
+                com.ratig.app.feature.setup.SetupRoute(
+                    onDone = {
+                        // From the first-run flow there is nothing to return to,
+                        // so continue to the tutorial; from Profile, go back.
+                        val returned = navController.popBackStack()
+                        if (!returned) {
+                            navController.navigate(Routes.ONBOARDING) {
+                                popUpTo(Routes.SETUP) { inclusive = true }
+                            }
+                        }
+                    },
                 )
             }
 

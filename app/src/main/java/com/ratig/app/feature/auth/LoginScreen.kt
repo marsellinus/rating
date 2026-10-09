@@ -60,6 +60,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
+import com.ratig.app.core.i18n.LocalStrings
+import com.ratig.app.core.i18n.S
 import com.ratig.app.core.result.AppResult
 import com.ratig.app.data.offline.RememberLoginStore
 import com.ratig.app.domain.model.AccountStatus
@@ -199,6 +201,7 @@ private fun LoginContent(
     googleAvailable: Boolean,
 ) {
     val context = LocalContext.current
+    val strings = LocalStrings.current
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
 
@@ -230,18 +233,18 @@ private fun LoginContent(
                         tint = MaterialTheme.colorScheme.primary,
                     )
                     Text(
-                        text = "RATIG",
+                        text = strings.t(S.LOGIN_TITLE),
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
-                        text = "Pemeriksaan Kelelahan Pekerja",
+                        text = strings.t(S.LOGIN_SUBTITLE),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                     )
                     Text(
-                        text = "Masuk menggunakan akun yang diberikan oleh administrator.",
+                        text = strings.t(S.LOGIN_HINT),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
@@ -266,8 +269,8 @@ private fun LoginContent(
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        label = { Text("Email") },
-                        placeholder = { Text("nama@perusahaan.com") },
+                        label = { Text(strings.t(S.LOGIN_EMAIL)) },
+                        placeholder = { Text(strings.t(S.LOGIN_EMAIL_PLACEHOLDER)) },
                         singleLine = true,
                         enabled = !uiState.loading,
                         textStyle = MaterialTheme.typography.bodyLarge,
@@ -280,7 +283,7 @@ private fun LoginContent(
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text("Kata sandi") },
+                        label = { Text(strings.t(S.LOGIN_PASSWORD)) },
                         singleLine = true,
                         enabled = !uiState.loading,
                         textStyle = MaterialTheme.typography.bodyLarge,
@@ -297,11 +300,9 @@ private fun LoginContent(
                                     } else {
                                         Icons.Rounded.Visibility
                                     },
-                                    contentDescription = if (uiState.showPassword) {
-                                        "Sembunyikan kata sandi"
-                                    } else {
-                                        "Tampilkan kata sandi"
-                                    },
+                                    contentDescription = strings.t(
+                                        if (uiState.showPassword) S.LOGIN_HIDE_PASSWORD else S.LOGIN_SHOW_PASSWORD,
+                                    ),
                                 )
                             }
                         },
@@ -326,7 +327,7 @@ private fun LoginContent(
                             onCheckedChange = onRememberChange,
                         )
                         Text(
-                            text = "Ingat saya di perangkat ini",
+                            text = strings.t(S.LOGIN_REMEMBER),
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }
@@ -343,7 +344,7 @@ private fun LoginContent(
                                 strokeWidth = 2.dp,
                             )
                             Spacer(Modifier.width(10.dp))
-                            Text("Memproses...", style = MaterialTheme.typography.titleMedium)
+                            Text(strings.t(S.LOGIN_PROCESSING), style = MaterialTheme.typography.titleMedium)
                         } else {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Rounded.Login,
@@ -351,7 +352,7 @@ private fun LoginContent(
                                 modifier = Modifier.size(20.dp),
                             )
                             Spacer(Modifier.width(10.dp))
-                            Text("Masuk", style = MaterialTheme.typography.titleMedium)
+                            Text(strings.t(S.LOGIN_BUTTON), style = MaterialTheme.typography.titleMedium)
                         }
                     }
 
@@ -368,12 +369,12 @@ private fun LoginContent(
                             modifier = Modifier.fillMaxWidth().height(52.dp),
                             shape = MaterialTheme.shapes.medium,
                         ) {
-                            Text("Masuk dengan Google")
+                            Text(strings.t(S.LOGIN_GOOGLE))
                         }
                     }
 
                     Text(
-                        text = "Belum punya akun? Hubungi administrator untuk didaftarkan.",
+                        text = strings.t(S.LOGIN_NO_ACCOUNT),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,

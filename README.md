@@ -109,6 +109,21 @@ sandi semua akun: **`Ratig-T3st-2026!`**
 
 ---
 
+## Setup Awal (Sekali)
+
+Saat pertama dibuka, aplikasi menampilkan **Setup Awal** dengan **pratinjau
+langsung** (perubahan langsung terlihat):
+
+1. **Bahasa** — Bahasa Indonesia / English.
+2. **Mode Tampilan** — Ikut Ponsel / Terang / Gelap.
+3. **Ukuran Tulisan** — Normal / Besar / Sangat Besar.
+
+Setelah itu muncul **panduan singkat (tutorial)** 5 halaman. Keduanya dapat
+dibuka lagi dari **Profil → Pengaturan Tampilan** dan **Profil → Panduan
+Penggunaan**.
+
+---
+
 ## Memulai (Build)
 
 1. **Konfigurasi lokal** — salin `local.properties.example` → `local.properties`

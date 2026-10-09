@@ -25,6 +25,7 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.FactCheck
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.ManageAccounts
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.ReceiptLong
 import androidx.compose.material.icons.outlined.Rule
@@ -135,6 +136,7 @@ private data class ProfileMenuItem(
 
 private val menuItems = listOf(
     ProfileMenuItem("Panduan Penggunaan", Icons.Outlined.HelpOutline, Routes.ONBOARDING),
+    ProfileMenuItem("Pengaturan Tampilan", Icons.Outlined.Palette, Routes.SETUP),
     ProfileMenuItem("Jadwal & Shift", Icons.Outlined.CalendarMonth, Routes.SCHEDULES),
     ProfileMenuItem("Tindak Lanjut", Icons.Outlined.FactCheck, Routes.FOLLOW_UPS),
     ProfileMenuItem("Laporan", Icons.Outlined.BarChart, Routes.REPORTS),

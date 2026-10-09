@@ -37,6 +37,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.ratig.app.core.config.AppConfig
+import com.ratig.app.data.offline.AppPreferencesStore
 import com.ratig.app.data.offline.RememberLoginStore
 import com.ratig.app.domain.repository.AuthRepository
 import com.ratig.app.domain.repository.SessionState
@@ -52,15 +53,16 @@ class SplashViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     appConfig: AppConfig,
     private val rememberLoginStore: RememberLoginStore,
+    private val appPreferencesStore: AppPreferencesStore,
 ) : ViewModel() {
 
     val isConfigured: Boolean = appConfig.isConfigured
 
     val sessionState: StateFlow<SessionState> = authRepository.sessionState
 
-    /** Emits true once we know whether the first-run tutorial was seen. */
-    private val _onboardingDone = MutableStateFlow<Boolean?>(null)
-    val onboardingDone: StateFlow<Boolean?> = _onboardingDone.asStateFlow()
+    /** null = not yet known. */
+    private val _firstRun = MutableStateFlow<FirstRunStep?>(null)
+    val firstRun: StateFlow<FirstRunStep?> = _firstRun.asStateFlow()
 
     init {
         if (isConfigured) {
@@ -72,15 +74,25 @@ class SplashViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            _onboardingDone.value = rememberLoginStore.current().onboardingDone
+            // Order on a fresh install: setup -> tutorial -> login.
+            val setupDone = appPreferencesStore.current().setupDone
+            val onboardingDone = rememberLoginStore.current().onboardingDone
+            _firstRun.value = when {
+                !setupDone -> FirstRunStep.SETUP
+                !onboardingDone -> FirstRunStep.ONBOARDING
+                else -> FirstRunStep.DONE
+            }
         }
     }
 }
 
+/** Which pre-login screen a signed-out user should see first. */
+enum class FirstRunStep { SETUP, ONBOARDING, DONE }
+
 /**
  * Decides the start destination from the server-verified session state.
  * Navigates exactly once: [navigated] guards against repeated state emissions.
- * A signed-out first-run user sees the tutorial before the login screen.
+ * A signed-out first-run user walks through setup -> tutorial -> login.
  */
 @Composable
 fun SplashRoute(
@@ -89,6 +101,7 @@ fun SplashRoute(
     onGoHome: () -> Unit,
     onGoConfigError: () -> Unit,
     onGoOnboarding: () -> Unit,
+    onGoSetup: () -> Unit,
 ) {
     val viewModel: SplashViewModel = hiltViewModel()
     var navigated by rememberSaveable { mutableStateOf(false) }
@@ -102,16 +115,20 @@ fun SplashRoute(
         }
     } else {
         val state by viewModel.sessionState.collectAsStateWithLifecycle()
-        val onboardingDone by viewModel.onboardingDone.collectAsStateWithLifecycle()
-        LaunchedEffect(state, onboardingDone) {
+        val firstRun by viewModel.firstRun.collectAsStateWithLifecycle()
+        LaunchedEffect(state, firstRun) {
             if (navigated) return@LaunchedEffect
             when (state) {
                 SessionState.Loading -> Unit
                 SessionState.Unauthenticated, is SessionState.Error -> {
-                    // Show the first-run tutorial before login when not yet seen.
-                    if (onboardingDone == null) return@LaunchedEffect
+                    // Wait until we know the first-run step.
+                    val step = firstRun ?: return@LaunchedEffect
                     navigated = true
-                    if (onboardingDone == false) onGoOnboarding() else onGoLogin()
+                    when (step) {
+                        FirstRunStep.SETUP -> onGoSetup()
+                        FirstRunStep.ONBOARDING -> onGoOnboarding()
+                        FirstRunStep.DONE -> onGoLogin()
+                    }
                 }
                 is SessionState.AwaitingApproval -> {
                     navigated = true

@@ -53,19 +53,25 @@ perangkat lalu terkirim otomatis saat kembali online.
 
 ---
 
-## 3. Masuk ke Aplikasi
+## 3. Setup Awal & Masuk
 
-Saat pertama kali dibuka, aplikasi menampilkan **panduan singkat (tutorial)**.
-Ikuti halaman panduan lalu tekan **Mulai Menggunakan** (atau **Lewati**).
-Panduan ini bisa dibuka lagi kapan saja dari **Profil → Panduan Penggunaan**.
+Saat pertama kali dibuka, aplikasi menampilkan **Setup Awal** dengan pratinjau
+langsung — setiap pilihan langsung terlihat:
+
+1. **Bahasa** — Bahasa Indonesia atau English.
+2. **Mode Tampilan** — Ikut Ponsel, Terang, atau Gelap.
+3. **Ukuran Tulisan** — Normal, Besar, atau Sangat Besar.
+
+Ketuk **Simpan & Lanjut**, lalu ikuti **panduan singkat (tutorial)** dan tekan
+**Mulai Menggunakan** (atau **Lewati**). Keduanya dapat dibuka lagi dari
+**Profil → Pengaturan Tampilan** dan **Profil → Panduan Penggunaan**.
 
 Cara masuk:
 
-1. Buka aplikasi **RATIG**.
-2. Isi **Email** dan **Kata sandi** yang diberikan administrator.
-3. Centang **Ingat saya di perangkat ini** bila ingin email terisi otomatis
+1. Isi **Email** dan **Kata sandi** yang diberikan administrator.
+2. Centang **Ingat saya di perangkat ini** bila ingin email terisi otomatis
    pada pembukaan berikutnya.
-4. Tekan **Masuk**.
+3. Tekan **Masuk**.
 
 > **Tidak ada pendaftaran mandiri.** Akun dibuat oleh administrator. Bila belum
 > punya akun, hubungi administrator untuk didaftarkan.
