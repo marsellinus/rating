@@ -71,6 +71,20 @@ bahwa aplikasi belum diatur. Hubungi administrator teknis (lihat
 > Pada **build debug** (khusus pengujian), tersedia juga login email/kata sandi.
 > Fitur ini **tidak aktif** pada aplikasi produksi.
 
+### 3.1 Akun Demo (untuk mencoba)
+
+Pada build **debug** tersedia akun uji berikut. Kata sandi semua akun:
+**`Ratig-T3st-2026!`**
+
+| Email | Peran | Yang Anda lihat |
+|---|---|---|
+| `admin@ratig.test` | Super Admin | Dasbor Super Admin + semua menu |
+| `examiner@ratig.test` | Admin | Dasbor Admin + pemantauan |
+| `mgmt@ratig.test` | Admin | Dasbor Admin + pemantauan |
+| `worker@ratig.test` | Pengguna | Beranda Pengguna |
+
+> Akun ini **hanya untuk pengujian**. Jangan dipakai di lingkungan produksi.
+
 ---
 
 ## 4. Mengenal Peran Pengguna
