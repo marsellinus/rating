@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<title>RATIG — Galeri Antarmuka (Material Design)</title>
+<style>
+  :root {
+    --md-primary: #386a20;
+    --md-primary-container: #b7f397;
+    --md-on-primary-container: #042100;
+    --md-surface: #fdf8f6;
+    --md-surface-variant: #e2e3d9;
+    --md-on-surface: #1c1b1a;
+    --md-outline: #75796c;
+    --md-error: #ba1a1a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Roboto", "Segoe UI", system-ui, sans-serif;
+    background: var(--md-surface);
+    color: var(--md-on-surface);
+    line-height: 1.5;
+  }
+  .page { padding: 48px 56px; }
+  h1 { font-size: 34px; font-weight: 400; margin: 0 0 4px; letter-spacing: 0; }
+  h2 {
+    font-size: 22px; font-weight: 500; margin: 40px 0 8px;
+    padding-bottom: 8px; border-bottom: 2px solid var(--md-primary);
+  }
+  .subtitle { color: #49454f; font-size: 15px; margin-bottom: 32px; }
+  .cover {
+    background: var(--md-primary-container);
+    color: var(--md-on-primary-container);
+    border-radius: 28px;
+    padding: 56px 48px;
+    margin-bottom: 40px;
+  }
+  .cover h1 { font-size: 46px; }
+  .cover p { margin: 8px 0 0; font-size: 17px; }
+  .badge {
+    display: inline-block; background: var(--md-primary); color: #fff;
+    border-radius: 999px; padding: 4px 14px; font-size: 13px; margin-top: 18px;
+  }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .shot {
+    background: #fff;
+    border: 1px solid #d7dad0;
+    border-radius: 20px;
+    overflow: hidden;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .shot.wide { grid-column: 1 / -1; }
+  .shot img { width: 100%; display: block; }
+  .shot .cap {
+    padding: 14px 18px;
+    border-top: 1px solid #e4e6dd;
+  }
+  .shot .cap .t { font-weight: 500; font-size: 15px; }
+  .shot .cap .d { font-size: 13px; color: #49454f; margin-top: 2px; }
+  .role {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 2px 10px; border-radius: 999px; margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  .role.super { background: #e8def8; color: #4a2b7a; }
+  .role.admin { background: #d7e8ff; color: #0b4a80; }
+  .role.user  { background: #d9f2cf; color: #1f4d12; }
+  .role.all   { background: #ffe9c7; color: #7a4a00; }
+  footer { margin-top: 48px; font-size: 12px; color: #75796c; text-align: center; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="cover">
+    <h1>RATIG</h1>
+    <p>Galeri Antarmuka Aplikasi — Sistem Pemeriksaan Kelelahan Berbasis Waktu Reaksi</p>
+    <p style="font-size:14px;opacity:.85">Android · Jetpack Compose · Material 3 · Offline-First</p>
+    <span class="badge">Dokumentasi UI</span>
+  </div>
+
+  <h2>Alur Masuk</h2>
+  <div class="grid">
+    <div class="shot">
+      <img src="ui/01_login.png" alt="Layar masuk" />
+      <div class="cap">
+        <div class="t">Layar Masuk</div>
+        <div class="d">Masuk dengan akun Google. Pada build debug tersedia login email/kata sandi untuk pengujian.</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="ui/07_tambah_pengguna_dialog.png" alt="Dialog tambah pengguna" />
+      <div class="cap">
+        <span class="role super">Super Admin</span>
+        <div class="t">Tambah Pengguna</div>
+        <div class="d">Super Admin/Admin menambah akun: nama, email, peran, status, dan opsi undangan email.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Super Admin</h2>
+  <div class="grid">
+    <div class="shot">
+      <img src="ui/02_dashboard_superadmin.png" alt="Dashboard super admin" />
+      <div class="cap">
+        <span class="role super">Super Admin</span>
+        <div class="t">Dasbor Super Admin</div>
+        <div class="d">Ringkasan pekerja aktif, total pengguna, sesi, dan hal yang perlu perhatian.</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="ui/03_dashboard_superadmin_bawah.png" alt="Dashboard super admin bagian bawah" />
+      <div class="cap">
+        <div class="t">Dasbor (lanjutan)</div>
+        <div class="d">Klasifikasi hasil, sesi per departemen, sesi per shift, dan tren harian.</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="ui/04_profil_superadmin.png" alt="Profil super admin" />
+      <div class="cap">
+        <div class="t">Profil Super Admin</div>
+        <div class="d">Menu lengkap: Pengguna, Audit Log, Protokol, Aturan Klasifikasi, Data Master.</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="ui/05_manajemen_pengguna.png" alt="Manajemen pengguna" />
+      <div class="cap">
+        <div class="t">Manajemen Pengguna</div>
+        <div class="d">Filter per status akun, pencarian, tombol (+) untuk menambah pengguna.</div>
+      </div>
+    </div>
+    <div class="shot wide">
+      <img src="ui/06_pengguna_semua.png" alt="Daftar pengguna" />
+      <div class="cap">
+        <div class="t">Daftar Pengguna (Semua)</div>
+        <div class="d">Tiga peran ditampilkan jelas: Super Admin, Admin, dan Pengguna beserta status akunnya.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Operasional Pemeriksaan</h2>
+  <div class="grid">
+    <div class="shot">
+      <img src="ui/08_daftar_pekerja.png" alt="Daftar pekerja" />
+      <div class="cap">
+        <span class="role all">Semua Peran</span>
+        <div class="t">Daftar Pekerja</div>
+        <div class="d">Pencarian, filter departemen/shift, dan status aktif pekerja.</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="ui/09_detail_pekerja.png" alt="Detail pekerja" />
+      <div class="cap">
+        <div class="t">Detail Pekerja</div>
+        <div class="d">Informasi organisasi, tombol Mulai Tes, dan riwayat pemeriksaan pekerja.</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="ui/10_detail_pekerja_bawah.png" alt="Detail pekerja bawah" />
+      <div class="cap">
+        <div class="t">Detail Pekerja (lanjutan)</div>
+        <div class="d">Riwayat sesi beserta status dan kategori hasil.</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="ui/11_detail_sesi.png" alt="Detail sesi" />
+      <div class="cap">
+        <div class="t">Detail Sesi</div>
+        <div class="d">Informasi sesi, metadata perangkat, dan hasil pemeriksaan.</div>
+      </div>
+    </div>
+    <div class="shot wide">
+      <img src="ui/12_detail_sesi_trial.png" alt="Detail trial" />
+      <div class="cap">
+        <div class="t">Rincian Percobaan (Trial)</div>
+        <div class="d">Setiap percobaan dicatat: valid/tidak valid, waktu reaksi (ms), dan status respons.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Analitik & Administrasi</h2>
+  <div class="grid">
+    <div class="shot">
+      <img src="ui/13_laporan.png" alt="Laporan" />
+      <div class="cap">
+        <span class="role admin">Admin</span>
+        <div class="t">Laporan &amp; Ekspor</div>
+        <div class="d">Pilih periode, filter departemen/shift, lalu ekspor (CSV) untuk manajemen.</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="ui/14_jadwal.png" alt="Jadwal" />
+      <div class="cap">
+        <div class="t">Jadwal Pemeriksaan</div>
+        <div class="d">Penjadwalan pemeriksaan per tanggal dan pengelolaan shift.</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="ui/15_tindak_lanjut.png" alt="Tindak lanjut" />
+      <div class="cap">
+        <div class="t">Tindak Lanjut</div>
+        <div class="d">Daftar tindak lanjut hasil pemeriksaan dengan filter status.</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="ui/16_audit_log.png" alt="Audit log" />
+      <div class="cap">
+        <span class="role super">Super Admin</span>
+        <div class="t">Audit Log</div>
+        <div class="d">Jejak audit seluruh tindakan penting (mis. create_user, approve_account).</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="ui/17_protokol.png" alt="Protokol" />
+      <div class="cap">
+        <span class="role super">Super Admin</span>
+        <div class="t">Protokol Uji</div>
+        <div class="d">Daftar protokol pemeriksaan beserta versi dan statusnya.</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="ui/18_data_master.png" alt="Data master" />
+      <div class="cap">
+        <span class="role super">Super Admin</span>
+        <div class="t">Data Master</div>
+        <div class="d">Pengelolaan departemen, area kerja, dan shift.</div>
+      </div>
+    </div>
+    <div class="shot wide">
+      <img src="ui/19_aturan_klasifikasi.png" alt="Aturan klasifikasi" />
+      <div class="cap">
+        <span class="role super">Super Admin</span>
+        <div class="t">Aturan Klasifikasi</div>
+        <div class="d">Ambang batas kategori kelelahan yang dapat divalidasi perusahaan (versi terpisah).</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Pengalaman Pengguna (User)</h2>
+  <div class="grid">
+    <div class="shot">
+      <img src="ui/20_dashboard_user.png" alt="Dashboard user" />
+      <div class="cap">
+        <span class="role user">Pengguna</span>
+        <div class="t">Beranda Pengguna</div>
+        <div class="d">Ringkasan sesi pribadi dan panduan langkah pemeriksaan.</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="ui/21_profil_user.png" alt="Profil user" />
+      <div class="cap">
+        <span class="role user">Pengguna</span>
+        <div class="t">Profil Pengguna</div>
+        <div class="d">Menu lebih ringkas: hanya fungsi yang relevan untuk peran Pengguna.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    RATIG — Dokumen galeri antarmuka. Tangkapan layar dari perangkat Android uji (Material 3, tema dinamis).
+  </footer>
+</div>
+</body>
+</html>

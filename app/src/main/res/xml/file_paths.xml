@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Paths exposed via FileProvider for sharing exported reports (CSV/PDF). -->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <external-files-path name="reports" path="reports/" />
+    <files-path name="reports_internal" path="reports/" />
+</paths>

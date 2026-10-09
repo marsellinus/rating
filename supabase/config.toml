@@ -1,0 +1,13 @@
+# RATIG — Supabase project config (backend slice)
+# Linked via `supabase link --project-ref <ref>`. Functions are declared here
+# so `supabase functions deploy` picks them up without extra flags.
+
+project_id = "ratig"
+
+# Platform verifies the caller's JWT before invoking; each function still
+# validates the token and the caller's profiles.role itself.
+[functions.approve-account]
+verify_jwt = true
+
+[functions.export-report]
+verify_jwt = true

@@ -1,0 +1,9 @@
+# Copy to local.properties and fill in values. Never commit real keys.
+sdk.dir=/path/to/Android/Sdk
+
+# Supabase project URL, e.g. https://xxxxxxxx.supabase.co
+supabase.url=
+# Supabase public anon (publishable) key - NEVER the service_role key.
+supabase.anonKey=
+# Google OAuth 2.0 Web Client ID (serverClientId for Credential Manager).
+google.webClientId=

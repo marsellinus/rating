@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- RATIG launcher: stopwatch / reaction target glyph -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group android:scaleX="0.5" android:scaleY="0.5" android:pivotX="54" android:pivotY="54">
+        <path
+            android:pathData="M54,20a34,34 0 1,0 0.001,0z M54,28a26,26 0 1,1 -0.001,0z"
+            android:fillColor="#FFFFFF" />
+        <path
+            android:pathData="M52,38h4v18h-4z"
+            android:fillColor="#FFFFFF" />
+        <path
+            android:pathData="M54,54m-5,0a5,5 0 1,1 10,0a5,5 0 1,1 -10,0"
+            android:fillColor="#FFFFFF" />
+        <path
+            android:pathData="M56.5,52.5l12,-10l2.5,3l-12,10z"
+            android:fillColor="#FFFFFF" />
+        <path
+            android:pathData="M46,12h16v6h-16z"
+            android:fillColor="#FFFFFF" />
+        <path
+            android:pathData="M78,30l4,-4l3,3l-4,4z"
+            android:fillColor="#FFFFFF" />
+    </group>
+</vector>

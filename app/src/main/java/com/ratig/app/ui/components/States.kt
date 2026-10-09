@@ -1,0 +1,186 @@
+package com.ratig.app.ui.components
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+
+@Composable
+fun LoadingState(message: String = "Memuat...", modifier: Modifier = Modifier) {
+    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            CircularProgressIndicator()
+            Text(message, style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+}
+
+@Composable
+fun EmptyState(
+    icon: ImageVector,
+    title: String,
+    description: String? = null,
+    modifier: Modifier = Modifier,
+    action: (@Composable () -> Unit)? = null,
+) {
+    Box(modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(56.dp), tint = MaterialTheme.colorScheme.outline)
+            Text(title, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+            if (description != null) {
+                Text(
+                    description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
+            action?.let {
+                Spacer(Modifier.height(8.dp))
+                it()
+            }
+        }
+    }
+}
+
+@Composable
+fun ErrorState(
+    message: String,
+    modifier: Modifier = Modifier,
+    onRetry: (() -> Unit)? = null,
+) {
+    Box(modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(
+                Icons.Rounded.ErrorOutline,
+                contentDescription = null,
+                modifier = Modifier.size(56.dp),
+                tint = MaterialTheme.colorScheme.error,
+            )
+            Text("Terjadi kesalahan", style = MaterialTheme.typography.titleMedium)
+            Text(
+                message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            onRetry?.let {
+                Spacer(Modifier.height(8.dp))
+                Button(onClick = it) { Text("Coba lagi") }
+            }
+        }
+    }
+}
+
+/**
+ * Severity badge. Color + label + optional icon: color is never the only cue.
+ * severity: -1 unknown, 0 best ... 4 worst.
+ */
+@Composable
+fun SeverityBadge(
+    label: String,
+    severity: Int,
+    modifier: Modifier = Modifier,
+) {
+    val (bg, fg) = severityColors(severity)
+    Surface(
+        modifier = modifier.semantics { contentDescription = "Kategori: $label" },
+        color = bg,
+        contentColor = fg,
+        shape = MaterialTheme.shapes.small,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+        )
+    }
+}
+
+@Composable
+fun severityColors(severity: Int): Pair<Color, Color> = when {
+    severity < 0 -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
+    severity <= 1 -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+    severity == 2 -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
+    severity == 3 -> Color(0xFFFFE0B2) to Color(0xFF4E2C00)
+    else -> Color(0xFFFFCDD2) to Color(0xFF5F1112)
+}
+
+@Composable
+fun ConfirmDialog(
+    title: String,
+    message: String,
+    confirmLabel: String = "Ya",
+    dismissLabel: String = "Batal",
+    destructive: Boolean = false,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Text(message) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(confirmLabel, color = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss) { Text(dismissLabel) }
+        },
+    )
+}
+
+@Composable
+fun MetricTile(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    hint: String? = null,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        shape = MaterialTheme.shapes.medium,
+    ) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(label, style = MaterialTheme.typography.labelMedium)
+            Text(
+                value,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            if (hint != null) {
+                Text(hint, style = MaterialTheme.typography.labelMedium)
+            }
+        }
+    }
+}
