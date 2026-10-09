@@ -21,3 +21,6 @@ local.properties
 # Release binaries (published as GitHub Release assets, not committed)
 /RATIG-*.apk
 RELEASE_NOTES.md
+
+# Course reference documents (not part of the project source)
+CAPSTONE PROJECT *.pdf
