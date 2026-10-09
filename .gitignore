@@ -17,3 +17,7 @@ build/
 .kotlin/
 local.properties
 *.log
+
+# Release binaries (published as GitHub Release assets, not committed)
+/RATIG-*.apk
+RELEASE_NOTES.md
