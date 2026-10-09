@@ -37,22 +37,30 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.ratig.app.core.config.AppConfig
+import com.ratig.app.data.offline.RememberLoginStore
 import com.ratig.app.domain.repository.AuthRepository
 import com.ratig.app.domain.repository.SessionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class SplashViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     appConfig: AppConfig,
+    private val rememberLoginStore: RememberLoginStore,
 ) : ViewModel() {
 
     val isConfigured: Boolean = appConfig.isConfigured
 
     val sessionState: StateFlow<SessionState> = authRepository.sessionState
+
+    /** Emits true once we know whether the first-run tutorial was seen. */
+    private val _onboardingDone = MutableStateFlow<Boolean?>(null)
+    val onboardingDone: StateFlow<Boolean?> = _onboardingDone.asStateFlow()
 
     init {
         if (isConfigured) {
@@ -63,12 +71,16 @@ class SplashViewModel @Inject constructor(
                 }
             }
         }
+        viewModelScope.launch {
+            _onboardingDone.value = rememberLoginStore.current().onboardingDone
+        }
     }
 }
 
 /**
  * Decides the start destination from the server-verified session state.
  * Navigates exactly once: [navigated] guards against repeated state emissions.
+ * A signed-out first-run user sees the tutorial before the login screen.
  */
 @Composable
 fun SplashRoute(
@@ -76,6 +88,7 @@ fun SplashRoute(
     onGoPending: () -> Unit,
     onGoHome: () -> Unit,
     onGoConfigError: () -> Unit,
+    onGoOnboarding: () -> Unit,
 ) {
     val viewModel: SplashViewModel = hiltViewModel()
     var navigated by rememberSaveable { mutableStateOf(false) }
@@ -89,13 +102,16 @@ fun SplashRoute(
         }
     } else {
         val state by viewModel.sessionState.collectAsStateWithLifecycle()
-        LaunchedEffect(state) {
+        val onboardingDone by viewModel.onboardingDone.collectAsStateWithLifecycle()
+        LaunchedEffect(state, onboardingDone) {
             if (navigated) return@LaunchedEffect
             when (state) {
                 SessionState.Loading -> Unit
                 SessionState.Unauthenticated, is SessionState.Error -> {
+                    // Show the first-run tutorial before login when not yet seen.
+                    if (onboardingDone == null) return@LaunchedEffect
                     navigated = true
-                    onGoLogin()
+                    if (onboardingDone == false) onGoOnboarding() else onGoLogin()
                 }
                 is SessionState.AwaitingApproval -> {
                     navigated = true

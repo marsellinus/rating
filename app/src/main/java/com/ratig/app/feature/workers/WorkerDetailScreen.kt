@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -45,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ratig.app.domain.model.TestMode
 import com.ratig.app.domain.model.Worker
 import com.ratig.app.ui.components.ErrorState
 import com.ratig.app.ui.components.LoadingState
@@ -136,7 +138,9 @@ fun WorkerDetailRoute(
         StartTestDialog(
             state = state,
             onDismiss = { showStartTestDialog = false },
-            onConfirm = viewModel::startTest,
+            onConfirm = { protocolId, shiftId, testMode ->
+                viewModel.startTest(protocolId, shiftId, testMode)
+            },
         )
         LaunchedEffect(state.startTest.sessionId) {
             state.startTest.sessionId?.let { sessionId ->
@@ -321,17 +325,26 @@ private fun HistoryRow(
 
 /**
  * Protocol + optional shift picker shown before a session row is created.
+ * The mode picker uses plain-language labels so non-technical users can choose.
  */
+private enum class ModeOption(val mode: TestMode, val title: String, val description: String) {
+    CLASSIC(TestMode.CLASSIC, "Tes Kelelahan Standar", "Reaksi terhadap warna. Hasil diklasifikasi kelelahan."),
+    RGB_RANDOM(TestMode.RGB_RANDOM, "Warna Acak", "Tekan saat muncul warna/shape target."),
+    RANDOM_BUTTON(TestMode.RANDOM_BUTTON, "Tombol Acak", "Cari dan tekan tombol dengan lambang target."),
+    FOCUS_INHIBITION(TestMode.FOCUS_INHIBITION, "Fokus (Go/No-Go)", "Tekan saat hijau, tahan saat merah."),
+}
+
 @Composable
 private fun StartTestDialog(
     state: WorkerDetailViewModel.UiState,
     onDismiss: () -> Unit,
-    onConfirm: (protocolId: String, shiftId: String?) -> Unit,
+    onConfirm: (protocolId: String, shiftId: String?, testMode: TestMode) -> Unit,
 ) {
     var selectedProtocolId by remember(state.protocols) {
         mutableStateOf(state.protocols.firstOrNull()?.id)
     }
     var selectedShiftId by remember(state.shifts) { mutableStateOf<String?>(null) }
+    var selectedMode by remember { mutableStateOf(TestMode.CLASSIC) }
     val creating = state.startTest.creating
 
     AlertDialog(
@@ -346,6 +359,38 @@ private fun StartTestDialog(
                         Text("Memuat protokol...", style = MaterialTheme.typography.bodyMedium)
                     }
                 } else {
+                    // Mode picker: plain-language cards so any user can choose.
+                    Text("Jenis tes", style = MaterialTheme.typography.titleSmall)
+                    ModeOption.entries.forEach { option ->
+                        val selected = selectedMode == option.mode
+                        Surface(
+                            onClick = { selectedMode = option.mode },
+                            shape = MaterialTheme.shapes.medium,
+                            color = if (selected) {
+                                MaterialTheme.colorScheme.secondaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                RadioButton(selected = selected, onClick = { selectedMode = option.mode })
+                                Spacer(Modifier.width(8.dp))
+                                Column {
+                                    Text(option.title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                                    Text(
+                                        option.description,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     DropdownField(
                         label = "Protokol",
                         options = state.protocols.map { protocol ->
@@ -385,7 +430,7 @@ private fun StartTestDialog(
                 enabled = !creating && !state.optionsLoading && selectedProtocolId != null,
                 onClick = {
                     val protocolId = selectedProtocolId ?: return@Button
-                    onConfirm(protocolId, selectedShiftId)
+                    onConfirm(protocolId, selectedShiftId, selectedMode)
                 },
             ) {
                 if (creating) {

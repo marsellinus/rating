@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.ratig.app.core.result.AppResult
 import com.ratig.app.domain.model.SessionStatus
 import com.ratig.app.domain.model.Shift
+import com.ratig.app.domain.model.TestMode
 import com.ratig.app.domain.model.TestProtocol
 import com.ratig.app.domain.model.TestSession
 import com.ratig.app.domain.model.Worker
@@ -18,6 +19,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -109,9 +111,10 @@ class WorkerDetailViewModel @Inject constructor(
     /**
      * Creates the session row (status CREATED, no fatigue rule - the approved
      * rule is applied server-side at finalization) then hands the session id
-     * to the screen via [UiState.startTest.sessionId].
+     * to the screen via [UiState.startTest.sessionId]. [testMode] selects the
+     * classic reaction test or one of the observation modes.
      */
-    fun startTest(protocolId: String, shiftId: String?) {
+    fun startTest(protocolId: String, shiftId: String?, testMode: TestMode = TestMode.CLASSIC) {
         if (workerId.isBlank()) return
         if (_uiState.value.startTest.creating) return
         _uiState.update { it.copy(startTest = StartTestUiState(creating = true)) }
@@ -121,6 +124,11 @@ class WorkerDetailViewModel @Inject constructor(
                 protocolId = protocolId,
                 fatigueRuleId = null,
                 shiftId = shiftId,
+                testMode = testMode,
+                // Seed stored so a mode run's stimulus sequence is reproducible
+                // for audit; harmless for classic mode.
+                randomSeed = if (testMode == TestMode.CLASSIC) null else UUID.randomUUID().toString(),
+                modeConfig = null,
             )
             when (result) {
                 is AppResult.Success -> _uiState.update {

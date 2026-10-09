@@ -72,6 +72,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.rounded.TouchApp
+import androidx.compose.material.icons.rounded.SelfImprovement
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Campaign
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.size
 
 @Composable
 fun DashboardRoute(
@@ -403,42 +411,74 @@ private fun WorkerHomeContent() {
     ) {
         Text(
             text = "Beranda",
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
         )
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Rounded.Info,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp),
                     )
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(10.dp))
                     Text(
                         text = "Panduan Pemeriksaan",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
                     )
                 }
                 Text(
-                    text = "Pemeriksaan waktu reaksi dilakukan oleh pemeriksa/petugas menggunakan perangkat ini di tempat kerja Anda.",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = "Pemeriksaan dilakukan oleh petugas menggunakan perangkat " +
+                        "ini di tempat kerja Anda. Ikuti saja petunjuk di layar.",
+                    style = MaterialTheme.typography.bodyLarge,
                 )
+                HomeStep(1, "Duduk dengan nyaman dan tenang.", Icons.Rounded.SelfImprovement)
+                HomeStep(2, "Ikuti petunjuk singkat dari petugas.", Icons.Rounded.Campaign)
+                HomeStep(3, "Sentuh layar saat muncul tanda.", Icons.Rounded.TouchApp)
+                HomeStep(4, "Selesaikan sampai semua percobaan habis.", Icons.Rounded.CheckCircle)
                 Text(
-                    text = "Pastikan Anda beristirahat cukup sebelum pemeriksaan dan ikuti instruksi pemeriksa selama tes berlangsung.",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = "Hasil pemeriksaan Anda akan tampil di menu Riwayat pada navigasi bawah setelah sesi selesai diproses.",
+                    text = "Hasil Anda akan muncul di menu \"Riwayat\" setelah selesai.",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun HomeStep(number: Int, text: String, icon: ImageVector) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Surface(
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            shape = CircleShape,
+            modifier = Modifier.size(40.dp),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    text = "$number",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+        Spacer(Modifier.width(12.dp))
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(24.dp),
+        )
+        Spacer(Modifier.width(10.dp))
+        Text(text = text, style = MaterialTheme.typography.bodyLarge)
     }
 }
 

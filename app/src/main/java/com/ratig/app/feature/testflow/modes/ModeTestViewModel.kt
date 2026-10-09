@@ -11,6 +11,7 @@ import com.ratig.app.core.timing.modes.FocusInhibitionModeEngine
 import com.ratig.app.core.timing.modes.ModeConfiguration
 import com.ratig.app.core.timing.modes.ModeEngineBase
 import com.ratig.app.core.timing.modes.ModeEngineConfig
+import com.ratig.app.core.timing.modes.ModeEngineState
 import com.ratig.app.core.timing.modes.RgbColor
 import com.ratig.app.core.timing.modes.RgbRandomModeEngine
 import com.ratig.app.core.timing.modes.modeLabel
@@ -27,9 +28,13 @@ import kotlin.random.Random
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -75,6 +80,17 @@ class ModeTestViewModel @Inject constructor(
     private var finishedJob: kotlinx.coroutines.Job? = null
     private var runStartNanos: Long? = null
 
+    private val _engineRef = MutableStateFlow<ModeEngineBase?>(null)
+
+    /** Live engine state for the measurement UI (Idle until the engine exists). */
+    val engineState: StateFlow<ModeEngineState> = _engineRef
+        .flatMapLatest { engine -> engine?.state ?: flowOf(ModeEngineState.Idle) }
+        .stateIn(
+            scope = viewModelScope,
+            started = kotlinx.coroutines.flow.SharingStarted.Eagerly,
+            initialValue = ModeEngineState.Idle,
+        )
+
     val engineReady: Boolean get() = engineInstance != null
 
     fun requireEngine(): ModeEngineBase = checkNotNull(engineInstance) { "Mesin tes belum siap" }
@@ -93,6 +109,8 @@ class ModeTestViewModel @Inject constructor(
     }
 
     fun onLifecycleStop() {
+        // Never interrupt while the result is being saved (see classic test).
+        if (_uiState.value.finalizing) return
         val engine = engineInstance ?: return
         val current = engine.state.value
         if (current is com.ratig.app.core.timing.modes.ModeEngineState.Idle ||
@@ -168,6 +186,7 @@ class ModeTestViewModel @Inject constructor(
         )
         engineConfig = config
         engineInstance = createEngine(mode, seedLong, modeConfig)
+        _engineRef.value = engineInstance
         observeEngineFinished()
         runStartNanos = clock.nowNanos()
         _uiState.update {

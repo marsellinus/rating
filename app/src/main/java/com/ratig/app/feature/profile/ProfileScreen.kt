@@ -23,6 +23,7 @@ import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.FactCheck
+import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.ManageAccounts
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.ReceiptLong
@@ -133,6 +134,7 @@ private data class ProfileMenuItem(
 )
 
 private val menuItems = listOf(
+    ProfileMenuItem("Panduan Penggunaan", Icons.Outlined.HelpOutline, Routes.ONBOARDING),
     ProfileMenuItem("Jadwal & Shift", Icons.Outlined.CalendarMonth, Routes.SCHEDULES),
     ProfileMenuItem("Tindak Lanjut", Icons.Outlined.FactCheck, Routes.FOLLOW_UPS),
     ProfileMenuItem("Laporan", Icons.Outlined.BarChart, Routes.REPORTS),
@@ -282,23 +284,24 @@ private fun ProfileContent(
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = MaterialTheme.colorScheme.error,
             ),
-            modifier = Modifier.fillMaxWidth().height(48.dp),
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = MaterialTheme.shapes.medium,
         ) {
             if (signingOut) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(20.dp),
                     strokeWidth = 2.dp,
                 )
                 Spacer(Modifier.width(8.dp))
-                Text("Keluar...")
+                Text("Keluar...", style = MaterialTheme.typography.titleMedium)
             } else {
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.Logout,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(22.dp),
                 )
                 Spacer(Modifier.width(8.dp))
-                Text("Keluar")
+                Text("Keluar dari Akun", style = MaterialTheme.typography.titleMedium)
             }
         }
 

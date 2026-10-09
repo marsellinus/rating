@@ -49,32 +49,39 @@ perangkat lalu terkirim otomatis saat kembali online.
 | Kamera | Diperlukan untuk memindai barcode/QR |
 | Penyimpanan | Ruang kosong ± 100 MB |
 | Jaringan | Internet **opsional** (untuk sinkronisasi) |
-| Akun | Akun Google, atau akun yang dibuat oleh Admin |
+| Akun | Akun email/kata sandi yang dibuat oleh Admin (tidak ada pendaftaran mandiri) |
 
 ---
 
 ## 3. Masuk ke Aplikasi
 
+Saat pertama kali dibuka, aplikasi menampilkan **panduan singkat (tutorial)**.
+Ikuti halaman panduan lalu tekan **Mulai Menggunakan** (atau **Lewati**).
+Panduan ini bisa dibuka lagi kapan saja dari **Profil → Panduan Penggunaan**.
+
+Cara masuk:
+
 1. Buka aplikasi **RATIG**.
-2. Ketuk **Masuk dengan Google** dan pilih akun Anda.
+2. Isi **Email** dan **Kata sandi** yang diberikan administrator.
+3. Centang **Ingat saya di perangkat ini** bila ingin email terisi otomatis
+   pada pembukaan berikutnya.
+4. Tekan **Masuk**.
+
+> **Tidak ada pendaftaran mandiri.** Akun dibuat oleh administrator. Bila belum
+> punya akun, hubungi administrator untuk didaftarkan.
 
 **Jika akun baru:** akun berstatus *Menunggu*. Anda akan melihat layar
 **Menunggu Persetujuan**. Hubungi Admin untuk mengaktifkan akun, lalu tekan
 **Periksa Status**.
 
-**Jika aplikasi belum dikonfigurasi:** muncul layar *Konfigurasi* dengan pesan
-bahwa aplikasi belum diatur. Hubungi administrator teknis (lihat
-`docs/deployment.md`).
+**Jika aplikasi belum dikonfigurasi:** muncul layar *Konfigurasi*. Hubungi
+administrator teknis (lihat `docs/deployment.md`).
 
-**Lupa keluar / ganti akun:** buka **Profil → Keluar**.
-
-> Pada **build debug** (khusus pengujian), tersedia juga login email/kata sandi.
-> Fitur ini **tidak aktif** pada aplikasi produksi.
+**Lupa keluar / ganti akun:** buka **Profil → Keluar dari Akun**.
 
 ### 3.1 Akun Demo (untuk mencoba)
 
-Pada build **debug** tersedia akun uji berikut. Kata sandi semua akun:
-**`Ratig-T3st-2026!`**
+Akun uji yang tersedia. Kata sandi semua akun: **`Ratig-T3st-2026!`**
 
 | Email | Peran | Yang Anda lihat |
 |---|---|---|
@@ -117,12 +124,17 @@ Langkah rinci:
    dan shift. Anda juga dapat memindai NIK/QR (lihat bagian 6).
 3. Ketuk nama pekerja untuk membuka **Detail Pekerja**.
 4. Ketuk **Mulai Tes**.
-5. **Bacakan instruksi** yang muncul (layar Petunjuk), lalu ketuk **Mulai**.
-6. Pekerja menyelesaikan tes waktu reaksi (mis. menyentuh layar saat muncul
-   stimulus).
-7. Setelah selesai, **tinjau hasil** pada layar hasil.
-8. Ketuk **Finalisasi** untuk menyimpan. Setelah finalisasi, hasil **tidak
-   dapat diubah** (menjaga keaslian data).
+5. **Pilih jenis tes** pada dialog:
+   - **Tes Kelelahan Standar** — reaksi terhadap warna (hasil diklasifikasi).
+   - **Warna Acak** — tekan saat muncul warna/bentuk target.
+   - **Tombol Acak** — cari dan tekan tombol berlambang target.
+   - **Fokus (Go/No-Go)** — tekan saat hijau, tahan saat merah.
+6. **Bacakan instruksi** yang muncul (layar Petunjuk), centang "Pekerja
+   memahami instruksi", lalu ketuk **Mulai Tes**.
+7. Pekerja menyelesaikan tes waktu reaksi.
+8. Setelah selesai, **tinjau hasil** pada layar hasil.
+9. Ketuk **Selesai** untuk kembali. Setelah finalisasi, hasil **tidak dapat
+   diubah** (menjaga keaslian data).
 
 > Jika pemeriksaan terputus di tengah jalan, sesi dapat dilanjutkan atau
 > ditandai terputus, lalu dibuat ulang.

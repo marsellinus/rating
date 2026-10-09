@@ -92,20 +92,17 @@ CONTRACT.md / CONTRACT-2.md  Kontrak antarmuka & arsitektur
 
 ## Akun Demo (Lingkungan Uji)
 
-Untuk mencoba aplikasi pada lingkungan uji, gunakan akun berikut. Kata sandi
-semua akun: **`Ratig-T3st-2026!`**
+Aplikasi memakai **login email/kata sandi**. Akun **dibuat oleh administrator**
+(tidak ada pendaftaran mandiri). Untuk mencoba, gunakan akun berikut. Kata
+sandi semua akun: **`Ratig-T3st-2026!`**
 
 | Email | Peran | Halaman |
 |---|---|---|
-| `admin@ratig.test` | **Super Admin** | Dasbor Super Admin — semua fitur (kelola admin & pengguna, protokol, aturan, data master, audit) |
-| `examiner@ratig.test` | **Admin** | Dasbor Admin — kelola pengguna + pemantauan & laporan |
-| `mgmt@ratig.test` | **Admin** | Dasbor Admin — kelola pengguna + pemantauan & laporan |
-| `worker@ratig.test` | **Pengguna** | Beranda Pengguna — jalankan tes + riwayat sendiri |
+| `admin@ratig.test` | **Super Admin** | Dasbor Super Admin — semua fitur |
+| `examiner@ratig.test` | **Admin** | Dasbor Admin — kelola pengguna + pemantauan |
+| `mgmt@ratig.test` | **Admin** | Dasbor Admin — kelola pengguna + pemantauan |
+| `worker@ratig.test` | **Pengguna** | Beranda Pengguna — jalankan tes + riwayat |
 
-> **Cara masuk:** pada **build debug**, buka aplikasi lalu isi kolom **Email**
-> dan **Kata sandi** (tombol *Masuk (debug)*). Login email/kata sandi hanya
-> aktif pada build debug; produksi memakai **Masuk dengan Google**.
->
 > **Peringatan keamanan:** akun ini hanya untuk **pengujian**. Ganti/hapus
 > sebelum dipakai di produksi dan **jangan** memakai kata sandi ini di
 > lingkungan nyata.

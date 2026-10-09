@@ -83,6 +83,23 @@ fun RatigNavHost(
                     onGoPending = { navController.navigate(Routes.PENDING_APPROVAL) { popUpTo(Routes.SPLASH) { inclusive = true } } },
                     onGoHome = { navController.navigate(Routes.DASHBOARD) { popUpTo(Routes.SPLASH) { inclusive = true } } },
                     onGoConfigError = { navController.navigate(Routes.CONFIG_ERROR) { popUpTo(Routes.SPLASH) { inclusive = true } } },
+                    onGoOnboarding = { navController.navigate(Routes.ONBOARDING) { popUpTo(Routes.SPLASH) { inclusive = true } } },
+                )
+            }
+
+            composable(Routes.ONBOARDING) {
+                com.ratig.app.feature.onboarding.OnboardingRoute(
+                    onDone = {
+                        // If reached from the profile menu, return there; on the
+                        // first-run flow there is no login yet, so fall through
+                        // to the login screen.
+                        val returned = navController.popBackStack()
+                        if (!returned) {
+                            navController.navigate(Routes.LOGIN) {
+                                popUpTo(Routes.ONBOARDING) { inclusive = true }
+                            }
+                        }
+                    },
                 )
             }
 
@@ -149,7 +166,10 @@ fun RatigNavHost(
                 arguments = listOf(navArgument("sessionId") { type = NavType.StringType }),
             ) {
                 com.ratig.app.feature.testflow.TestInstructionsRoute(
-                    onReady = { navController.navigate(Routes.reactionTest(it)) { popUpTo(Routes.DASHBOARD) { inclusive = false } } },
+                    onReady = { sessionId, isMode ->
+                        val route = if (isMode) Routes.modeTest(sessionId) else Routes.reactionTest(sessionId)
+                        navController.navigate(route) { popUpTo(Routes.DASHBOARD) { inclusive = false } }
+                    },
                     onAborted = { navController.popBackStack(Routes.DASHBOARD, inclusive = false) },
                 )
             }
@@ -159,6 +179,16 @@ fun RatigNavHost(
                 arguments = listOf(navArgument("sessionId") { type = NavType.StringType }),
             ) {
                 com.ratig.app.feature.testflow.ReactionTestRoute(
+                    onFinished = { navController.navigate(Routes.testResult(it)) { popUpTo(Routes.DASHBOARD) { inclusive = false } } },
+                    onAborted = { navController.popBackStack(Routes.DASHBOARD, inclusive = false) },
+                )
+            }
+
+            composable(
+                Routes.MODE_TEST,
+                arguments = listOf(navArgument("sessionId") { type = NavType.StringType }),
+            ) {
+                com.ratig.app.feature.testflow.modes.ModeTestRoute(
                     onFinished = { navController.navigate(Routes.testResult(it)) { popUpTo(Routes.DASHBOARD) { inclusive = false } } },
                     onAborted = { navController.popBackStack(Routes.DASHBOARD, inclusive = false) },
                 )

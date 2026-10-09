@@ -2,6 +2,7 @@ package com.ratig.app.feature.testflow
 
 import android.app.Activity
 import android.content.pm.ActivityInfo
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -133,6 +134,10 @@ class ReactionTestViewModel @Inject constructor(
     }
 
     fun onLifecycleStop() {
+        // Never interrupt while the result is being saved: the user may have
+        // briefly switched apps (e.g. to answer a call) exactly as the test
+        // finished. Interrupting here would discard a completed run.
+        if (_uiState.value.finalizing) return
         val current = engine.state.value
         if (current is EngineState.Idle || current is EngineState.Finished) return
         engine.interrupt("Aplikasi berpindah ke latar")
@@ -245,6 +250,10 @@ fun ReactionTestRoute(onFinished: (String) -> Unit, onAborted: () -> Unit) {
     var feedback by remember { mutableStateOf<EngineTrial?>(null) }
     var practiceCompleted by remember { mutableIntStateOf(0) }
     var showCancelDialog by rememberSaveable { mutableStateOf(false) }
+
+    // The test must not be left by accident: the system back button opens the
+    // cancel confirmation instead of silently discarding the run.
+    BackHandler(enabled = !uiState.finalizing) { showCancelDialog = true }
 
     LaunchedEffect(Unit) {
         viewModel.finished.collect { sessionId -> onFinished(sessionId) }

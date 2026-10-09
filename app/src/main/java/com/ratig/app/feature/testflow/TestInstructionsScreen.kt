@@ -38,6 +38,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.ratig.app.core.result.AppResult
+import com.ratig.app.domain.model.TestMode
 import com.ratig.app.domain.model.TestProtocol
 import com.ratig.app.domain.model.TestSession
 import com.ratig.app.domain.repository.ProtocolRepository
@@ -126,7 +127,7 @@ class TestInstructionsViewModel @Inject constructor(
 }
 
 @Composable
-fun TestInstructionsRoute(onReady: (String) -> Unit, onAborted: () -> Unit) {
+fun TestInstructionsRoute(onReady: (String, Boolean) -> Unit, onAborted: () -> Unit) {
     val viewModel: TestInstructionsViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var confirmed by rememberSaveable { mutableStateOf(false) }
@@ -158,7 +159,7 @@ fun TestInstructionsRoute(onReady: (String) -> Unit, onAborted: () -> Unit) {
                 confirmed = confirmed,
                 starting = uiState.starting,
                 onConfirmedChange = { confirmed = it },
-                onStart = { viewModel.startTest(onReady) },
+                onStart = { viewModel.startTest { sessionId -> onReady(sessionId, session.testMode != TestMode.CLASSIC) } },
                 onCancel = { showAbortDialog = true },
             )
             if (showAbortDialog) {
@@ -262,17 +263,10 @@ private fun TestInstructionsContent(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Icon(Icons.Outlined.Rule, contentDescription = null)
-                    Text("Aturan Tes", style = MaterialTheme.typography.labelLarge)
+                    Text("Aturan Tes", style = MaterialTheme.typography.titleMedium)
                 }
-                listOf(
-                    "Duduk nyaman, pegang perangkat dengan stabil, dan fokus ke layar.",
-                    "Ketuk layar secepat mungkin begitu area tes berubah HIJAU.",
-                    "Jangan ketuk sebelum stimulus muncul - ketukan terlalu dini dihitung sebagai false start dan percobaan tidak sah.",
-                    "Jika tidak sempat mengetuk hingga waktu habis, percobaan dihitung sebagai respons terlewat.",
-                    "Ikuti seluruh ${protocol.trialCount} percobaan tanpa berbicara atau bergerak berlebihan.",
-                    "Segera beri tahu petugas jika ingin berhenti.",
-                ).forEach { rule ->
-                    Text("• $rule", style = MaterialTheme.typography.bodyMedium)
+                modeRules(session.testMode, protocol.trialCount).forEach { rule ->
+                    Text("• $rule", style = MaterialTheme.typography.bodyLarge)
                 }
             }
         }
@@ -281,14 +275,14 @@ private fun TestInstructionsContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onConfirmedChange(!confirmed) }
-                .padding(vertical = 4.dp),
+                .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Checkbox(checked = confirmed, onCheckedChange = { onConfirmedChange(it) })
-            Spacer(Modifier.width(4.dp))
+            Spacer(Modifier.width(8.dp))
             Text(
                 text = "Pekerja memahami instruksi",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
             )
         }
@@ -298,9 +292,12 @@ private fun TestInstructionsContent(
             enabled = confirmed && !starting,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
+                .height(56.dp),
         ) {
-            Text(if (starting) "Memulai..." else "Mulai Tes")
+            Text(
+                text = if (starting) "Memulai..." else "Mulai Tes",
+                style = MaterialTheme.typography.titleMedium,
+            )
         }
 
         OutlinedButton(
@@ -308,9 +305,40 @@ private fun TestInstructionsContent(
             enabled = !starting,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
+                .height(56.dp),
         ) {
-            Text("Batal")
+            Text("Batal", style = MaterialTheme.typography.titleMedium)
         }
     }
+}
+
+/**
+ * Plain-language rules that match the selected test mode, so workers always
+ * see instructions for the test they are about to take.
+ */
+private fun modeRules(mode: TestMode, trialCount: Int): List<String> {
+    val common = listOf(
+        "Duduk nyaman, pegang perangkat dengan stabil, dan fokus ke layar.",
+        "Ikuti seluruh $trialCount percobaan tanpa berbicara atau bergerak berlebihan.",
+        "Segera beri tahu petugas jika ingin berhenti.",
+    )
+    val modeSpecific = when (mode) {
+        TestMode.CLASSIC -> listOf(
+            "Ketuk layar secepat mungkin begitu layar berubah HIJAU.",
+            "Jangan ketuk sebelum tanda muncul — ketukan terlalu dini tidak dihitung.",
+        )
+        TestMode.RGB_RANDOM -> listOf(
+            "Ketuk layar saat muncul warna/shape target yang diminta.",
+            "Jangan ketuk saat yang muncul bukan target.",
+        )
+        TestMode.RANDOM_BUTTON -> listOf(
+            "Cari tombol dengan lambang target, lalu ketuk tombol itu.",
+            "Tombol tanpa lambang tidak perlu diketuk.",
+        )
+        TestMode.FOCUS_INHIBITION -> listOf(
+            "Ketuk layar saat muncul lingkaran HIJAU.",
+            "JANGAN ketuk saat muncul lingkaran MERAH (tahan diri).",
+        )
+    }
+    return modeSpecific + common
 }

@@ -1,9 +1,11 @@
 package com.ratig.app.feature.auth
 
 import android.content.Context
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,16 +15,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Login
 import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.HourglassTop
 import androidx.compose.material.icons.rounded.TouchApp
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -42,6 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -51,8 +60,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
-import com.ratig.app.BuildConfig
 import com.ratig.app.core.result.AppResult
+import com.ratig.app.data.offline.RememberLoginStore
 import com.ratig.app.domain.model.AccountStatus
 import com.ratig.app.domain.model.UserProfile
 import com.ratig.app.domain.repository.AuthRepository
@@ -67,23 +76,45 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
+    private val rememberLoginStore: RememberLoginStore,
 ) : ViewModel() {
 
     data class UiState(
         val loading: Boolean = false,
         val error: String? = null,
+        val showPassword: Boolean = false,
+        val rememberMe: Boolean = true,
     )
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    /** True only in debug builds: email/password login for device testing. */
-    val showPasswordLogin: Boolean = BuildConfig.DEBUG
-
-    /** True when a Google Web client id is configured (see AppConfig). */
+    /** Google sign-in is only offered when a client id is configured. */
     val googleAvailable: Boolean = authRepository.isGoogleAvailable
 
     val sessionState: StateFlow<SessionState> = authRepository.sessionState
+
+    init {
+        // Pre-fill the last used email when "Ingat saya" was checked.
+        viewModelScope.launch {
+            val remembered = rememberLoginStore.current()
+            if (remembered.remember) {
+                _uiState.value = _uiState.value.copy(rememberMe = true)
+                _rememberedEmail.value = remembered.email
+            }
+        }
+    }
+
+    private val _rememberedEmail = MutableStateFlow("")
+    val rememberedEmail: StateFlow<String> = _rememberedEmail.asStateFlow()
+
+    fun setRememberMe(remember: Boolean) {
+        _uiState.value = _uiState.value.copy(rememberMe = remember)
+    }
+
+    fun togglePasswordVisibility() {
+        _uiState.value = _uiState.value.copy(showPassword = !_uiState.value.showPassword)
+    }
 
     fun signInWithGoogle(context: Context) {
         if (_uiState.value.loading) return
@@ -100,15 +131,24 @@ class LoginViewModel @Inject constructor(
     fun signInWithPassword(email: String, password: String) {
         if (_uiState.value.loading) return
         if (email.isBlank() || password.isBlank()) {
-            _uiState.value = UiState(error = "Email dan kata sandi wajib diisi.")
+            _uiState.value = _uiState.value.copy(error = "Email dan kata sandi wajib diisi.")
             return
         }
-        _uiState.value = UiState(loading = true)
+        _uiState.value = UiState(loading = true, showPassword = _uiState.value.showPassword)
         viewModelScope.launch {
             val result = authRepository.signInWithPassword(email.trim(), password)
-            _uiState.value = when (result) {
-                is AppResult.Success -> UiState(loading = false)
-                is AppResult.Failure -> UiState(loading = false, error = result.error.userMessage)
+            when (result) {
+                is AppResult.Success -> {
+                    // Persist the "Ingat saya" choice only on a successful sign-in.
+                    rememberLoginStore.set(_uiState.value.rememberMe, email.trim())
+                    _uiState.value = UiState(loading = false)
+                }
+                is AppResult.Failure -> _uiState.value = UiState(
+                    loading = false,
+                    error = result.error.userMessage,
+                    showPassword = _uiState.value.showPassword,
+                    rememberMe = _uiState.value.rememberMe,
+                )
             }
         }
     }
@@ -119,6 +159,7 @@ fun LoginRoute(onSignedIn: () -> Unit, onPending: () -> Unit) {
     val viewModel: LoginViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val sessionState by viewModel.sessionState.collectAsStateWithLifecycle()
+    val rememberedEmail by viewModel.rememberedEmail.collectAsStateWithLifecycle()
 
     var navigated by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(sessionState) {
@@ -138,9 +179,11 @@ fun LoginRoute(onSignedIn: () -> Unit, onPending: () -> Unit) {
 
     LoginContent(
         uiState = uiState,
+        rememberedEmail = rememberedEmail,
         onSignIn = viewModel::signInWithGoogle,
         onSignInWithPassword = viewModel::signInWithPassword,
-        showPasswordLogin = viewModel.showPasswordLogin,
+        onTogglePassword = viewModel::togglePasswordVisibility,
+        onRememberChange = viewModel::setRememberMe,
         googleAvailable = viewModel.googleAvailable,
     )
 }
@@ -148,14 +191,21 @@ fun LoginRoute(onSignedIn: () -> Unit, onPending: () -> Unit) {
 @Composable
 private fun LoginContent(
     uiState: LoginViewModel.UiState,
+    rememberedEmail: String,
     onSignIn: (Context) -> Unit,
     onSignInWithPassword: (String, String) -> Unit,
-    showPasswordLogin: Boolean,
+    onTogglePassword: () -> Unit,
+    onRememberChange: (Boolean) -> Unit,
     googleAvailable: Boolean,
 ) {
     val context = LocalContext.current
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+
+    // Pre-fill the remembered email once it loads (never overwrite typing).
+    LaunchedEffect(rememberedEmail) {
+        if (rememberedEmail.isNotBlank() && email.isBlank()) email = rememberedEmail
+    }
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(
             contentAlignment = Alignment.Center,
@@ -167,7 +217,7 @@ private fun LoginContent(
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .verticalScroll(rememberScrollState())
@@ -176,117 +226,158 @@ private fun LoginContent(
                     Icon(
                         imageVector = Icons.Rounded.TouchApp,
                         contentDescription = null,
-                        modifier = Modifier.size(56.dp),
+                        modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.primary,
                     )
                     Text(
                         text = "RATIG",
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
-                        text = "Reaction Time Fatigue",
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = "Pemeriksaan Kelelahan Pekerja",
+                        style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
                     )
                     Text(
-                        text = "Pemeriksaan kelelahan pekerja berbasis waktu reaksi. " +
-                            "Masuk menggunakan akun Google Anda.",
+                        text = "Masuk menggunakan akun yang diberikan oleh administrator.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+
+                    if (uiState.error != null) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                            shape = MaterialTheme.shapes.medium,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(
+                                text = uiState.error,
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                            )
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Email") },
+                        placeholder = { Text("nama@perusahaan.com") },
+                        singleLine = true,
+                        enabled = !uiState.loading,
+                        textStyle = MaterialTheme.typography.bodyLarge,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Kata sandi") },
+                        singleLine = true,
+                        enabled = !uiState.loading,
+                        textStyle = MaterialTheme.typography.bodyLarge,
+                        visualTransformation = if (uiState.showPassword) {
+                            VisualTransformation.None
+                        } else {
+                            PasswordVisualTransformation()
+                        },
+                        trailingIcon = {
+                            IconButton(onClick = onTogglePassword) {
+                                Icon(
+                                    imageVector = if (uiState.showPassword) {
+                                        Icons.Rounded.VisibilityOff
+                                    } else {
+                                        Icons.Rounded.Visibility
+                                    },
+                                    contentDescription = if (uiState.showPassword) {
+                                        "Sembunyikan kata sandi"
+                                    } else {
+                                        "Tampilkan kata sandi"
+                                    },
+                                )
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done,
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { onSignInWithPassword(email, password) },
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onRememberChange(!uiState.rememberMe) },
+                    ) {
+                        Checkbox(
+                            checked = uiState.rememberMe,
+                            onCheckedChange = onRememberChange,
+                        )
+                        Text(
+                            text = "Ingat saya di perangkat ini",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+
+                    Button(
+                        onClick = { onSignInWithPassword(email, password) },
+                        enabled = !uiState.loading,
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        shape = MaterialTheme.shapes.medium,
+                    ) {
+                        if (uiState.loading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                            )
+                            Spacer(Modifier.width(10.dp))
+                            Text("Memproses...", style = MaterialTheme.typography.titleMedium)
+                        } else {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.Login,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                            )
+                            Spacer(Modifier.width(10.dp))
+                            Text("Masuk", style = MaterialTheme.typography.titleMedium)
+                        }
+                    }
+
+                    if (googleAvailable) {
+                        HorizontalDivider(Modifier.padding(vertical = 4.dp))
+                        Text(
+                            text = "atau",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        OutlinedButton(
+                            onClick = { onSignIn(context) },
+                            enabled = !uiState.loading,
+                            modifier = Modifier.fillMaxWidth().height(52.dp),
+                            shape = MaterialTheme.shapes.medium,
+                        ) {
+                            Text("Masuk dengan Google")
+                        }
+                    }
+
+                    Text(
+                        text = "Belum punya akun? Hubungi administrator untuk didaftarkan.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                     )
-                    if (uiState.error != null) {
-                        Text(
-                            text = uiState.error,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
-                    if (googleAvailable) {
-                        Button(
-                            onClick = { onSignIn(context) },
-                            enabled = !uiState.loading,
-                            modifier = Modifier.fillMaxWidth().height(48.dp),
-                            shape = MaterialTheme.shapes.medium,
-                        ) {
-                            if (uiState.loading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    strokeWidth = 2.dp,
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Text("Memproses...")
-                            } else {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Rounded.Login,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Text("Masuk dengan Google")
-                            }
-                        }
-                    }
-
-                    if (showPasswordLogin) {
-                        if (googleAvailable) {
-                            Text(
-                                text = "atau",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        OutlinedTextField(
-                            value = email,
-                            onValueChange = { email = it },
-                            label = { Text("Email") },
-                            singleLine = true,
-                            enabled = !uiState.loading,
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Email,
-                                imeAction = ImeAction.Next,
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                        OutlinedTextField(
-                            value = password,
-                            onValueChange = { password = it },
-                            label = { Text("Kata sandi") },
-                            singleLine = true,
-                            enabled = !uiState.loading,
-                            visualTransformation = PasswordVisualTransformation(),
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Password,
-                                imeAction = ImeAction.Done,
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                        Button(
-                            onClick = { onSignInWithPassword(email, password) },
-                            enabled = !uiState.loading,
-                            modifier = Modifier.fillMaxWidth().height(48.dp),
-                            shape = MaterialTheme.shapes.medium,
-                        ) {
-                            Text("Masuk (debug)")
-                        }
-                        Text(
-                            text = "Login email/kata sandi hanya tersedia pada build debug.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
-
-                    if (!googleAvailable && !showPasswordLogin) {
-                        Text(
-                            text = "Login Google belum dikonfigurasi. Hubungi administrator.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
                 }
             }
         }
