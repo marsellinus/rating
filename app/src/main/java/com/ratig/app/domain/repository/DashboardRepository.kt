@@ -16,6 +16,8 @@ interface DashboardRepository {
     suspend fun examinerStats(): AppResult<ExaminerDashboardStats>
     /** Management trend chart data (mean reaction time per day in range). */
     suspend fun reactionTrend(from: Instant, to: Instant, departmentId: String?): AppResult<List<ReactionTrendPoint>>
+    /** Export finalized tests as an Excel or CSV file byte array. */
+    suspend fun exportReport(from: String, to: String, format: String = "csv"): AppResult<ByteArray>
 }
 
 interface ScheduleRepository {

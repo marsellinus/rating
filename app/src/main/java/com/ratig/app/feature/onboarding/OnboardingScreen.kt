@@ -80,7 +80,7 @@ private val PAGES = listOf(
         icon = Icons.Rounded.CheckCircle,
         title = S.ONB_RESULT_TITLE,
         intro = S.ONB_RESULT_INTRO,
-        steps = listOf(S.ONB_RESULT_S1, S.ONB_RESULT_S2, S.ONB_RESULT_S3),
+        steps = listOf(S.ONB_RESULT_S1, S.ONB_RESULT_S2, S.ONB_RESULT_S3, S.ONB_RESULT_S4),
     ),
     OnboardingPage(
         icon = Icons.Rounded.CloudDone,

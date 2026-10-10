@@ -39,6 +39,7 @@ import com.ratig.app.ui.components.EmptyState
 import com.ratig.app.ui.components.ErrorState
 import com.ratig.app.ui.components.LoadingState
 import com.ratig.app.ui.components.MetricTile
+import com.ratig.app.ui.components.SeverityLegendCard
 import com.ratig.app.ui.components.SeverityBadge
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Locale
@@ -290,6 +291,8 @@ private fun ResultContent(
                 }
             }
         }
+
+        SeverityLegendCard(modifier = Modifier.fillMaxWidth())
 
         Text(
             text = "Hasil RATIG adalah alat bantu keputusan, bukan diagnosis.",

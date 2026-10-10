@@ -349,11 +349,11 @@ private fun TrendLineChart(
 }
 
 private fun severityChartColor(severity: Int): Color = when {
-    severity < 0 -> SeverityUnknown
-    severity <= 1 -> SeverityOk
-    severity == 2 -> SeverityInfo
-    severity == 3 -> SeverityWarn
-    else -> SeverityHigh
+    severity < 0 -> Color(0xFF9E9E9E)
+    severity <= 1 -> Color(0xFF9E9E9E) // Normal -> Abu-abu / Netral
+    severity == 2 -> Color(0xFF4CAF50) // Ringan -> Hijau
+    severity == 3 -> Color(0xFFFF9800) // Sedang -> Kuning/Oranye
+    else -> Color(0xFFF44336) // Berat -> Merah
 }
 
 @Composable

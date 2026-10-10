@@ -13,6 +13,9 @@ import com.ratig.app.domain.model.RecentResult
 import com.ratig.app.domain.repository.DashboardRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.functions.functions
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.readBytes
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -68,6 +71,19 @@ class DashboardRepositoryImpl @Inject constructor(
         rpcJson("reaction_trend", args).jsonArray.mapNotNull { element ->
             (element as? JsonObject)?.let { parseTrendPoint(it) }
         }
+    }
+
+    override suspend fun exportReport(from: String, to: String, format: String): AppResult<ByteArray> = AppResult.of {
+        val args = buildJsonObject {
+            put("from", from)
+            put("to", to)
+            put("format", format)
+        }
+        val response: HttpResponse = supabase.functions.invoke("export-report", args)
+        if (response.status.value !in 200..299) {
+            throw Exception("Gagal mengunduh laporan (Status: ${response.status.value})")
+        }
+        response.readBytes()
     }
 
     private suspend fun rpcJson(function: String, args: JsonObject): JsonElement =

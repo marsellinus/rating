@@ -17,8 +17,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PersonSearch
 import androidx.compose.material.icons.rounded.Assignment
-import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.ui.platform.LocalContext
+import android.content.Context
+import android.content.Intent
+import androidx.core.content.FileProvider
+import java.io.File
 import androidx.compose.material.icons.rounded.HourglassTop
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.PersonAdd
 import androidx.compose.material3.Card
@@ -33,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import com.ratig.app.ui.components.SeverityLegendCard
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -91,11 +97,14 @@ fun DashboardRoute(
 ) {
     val viewModel: DashboardViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     DashboardScreen(
         state = state,
         onRetry = viewModel::refresh,
         onPeriodSelected = viewModel::setPeriod,
+        onExport = { viewModel.exportReport(context) },
         onOpenSession = onOpenSession,
+
         onOpenWorker = onOpenWorker,
         onOpenAdmin = onOpenAdmin,
         onStartIdentification = onStartIdentification,
@@ -108,6 +117,7 @@ private fun DashboardScreen(
     state: DashboardViewModel.DashboardUiState,
     onRetry: () -> Unit,
     onPeriodSelected: (Int) -> Unit,
+    onExport: () -> Unit,
     onOpenSession: (String) -> Unit,
     onOpenWorker: (String) -> Unit,
     onOpenAdmin: (String) -> Unit,
@@ -135,6 +145,8 @@ private fun DashboardScreen(
                 periodFrom = state.periodFrom,
                 periodTo = state.periodTo,
                 onPeriodSelected = onPeriodSelected,
+                exporting = state.exporting,
+                onExport = onExport,
             )
         state.role == UserRole.USER && examiner != null ->
             ExaminerDashboardContent(stats = examiner, onOpenSession = onOpenSession, onStartIdentification = onStartIdentification)
@@ -267,7 +279,10 @@ private fun ExaminerDashboardContent(
                 }
             }
         }
+        
+        SeverityLegendCard(modifier = Modifier.fillMaxWidth())
     }
+
 }
 
 @Composable
@@ -333,6 +348,8 @@ private fun ManagementDashboardContent(
     periodFrom: LocalDate?,
     periodTo: LocalDate?,
     onPeriodSelected: (Int) -> Unit,
+    exporting: Boolean,
+    onExport: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -368,6 +385,17 @@ private fun ManagementDashboardContent(
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        
+        Button(
+            onClick = onExport,
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            enabled = !exporting,
+        ) {
+            Icon(Icons.Rounded.Assignment, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text(if (exporting) "Mengekspor..." else "Ekspor Laporan (Excel/CSV)")
+        }
+        
         SectionCard("Tren Waktu Reaksi") {
             ReactionTrendChart(data = trend)
         }
@@ -450,6 +478,8 @@ private fun WorkerHomeContent() {
                 )
             }
         }
+        
+        SeverityLegendCard(modifier = Modifier.fillMaxWidth())
     }
 }
 
@@ -564,6 +594,7 @@ class DashboardViewModel @Inject constructor(
     data class DashboardUiState(
         val loading: Boolean = true,
         val error: String? = null,
+        val exporting: Boolean = false,
         val role: UserRole? = null,
         val admin: AdminDashboardStats? = null,
         val examiner: ExaminerDashboardStats? = null,
@@ -663,6 +694,40 @@ class DashboardViewModel @Inject constructor(
                                 ?: (trend as? AppResult.Failure)?.error
                             )?.userMessage,
                     )
+                }
+            }
+        }
+    }
+
+    fun exportReport(context: Context) {
+        val state = _uiState.value
+        val from = state.periodFrom ?: return
+        val to = state.periodTo ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(exporting = true, error = null) }
+            val res = dashboardRepository.exportReport(from.toString(), to.toString(), "csv")
+            _uiState.update { it.copy(exporting = false) }
+            when (res) {
+                is AppResult.Success -> {
+                    try {
+                        val reportsDir = File(context.filesDir, "reports")
+                        reportsDir.mkdirs()
+                        val file = File(reportsDir, "RATIG-Report-${from}_${to}.csv")
+                        file.writeBytes(res.value)
+
+                        val uri = FileProvider.getUriForFile(context, "com.ratig.app.fileprovider", file)
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/csv"
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        context.startActivity(Intent.createChooser(intent, "Bagikan Laporan (Excel)"))
+                    } catch (e: Exception) {
+                        _uiState.update { it.copy(error = "Gagal memproses file: ${e.message}") }
+                    }
+                }
+                is AppResult.Failure -> {
+                    _uiState.update { it.copy(error = res.error.userMessage) }
                 }
             }
         }
