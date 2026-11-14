@@ -32,6 +32,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ratig.app.domain.model.SeverityScale
 
 @Composable
 fun LoadingState(message: String = "Memuat...", modifier: Modifier = Modifier) {
@@ -126,41 +127,28 @@ fun SeverityBadge(
     }
 }
 
+/**
+ * Background/foreground pair for a [SeverityScale] value.
+ *
+ * The mapping is exhaustive over the canonical scale so every indicator in the
+ * app (fatigue band, paramedic finding, verdict, mode quality) shares one
+ * visual language.
+ */
 @Composable
 fun severityColors(severity: Int): Pair<Color, Color> {
     val dark = androidx.compose.foundation.isSystemInDarkTheme()
-    return when {
-        severity < 0 -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
-        severity <= 1 -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant // Normal
-        severity == 2 -> if (dark) Color(0xFF1B5E20) to Color(0xFFA5D6A7) else Color(0xFFE8F5E9) to Color(0xFF1B5E20) // Ringan (Hijau)
-        severity == 3 -> if (dark) Color(0xFFE65100) to Color(0xFFFFCC80) else Color(0xFFFFF3E0) to Color(0xFFE65100) // Sedang (Kuning/Oranye)
-        else -> if (dark) Color(0xFFB71C1C) to Color(0xFFFFCDD2) else Color(0xFFFFEBEE) to Color(0xFFB71C1C) // Berat (Merah)
+    return when (severity) {
+        SeverityScale.NORMAL, SeverityScale.UNKNOWN ->
+            MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
+        SeverityScale.MILD ->
+            if (dark) Color(0xFF1B5E20) to Color(0xFFA5D6A7) else Color(0xFFE8F5E9) to Color(0xFF1B5E20)
+        SeverityScale.MODERATE ->
+            if (dark) Color(0xFFE65100) to Color(0xFFFFCC80) else Color(0xFFFFF3E0) to Color(0xFFE65100)
+        else ->
+            if (dark) Color(0xFFB71C1C) to Color(0xFFFFCDD2) else Color(0xFFFFEBEE) to Color(0xFFB71C1C)
     }
 }
 
-@Composable
-fun SeverityLegendCard(modifier: Modifier = Modifier) {
-    Card(modifier = modifier) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                text = "Indikator Kelelahan",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SeverityBadge(label = "Normal", severity = 0, modifier = Modifier.weight(1f))
-                SeverityBadge(label = "Ringan", severity = 2, modifier = Modifier.weight(1f))
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SeverityBadge(label = "Sedang", severity = 3, modifier = Modifier.weight(1f))
-                SeverityBadge(label = "Berat", severity = 4, modifier = Modifier.weight(1f))
-            }
-        }
-    }
-}
 @Composable
 fun ConfirmDialog(
     title: String,

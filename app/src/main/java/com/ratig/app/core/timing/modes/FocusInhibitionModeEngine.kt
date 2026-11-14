@@ -23,9 +23,37 @@ class FocusInhibitionModeEngine(
 
     private val config = modeConfig.sanitized()
 
-    override fun drawStimulus(): ModeStimulus.FocusCircle {
-        val isNoGo = nextRandomBoolean(config.noGoRatio)
-        return ModeStimulus.FocusCircle(isGo = !isNoGo)
+    /** Counted go / no-go trials drawn in the current run. */
+    private var goDrawn = 0
+    private var noGoDrawn = 0
+
+    override fun onRunReset() {
+        goDrawn = 0
+        noGoDrawn = 0
+    }
+
+    /**
+     * Draws one circle. Random per trial, but coverage is guaranteed: the last
+     * counted trial is forced to fill whichever category is still missing, so a
+     * short session cannot end up with zero no-go trials. A "Focus & Inhibition"
+     * test with no no-go stimulus would not test inhibition at all.
+     */
+    override fun drawStimulus(context: TrialContext): ModeStimulus.FocusCircle {
+        if (context.isPractice) {
+            // Practice never counts toward coverage.
+            return ModeStimulus.FocusCircle(isGo = !nextRandomBoolean(config.noGoRatio))
+        }
+
+        val isLastCounted = context.trialNumber >= context.countedTotal
+        val isGo: Boolean = when {
+            // Force the missing category on the final trial.
+            isLastCounted && noGoDrawn == 0 -> false
+            isLastCounted && goDrawn == 0 -> true
+            else -> !nextRandomBoolean(config.noGoRatio)
+        }
+
+        if (isGo) goDrawn++ else noGoDrawn++
+        return ModeStimulus.FocusCircle(isGo = isGo)
     }
 
     override fun classifyInTime(

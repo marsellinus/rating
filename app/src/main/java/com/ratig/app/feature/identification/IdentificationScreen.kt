@@ -64,6 +64,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ratig.app.core.time.TimeProvider
+import com.ratig.app.core.timing.modes.modeLabel
+import com.ratig.app.domain.model.TestMode
 import com.ratig.app.feature.identification.WorkerCandidate
 import com.ratig.app.ui.components.ConfirmDialog
 import com.ratig.app.ui.components.MetricTile
@@ -145,6 +147,7 @@ fun IdentificationRoute(
             onStartFresh = viewModel::startFreshIdentification,
             onSelectProtocol = viewModel::selectProtocol,
             onSelectShift = viewModel::selectShift,
+            onSelectMode = viewModel::selectMode,
             onRetrySetup = viewModel::retrySetup,
             onStartSession = viewModel::startSession,
             onRefreshCounters = viewModel::refreshCounters,
@@ -172,6 +175,7 @@ private fun IdentificationScreen(
     onStartFresh: () -> Unit,
     onSelectProtocol: (String) -> Unit,
     onSelectShift: (String?) -> Unit,
+    onSelectMode: (TestMode) -> Unit,
     onRetrySetup: () -> Unit,
     onStartSession: () -> Unit,
     onRefreshCounters: () -> Unit,
@@ -244,6 +248,7 @@ private fun IdentificationScreen(
                     state = state,
                     onSelectProtocol = onSelectProtocol,
                     onSelectShift = onSelectShift,
+                    onSelectMode = onSelectMode,
                     onRetrySetup = onRetrySetup,
                     onStartSession = onStartSession,
                 )
@@ -640,11 +645,20 @@ private fun lastExamSummary(lastExam: com.ratig.app.domain.model.TestSession?): 
 }
 
 @OptIn(ExperimentalLayoutApi::class)
+/** One-line, plain-language description of what each mode measures. */
+private fun modeDescription(mode: TestMode): String = when (mode) {
+    TestMode.CLASSIC -> "Waktu reaksi sederhana. Satu-satunya mode untuk klasifikasi kelelahan."
+    TestMode.RGB_RANDOM -> "Menekan hanya saat warna target muncul. Menguji diskriminasi visual."
+    TestMode.RANDOM_BUTTON -> "Mencari dan menekan tombol berlambang target. Menguji koordinasi mata-tangan."
+    TestMode.FOCUS_INHIBITION -> "Menekan pada sinyal hijau, menahan diri pada sinyal merah."
+}
+
 @Composable
 private fun SessionSetupSection(
     state: IdentificationUiState,
     onSelectProtocol: (String) -> Unit,
     onSelectShift: (String?) -> Unit,
+    onSelectMode: (TestMode) -> Unit,
     onRetrySetup: () -> Unit,
     onStartSession: () -> Unit,
 ) {
@@ -707,6 +721,31 @@ private fun SessionSetupSection(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+            }
+
+            Text("Mode Pemeriksaan", style = MaterialTheme.typography.titleSmall)
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                TestMode.entries.forEach { mode ->
+                    val selected = mode == state.selectedMode
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelectMode(mode) }
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(selected = selected, onClick = { onSelectMode(mode) })
+                        Spacer(Modifier.width(4.dp))
+                        Column {
+                            Text(mode.modeLabel(), style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                text = modeDescription(mode),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
                 }
             }
 

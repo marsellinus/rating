@@ -113,7 +113,10 @@ class ReactionTestViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    private val _finished = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    // replay = 1: the session id must survive a late collector, otherwise a
+    // completed test never navigates to its result screen and the user is stuck
+    // on a finished run.
+    private val _finished = MutableSharedFlow<String>(replay = 1, extraBufferCapacity = 1)
     val finished: SharedFlow<String> = _finished.asSharedFlow()
 
     private var engineConfig: EngineConfig? = null

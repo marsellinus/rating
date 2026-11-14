@@ -24,7 +24,7 @@ class ButtonGridModeEngine(
     private val config = modeConfig.sanitized()
     private val targetSymbol: String = config.targetSymbol
 
-    override fun drawStimulus(): ModeStimulus.Grid {
+    override fun drawStimulus(context: TrialContext): ModeStimulus.Grid {
         val cells = config.gridSize * config.gridSize
         val order = shuffledIndices(cells)
         val targetPosition = order.first()

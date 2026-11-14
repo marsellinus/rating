@@ -1,6 +1,7 @@
 package com.ratig.app.domain.usecase
 
 import com.ratig.app.domain.model.FitnessRecommendation
+import com.ratig.app.domain.model.SeverityScale
 import com.ratig.app.domain.model.VitalFinding
 import com.ratig.app.domain.model.VitalKind
 import com.ratig.app.domain.model.Vitals
@@ -37,7 +38,8 @@ class VitalsClassifier @Inject constructor() {
             vitals.alcoholPercent?.let { add(alcoholFinding(it)) }
         }.filter { it.severity > NORMAL }
 
-        val overall = findings.maxOfOrNull { it.severity } ?: if (vitals.hasAnyMeasurement) NORMAL else -1
+        val overall = findings.maxOfOrNull { it.severity }
+            ?: if (vitals.hasAnyMeasurement) NORMAL else SeverityScale.UNKNOWN
         return VitalsAssessment(findings = findings, overallSeverity = overall)
     }
 
@@ -50,7 +52,7 @@ class VitalsClassifier @Inject constructor() {
     fun recommend(vitals: VitalsAssessment, fatigueSeverity: Int): FitnessRecommendation {
         val worst = maxOf(vitals.overallSeverity, fatigueSeverity)
         return when {
-            worst < 0 -> FitnessRecommendation.FIT          // nothing measured
+            worst == SeverityScale.UNKNOWN -> FitnessRecommendation.FIT  // nothing measured
             worst <= NORMAL -> FitnessRecommendation.FIT
             worst <= MODERATE -> FitnessRecommendation.FIT_WITH_NOTE
             else -> FitnessRecommendation.NOT_FIT
@@ -92,10 +94,12 @@ class VitalsClassifier @Inject constructor() {
         VitalFinding(kind = kind, label = label, severity = severity)
 
     companion object {
-        const val NORMAL = 0
-        const val MILD = 1
-        const val MODERATE = 2
-        const val SEVERE = 3
+        // Aliases of the canonical scale so callers cannot drift onto a
+        // private 0..3 range that renders the wrong colour.
+        const val NORMAL = SeverityScale.NORMAL
+        const val MILD = SeverityScale.MILD
+        const val MODERATE = SeverityScale.MODERATE
+        const val SEVERE = SeverityScale.SEVERE
 
         /** Breath alcohol threshold used by the desktop application. */
         const val ALCOHOL_LIMIT = 0.08

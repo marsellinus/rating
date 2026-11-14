@@ -183,7 +183,10 @@ internal fun GridStimulusView(
                     val symbol = stimulus.symbols.getOrNull(index)
                     GridCell(
                         symbol = symbol,
-                        enabled = enabled && symbol != null,
+                        // Blank cells stay tappable: tapping one is a genuine
+                        // wrong response and must be recorded, not swallowed by
+                        // a disabled button.
+                        enabled = enabled,
                         onClick = { onCellTap(index) },
                         modifier = Modifier
                             .weight(1f)
@@ -205,11 +208,15 @@ private fun GridCell(
 ) {
     val shape = MaterialTheme.shapes.medium
     if (symbol == null) {
+        // Blank cell: still clickable so a wrong tap is recorded, visually muted
+        // so it is obviously not the target.
         androidx.compose.material3.Surface(
             modifier = modifier,
             shape = shape,
-            color = ModeCueColor,
+            color = ModeCueColor.copy(alpha = 0.35f),
             contentColor = ModeContentColor.copy(alpha = 0.25f),
+            onClick = onClick,
+            enabled = enabled,
         ) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { }
         }

@@ -8,6 +8,7 @@ import com.ratig.app.core.identity.NikValidator
 import com.ratig.app.core.identity.QrParseResult
 import com.ratig.app.core.identity.QrPayload
 import com.ratig.app.core.result.AppResult
+import com.ratig.app.core.timing.modes.ModeConfiguration
 import com.ratig.app.core.sync.SyncStatusBus
 import com.ratig.app.data.offline.NetworkMonitor
 import com.ratig.app.data.offline.OfflinePolicyStore
@@ -23,6 +24,7 @@ import com.ratig.app.domain.repository.TestSessionRepository
 import com.ratig.app.domain.repository.WorkerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Instant
+import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -69,6 +71,11 @@ data class IdentificationUiState(
     val selectedProtocolId: String? = null,
     /** null = use the worker's own shift. */
     val selectedShiftId: String? = null,
+    /**
+     * Test mode for the session about to be created. Classic is the default
+     * because it is the only mode that feeds the fatigue classification.
+     */
+    val selectedMode: TestMode = TestMode.CLASSIC,
     val loadingSetup: Boolean = false,
     val setupError: String? = null,
     val creatingSession: Boolean = false,
@@ -334,6 +341,7 @@ class IdentificationViewModel @Inject constructor(
                 lastExam = null,
                 selectedProtocolId = null,
                 selectedShiftId = null,
+                selectedMode = TestMode.CLASSIC,
                 setupError = null,
             )
         }
@@ -438,6 +446,10 @@ class IdentificationViewModel @Inject constructor(
         _uiState.update { it.copy(selectedShiftId = shiftId) }
     }
 
+    fun selectMode(mode: TestMode) {
+        _uiState.update { it.copy(selectedMode = mode) }
+    }
+
     fun startSession() {
         val s = _uiState.value
         val candidate = s.confirmedWorker ?: return
@@ -449,14 +461,31 @@ class IdentificationViewModel @Inject constructor(
                 is AppResult.Success -> r.value?.id
                 is AppResult.Failure -> null
             }
+            // Observation modes need a reproducible stimulus sequence and a
+            // frozen configuration, so both are decided here - at session
+            // creation - and never recomputed during the run. Classic sessions
+            // carry neither because their stimulus order is not randomized.
+            val isObservationMode = s.selectedMode != TestMode.CLASSIC
+            val seed = if (isObservationMode) UUID.randomUUID().toString() else null
+            val frozenModeConfig = if (isObservationMode) {
+                val fromProtocol = when (val p = protocolRepository.getProtocol(protocolId)) {
+                    is AppResult.Success -> p.value.configuration.mode
+                    is AppResult.Failure -> null
+                }
+                ModeConfiguration.toConfigurationJson(
+                    (fromProtocol ?: ModeConfiguration.DEFAULT).sanitized()
+                )
+            } else {
+                null
+            }
             val created = sessionRepository.createSession(
                 workerId = candidate.worker.id,
                 protocolId = protocolId,
                 fatigueRuleId = fatigueRuleId,
                 shiftId = s.selectedShiftId ?: candidate.worker.shiftId,
-                testMode = TestMode.CLASSIC,
-                randomSeed = null,
-                modeConfig = null,
+                testMode = s.selectedMode,
+                randomSeed = seed,
+                modeConfig = frozenModeConfig,
                 // Privacy policy: audit snapshot keeps a MASKED NIK only; the
                 // workers row (worker_id) is the authoritative identity.
                 nikSnapshot = candidate.maskedNik,

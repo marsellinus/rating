@@ -38,7 +38,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import com.ratig.app.domain.repository.ProtocolRepository
+import com.ratig.app.ui.components.LegendBand
 import com.ratig.app.ui.components.SeverityLegendCard
+import com.ratig.app.ui.components.bandMeaning
+import com.ratig.app.ui.components.rangeLabel
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -48,6 +52,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ratig.app.core.result.AppResult
 import com.ratig.app.core.time.TimeProvider
 import com.ratig.app.domain.model.AdminDashboardStats
+import com.ratig.app.domain.model.ApprovalStatus
 import com.ratig.app.domain.model.ExaminerDashboardStats
 import com.ratig.app.domain.model.ManagementDashboardStats
 import com.ratig.app.domain.model.ReactionTrendPoint
@@ -149,8 +154,13 @@ private fun DashboardScreen(
                 onExport = onExport,
             )
         state.role == UserRole.USER && examiner != null ->
-            ExaminerDashboardContent(stats = examiner, onOpenSession = onOpenSession, onStartIdentification = onStartIdentification)
-        state.role == UserRole.USER -> WorkerHomeContent()
+            ExaminerDashboardContent(
+                stats = examiner,
+                onOpenSession = onOpenSession,
+                onStartIdentification = onStartIdentification,
+                legendBands = state.legendBands,
+            )
+        state.role == UserRole.USER -> WorkerHomeContent(legendBands = state.legendBands)
         else -> EmptyState(
             icon = Icons.Rounded.Info,
             title = "Dasbor tidak tersedia",
@@ -230,6 +240,7 @@ private fun ExaminerDashboardContent(
     stats: ExaminerDashboardStats,
     onOpenSession: (String) -> Unit,
     onStartIdentification: () -> Unit,
+    legendBands: List<LegendBand>? = null,
 ) {
     Column(
         modifier = Modifier
@@ -280,7 +291,10 @@ private fun ExaminerDashboardContent(
             }
         }
         
-        SeverityLegendCard(modifier = Modifier.fillMaxWidth())
+        SeverityLegendCard(
+            modifier = Modifier.fillMaxWidth(),
+            bands = legendBands,
+        )
     }
 
 }
@@ -429,7 +443,7 @@ private fun PeriodChip(
 // ---------------------------------------------------------------- Worker
 
 @Composable
-private fun WorkerHomeContent() {
+private fun WorkerHomeContent(legendBands: List<LegendBand>? = null) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -479,7 +493,10 @@ private fun WorkerHomeContent() {
             }
         }
         
-        SeverityLegendCard(modifier = Modifier.fillMaxWidth())
+        SeverityLegendCard(
+            modifier = Modifier.fillMaxWidth(),
+            bands = legendBands,
+        )
     }
 }
 
@@ -588,6 +605,7 @@ private fun formatMs(value: Double): String = String.format(java.util.Locale.US,
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val dashboardRepository: DashboardRepository,
+    private val protocolRepository: ProtocolRepository,
     authRepository: AuthRepository,
 ) : ViewModel() {
 
@@ -595,6 +613,11 @@ class DashboardViewModel @Inject constructor(
         val loading: Boolean = true,
         val error: String? = null,
         val exporting: Boolean = false,
+        /**
+         * Bands of the organization's active rule, used by the fatigue legend so
+         * it shows the ranges that actually apply. Null when unavailable.
+         */
+        val legendBands: List<LegendBand>? = null,
         val role: UserRole? = null,
         val admin: AdminDashboardStats? = null,
         val examiner: ExaminerDashboardStats? = null,
@@ -609,6 +632,7 @@ class DashboardViewModel @Inject constructor(
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
 
     init {
+        viewModelScope.launch { loadLegendBands() }
         viewModelScope.launch {
             authRepository.sessionState.collect { session ->
                 val role = (session as? SessionState.Authenticated)?.profile?.role
@@ -625,6 +649,34 @@ class DashboardViewModel @Inject constructor(
                     _uiState.update { it.copy(loading = false, error = session.message) }
                 }
             }
+        }
+    }
+
+    /**
+     * Reads the active rule and exposes its bands for the legend. Failures are
+     * silent on purpose: a missing legend range must never block the dashboard.
+     */
+    private suspend fun loadLegendBands() {
+        val rules = when (val loaded = protocolRepository.listRules(null)) {
+            is AppResult.Success -> loaded.value
+            is AppResult.Failure -> return
+        }
+        val bands = rules
+            .firstOrNull { it.approvalStatus == ApprovalStatus.APPROVED }
+            ?.config?.bands
+            ?: rules.firstOrNull()?.config?.bands
+            ?: return
+        _uiState.update { state ->
+            state.copy(
+                legendBands = bands.map { band ->
+                    LegendBand(
+                        band = band.label,
+                        severity = band.severity,
+                        range = band.rangeLabel(),
+                        meaning = bandMeaning(band.severity),
+                    )
+                },
+            )
         }
     }
 

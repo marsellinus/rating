@@ -43,12 +43,17 @@ import com.ratig.app.domain.repository.ProtocolRepository
 import com.ratig.app.domain.repository.TestSessionRepository
 import com.ratig.app.domain.model.FitnessRecommendation
 import com.ratig.app.domain.usecase.ClassificationOutcome
+import com.ratig.app.domain.usecase.ModeQualityClassifier
 import com.ratig.app.domain.usecase.VitalsClassifier
 import com.ratig.app.ui.components.EmptyState
 import com.ratig.app.ui.components.ErrorState
 import com.ratig.app.ui.components.LoadingState
 import com.ratig.app.ui.components.MetricTile
+import com.ratig.app.domain.model.FatigueRule
+import com.ratig.app.ui.components.LegendBand
 import com.ratig.app.ui.components.SeverityLegendCard
+import com.ratig.app.ui.components.bandMeaning
+import com.ratig.app.ui.components.rangeLabel
 import com.ratig.app.ui.components.SeverityBadge
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Locale
@@ -70,6 +75,7 @@ class TestResultViewModel @Inject constructor(
     private val protocolRepository: ProtocolRepository,
     private val screeningDao: HealthScreeningDao,
     private val vitalsClassifier: VitalsClassifier,
+    private val modeQualityClassifier: ModeQualityClassifier,
 ) : ViewModel() {
 
     private val sessionId: String = checkNotNull(savedStateHandle["sessionId"])
@@ -92,6 +98,17 @@ class TestResultViewModel @Inject constructor(
          * reaction test alone does not decide fitness.
          */
         val combinedRecommendation: FitnessRecommendation? = null,
+        /**
+         * Response-quality indicator for the observation modes. Null for the
+         * Classic mode, where the fatigue classification is the indicator.
+         */
+        val modeQuality: ModeQualityClassifier.Quality? = null,
+        /**
+         * Bands of the rule that was actually applied, for the legend. Null when
+         * the rule cannot be resolved, in which case the legend omits ranges
+         * rather than showing invented ones.
+         */
+        val legendBands: List<LegendBand>? = null,
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -153,7 +170,12 @@ class TestResultViewModel @Inject constructor(
                 val end = value.completedAt
                 if (start != null && end != null) end.toEpochMilli() - start.toEpochMilli() else null
             }
-            val severityForDecision = resolveSeverity(result, session?.protocolId)
+            val appliedRule = resolveRule(result, session?.protocolId)
+            val severityForDecision = appliedRule
+                ?.config?.bands
+                ?.firstOrNull { it.code == result.classificationCode }
+                ?.severity
+                ?: -1
             _uiState.update {
                 it.copy(
                     loading = false,
@@ -167,26 +189,28 @@ class TestResultViewModel @Inject constructor(
                         screening = it.screening,
                         fatigueSeverity = severityForDecision,
                     ),
+                    modeQuality = modeQualityClassifier.classify(result),
+                    legendBands = appliedRule?.config?.bands?.map { band ->
+                        LegendBand(
+                            band = band.label,
+                            severity = band.severity,
+                            range = band.rangeLabel(),
+                            meaning = bandMeaning(band.severity),
+                        )
+                    },
                 )
             }
         }
     }
 
-    /** Maps the stored classification code to the band severity of the applied rule. */
-    private suspend fun resolveSeverity(result: TestResult, protocolId: String?): Int {
-        val code = result.classificationCode ?: return -1
-        if (code == ClassificationOutcome.INSUFFICIENT_DATA ||
-            code == ClassificationOutcome.NOT_CONFIGURED
-        ) {
-            return -1
-        }
-        if (protocolId == null) return -1
+    /** The rule version that produced this result, for severity and legend. */
+    private suspend fun resolveRule(result: TestResult, protocolId: String?): FatigueRule? {
+        if (protocolId == null) return null
         val rules = when (val loaded = protocolRepository.listRules(protocolId)) {
             is AppResult.Success -> loaded.value
-            is AppResult.Failure -> return -1
+            is AppResult.Failure -> return null
         }
-        val rule = rules.firstOrNull { it.ruleVersion == result.ruleVersion }
-        return rule?.config?.bands?.firstOrNull { it.code == code }?.severity ?: -1
+        return rules.firstOrNull { it.ruleVersion == result.ruleVersion }
     }
 }
 
@@ -308,6 +332,32 @@ private fun ResultContent(
             }
         }
 
+        uiState.modeQuality?.let { quality ->
+            // Observation modes do not produce a fatigue band, so they get their
+            // own indicator on the same colour scale.
+            Card(Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text("Kualitas Respons", style = MaterialTheme.typography.labelLarge)
+                    SeverityBadge(label = quality.label, severity = quality.severity)
+                    Text(
+                        text = quality.explanation,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = "Mode pengamatan: indikator ini menilai ketepatan respons, " +
+                            "bukan tingkat kelelahan.",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontStyle = FontStyle.Italic,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+
         Card(Modifier.fillMaxWidth()) {
             Column(
                 Modifier.padding(16.dp),
@@ -411,7 +461,10 @@ private fun ResultContent(
             }
         }
 
-        SeverityLegendCard(modifier = Modifier.fillMaxWidth())
+        SeverityLegendCard(
+            modifier = Modifier.fillMaxWidth(),
+            bands = uiState.legendBands,
+        )
 
         Text(
             text = "Hasil RATIG adalah alat bantu keputusan, bukan diagnosis.",

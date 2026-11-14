@@ -47,7 +47,12 @@ class ModeMetricsCalculator @Inject constructor() {
         val nDistractor = distractors.size
         val nCorrect = trials.count { it.responseType == ModeResponseType.CORRECT }
         val nDistractorResponded = distractors.count { it.responseType in RESPONDED_TYPES }
-        val nDistractorIgnored = distractors.count { it.responseType == ModeResponseType.NONE }
+        // A distractor is correctly rejected when no response was given. The
+        // engine writes the literal "none"; older rows may carry null, and the
+        // server formula treats both as no-response, so this must too.
+        val nDistractorIgnored = distractors.count {
+            it.responseType == null || it.responseType == ModeResponseType.NONE
+        }
         val nTargetNoResponse = targets.count {
             it.responseType == ModeResponseType.NONE || it.missedResponse
         }

@@ -87,11 +87,11 @@ enum class FitnessRecommendation {
             NOT_FIT -> "Tidak layak bekerja"
         }
 
-    /** Severity used for the shared badge colour scale. */
+    /** Severity on the shared [SeverityScale]. */
     val severity: Int
         get() = when (this) {
-            FIT -> 0
-            FIT_WITH_NOTE -> 3
-            NOT_FIT -> 4
+            FIT -> SeverityScale.NORMAL
+            FIT_WITH_NOTE -> SeverityScale.MODERATE
+            NOT_FIT -> SeverityScale.SEVERE
         }
 }

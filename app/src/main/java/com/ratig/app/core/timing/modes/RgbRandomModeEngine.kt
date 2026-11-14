@@ -23,7 +23,7 @@ class RgbRandomModeEngine(
     private val colors = RgbColor.entries
     private val slotCount = SLOT_ROWS * SLOT_COLS
 
-    override fun drawStimulus(): ModeStimulus.Rgb {
+    override fun drawStimulus(context: TrialContext): ModeStimulus.Rgb {
         val color = colors[nextRandom(colors.size)]
         val position = if (modeConfig.randomizePosition) nextRandom(slotCount) else null
         return ModeStimulus.Rgb(

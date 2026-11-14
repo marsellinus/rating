@@ -116,7 +116,14 @@ abstract class ModeEngineBase(
     private val _onTrialDone = MutableSharedFlow<ModeEngineTrial>(extraBufferCapacity = 16)
     val onTrialDone: SharedFlow<ModeEngineTrial> = _onTrialDone.asSharedFlow()
 
-    private val _onFinished = MutableSharedFlow<List<ModeEngineTrial>>(extraBufferCapacity = 4)
+    // replay = 1: completion is a fact, not a momentary event. Without replay a
+    // subscriber that attaches after the last trial (slow init, collector
+    // restarted by recomposition) would never learn the session finished, and
+    // the result would never be finalized.
+    private val _onFinished = MutableSharedFlow<List<ModeEngineTrial>>(
+        replay = 1,
+        extraBufferCapacity = 4,
+    )
     val onFinished: SharedFlow<List<ModeEngineTrial>> = _onFinished.asSharedFlow()
 
     private var worker: Job? = null
@@ -142,9 +149,11 @@ abstract class ModeEngineBase(
         }
         worker?.cancel()
         runRandom = Random(seed)
+        onRunReset()
         countedTrials.clear()
         drainTaps()
         currentShownAtNanos = null
+        provisionalShownAtNanos = null
         pendingTapNanos = null
         _state.value = ModeEngineState.Countdown(COUNTDOWN_TOTAL_MS)
         worker = scope.launch { runSession(config) }
@@ -208,11 +217,31 @@ abstract class ModeEngineBase(
         worker = null
         currentShownAtNanos = null
         provisionalShownAtNanos = null
+        pendingTapNanos = null
         _state.value = ModeEngineState.Idle
     }
 
     /** Draws the stimulus for one trial from the seeded RNG (called once). */
-    protected abstract fun drawStimulus(): ModeStimulus
+    /**
+     * Called at the start of every run, before any stimulus is drawn. Modes that
+     * track their own stimulus coverage reset those counters here.
+     */
+    protected open fun onRunReset() = Unit
+
+    /**
+     * Trial being prepared. Passed to [drawStimulus] so a mode can guarantee it
+     * covers its own stimulus space (e.g. Focus & Inhibition must contain at
+     * least one no-go trial, otherwise the inhibition it is meant to measure is
+     * never exercised).
+     */
+    data class TrialContext(
+        val trialNumber: Int,
+        /** Counted trials in this run (practice trials excluded). */
+        val countedTotal: Int,
+        val isPractice: Boolean,
+    )
+
+    protected abstract fun drawStimulus(context: TrialContext): ModeStimulus
 
     /** Classifies an in-time response for the shown stimulus. */
     protected abstract fun classifyInTime(
@@ -279,7 +308,13 @@ abstract class ModeEngineBase(
         pendingTapNanos = null
 
         // Draw ONCE, before the wait opens; never re-randomized afterwards.
-        val stimulus = drawStimulus()
+        val stimulus = drawStimulus(
+            TrialContext(
+                trialNumber = trialNumber,
+                countedTotal = config.trialCount,
+                isPractice = trialNumber <= 0,
+            )
+        )
         val stimulusInMs = randomDelay(config)
         _state.value = ModeEngineState.Waiting(stimulusInMs = stimulusInMs, sinceNanos = clock.nowNanos())
 

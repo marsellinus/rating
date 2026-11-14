@@ -493,7 +493,7 @@ begin
                  else round(
                     ( count(*) filter (where tt.response_correct is true)
                       + count(*) filter (where tt.is_target is false
-                                        and tt.response_type is null)
+                                        and coalesce(tt.response_type, 'none') = 'none')
                     )::numeric
                     / nullif(count(*) filter (where tt.is_target is not null), 0), 6)
             end as accuracy_rate,

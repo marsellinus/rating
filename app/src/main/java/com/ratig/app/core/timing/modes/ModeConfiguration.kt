@@ -70,10 +70,18 @@ data class ModeConfiguration(
             return runCatching { JsonCodec.json.decodeFromString<Envelope>(json).mode }
                 .getOrNull() ?: DEFAULT
         }
+
+        /**
+         * Wraps this configuration in the `{"mode":{...}}` envelope used by
+         * `test_sessions.mode_config`, so a session can freeze the exact
+         * settings it ran with. [fromConfigurationJson] reads it back.
+         */
+        fun toConfigurationJson(value: ModeConfiguration): String =
+            JsonCodec.json.encodeToString(Envelope.serializer(), Envelope(value))
     }
 
     @Serializable
-    private data class Envelope(val mode: ModeConfiguration? = null)
+    data class Envelope(val mode: ModeConfiguration? = null)
 }
 
 /** How a tap before the stimulus is scored (modeConfig.falseStartRule). */

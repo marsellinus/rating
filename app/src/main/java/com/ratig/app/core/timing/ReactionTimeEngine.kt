@@ -98,7 +98,12 @@ class ReactionTimeEngine(
     private val _onTrialDone = MutableSharedFlow<EngineTrial>(extraBufferCapacity = 16)
     val onTrialDone: SharedFlow<EngineTrial> = _onTrialDone.asSharedFlow()
 
-    private val _onFinished = MutableSharedFlow<List<EngineTrial>>(extraBufferCapacity = 4)
+    // replay = 1: see ModeEngineBase - a late subscriber must still see that the
+    // run completed, otherwise the session is never finalized.
+    private val _onFinished = MutableSharedFlow<List<EngineTrial>>(
+        replay = 1,
+        extraBufferCapacity = 4,
+    )
     val onFinished: SharedFlow<List<EngineTrial>> = _onFinished.asSharedFlow()
 
     private var worker: Job? = null
@@ -195,6 +200,7 @@ class ReactionTimeEngine(
         worker = null
         currentShownAtNanos = null
         provisionalShownAtNanos = null
+        pendingTapNanos = null
         _state.value = EngineState.Idle
     }
 
