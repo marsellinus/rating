@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import com.ratig.app.domain.repository.ProtocolRepository
 import com.ratig.app.ui.components.LegendBand
 import com.ratig.app.ui.components.SeverityLegendCard
+import com.ratig.app.ui.components.bandDisplayName
 import com.ratig.app.ui.components.bandMeaning
 import com.ratig.app.ui.components.rangeLabel
 import androidx.compose.ui.unit.dp
@@ -670,7 +671,7 @@ class DashboardViewModel @Inject constructor(
             state.copy(
                 legendBands = bands.map { band ->
                     LegendBand(
-                        band = band.label,
+                        band = bandDisplayName(band.label, band.severity),
                         severity = band.severity,
                         range = band.rangeLabel(),
                         meaning = bandMeaning(band.severity),

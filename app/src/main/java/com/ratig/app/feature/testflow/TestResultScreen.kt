@@ -52,6 +52,7 @@ import com.ratig.app.ui.components.MetricTile
 import com.ratig.app.domain.model.FatigueRule
 import com.ratig.app.ui.components.LegendBand
 import com.ratig.app.ui.components.SeverityLegendCard
+import com.ratig.app.ui.components.bandDisplayName
 import com.ratig.app.ui.components.bandMeaning
 import com.ratig.app.ui.components.rangeLabel
 import com.ratig.app.ui.components.SeverityBadge
@@ -192,7 +193,7 @@ class TestResultViewModel @Inject constructor(
                     modeQuality = modeQualityClassifier.classify(result),
                     legendBands = appliedRule?.config?.bands?.map { band ->
                         LegendBand(
-                            band = band.label,
+                            band = bandDisplayName(band.label, band.severity),
                             severity = band.severity,
                             range = band.rangeLabel(),
                             meaning = bandMeaning(band.severity),

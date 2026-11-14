@@ -120,6 +120,26 @@ fun com.ratig.app.domain.model.RuleBand.rangeLabel(): String {
     return if (upper == null) "≥ $minMs ms" else "$minMs–${upper - 1} ms"
 }
 
+/**
+ * Display name for a band. Falls back to the canonical name derived from
+ * severity when the organization's rule still carries the unvalidated
+ * placeholder, so the legend never shows the same meaningless word four times.
+ */
+fun bandDisplayName(label: String?, severity: Int): String {
+    val cleaned = label?.trim().orEmpty()
+    val isPlaceholder = cleaned.isEmpty() ||
+        cleaned.equals("Perlu validasi", ignoreCase = true) ||
+        cleaned.equals("Belum dikonfigurasi", ignoreCase = true)
+    if (!isPlaceholder) return cleaned
+    return when (severity) {
+        SeverityScale.NORMAL -> "Normal"
+        SeverityScale.MILD -> "Ringan"
+        SeverityScale.MODERATE -> "Sedang"
+        SeverityScale.SEVERE -> "Berat"
+        else -> "Belum ditetapkan"
+    }
+}
+
 /** Short operational meaning of a band severity, for the legend. */
 fun bandMeaning(severity: Int): String = when (severity) {
     SeverityScale.NORMAL -> "Lanjutkan pekerjaan seperti biasa."

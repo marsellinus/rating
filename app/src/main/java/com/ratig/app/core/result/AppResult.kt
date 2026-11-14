@@ -71,6 +71,16 @@ fun Throwable.toAppError(): AppError {
     val message = message ?: ""
     val lower = message.lowercase()
     return when {
+        // A serialization failure is a defect in the app, not the network. It
+        // used to surface as "Koneksi jaringan bermasalah" because it arrived
+        // wrapped in a transport exception, which sent everyone chasing a
+        // connectivity problem that did not exist.
+        this is kotlinx.serialization.SerializationException ||
+            generateSequence(this) { it.cause }.any {
+                it is kotlinx.serialization.SerializationException
+            } -> AppError.Unexpected(
+            "Terjadi kesalahan saat memproses data. Perbarui aplikasi ke versi terbaru.",
+        )
         this is io.github.jan.supabase.exceptions.HttpRequestException ||
             this is io.ktor.client.plugins.HttpRequestTimeoutException ||
             lower.contains("unable to resolve host") ||

@@ -55,6 +55,24 @@ class SeverityLegendTest {
     }
 
     @Test
+    fun `placeholder labels fall back to the canonical band name`() {
+        // The seeded rule ships "Perlu validasi" on every band. Showing that four
+        // times tells the reader nothing, so the legend derives the real name.
+        assertEquals("Normal", bandDisplayName("Perlu validasi", SeverityScale.NORMAL))
+        assertEquals("Ringan", bandDisplayName("Perlu validasi", SeverityScale.MILD))
+        assertEquals("Sedang", bandDisplayName("Perlu validasi", SeverityScale.MODERATE))
+        assertEquals("Berat", bandDisplayName("Perlu validasi", SeverityScale.SEVERE))
+        assertEquals("Normal", bandDisplayName(null, SeverityScale.NORMAL))
+        assertEquals("Sedang", bandDisplayName("  ", SeverityScale.MODERATE))
+    }
+
+    @Test
+    fun `a real organization label is shown as written`() {
+        assertEquals("Fatigue Ringan", bandDisplayName("Fatigue Ringan", SeverityScale.MILD))
+        assertEquals("Aman", bandDisplayName("Aman", SeverityScale.NORMAL))
+    }
+
+    @Test
     fun `unknown severity is labelled rather than left blank`() {
         assertEquals("Kategori belum ditetapkan aturan.", bandMeaning(SeverityScale.UNKNOWN))
     }

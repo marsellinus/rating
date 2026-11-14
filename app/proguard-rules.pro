@@ -20,3 +20,31 @@
 # Supabase / Ktor
 -dontwarn org.slf4j.**
 -dontwarn io.ktor.**
+
+# ---------------------------------------------------------------------------
+# Supabase-kt + Ktor (release-only failure, found on device)
+#
+# Supabase-kt serializes its own request/response bodies with
+# kotlinx.serialization. The rules above only keep `com.ratig.app.**`, so R8
+# renamed/stripped the library's generated serializers and every auth call threw
+# at runtime. The app mapped that to AppError.Network, so the release build
+# showed "Koneksi jaringan bermasalah" on a perfectly healthy network while the
+# debug build logged in fine.
+# ---------------------------------------------------------------------------
+-keep,includedescriptorclasses class io.github.jan.supabase.**$$serializer { *; }
+-keepclassmembers class io.github.jan.supabase.** {
+    *** Companion;
+}
+-keepclasseswithmembers class io.github.jan.supabase.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keepclassmembers class kotlinx.serialization.json.** {
+    *** Companion;
+}
+
+# Ktor: engines and plugins are resolved reflectively by service name.
+-keep class io.ktor.client.engine.** { *; }
+-keep class io.ktor.client.plugins.** { *; }
+-dontwarn io.ktor.**
+-dontwarn org.slf4j.**
+-dontwarn kotlinx.coroutines.debug.**
