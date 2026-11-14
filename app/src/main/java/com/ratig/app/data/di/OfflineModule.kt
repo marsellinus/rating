@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.ratig.app.data.local.RatigDatabase
 import com.ratig.app.data.local.dao.AuditEventDao
+import com.ratig.app.data.local.dao.HealthScreeningDao
 import com.ratig.app.data.local.dao.ProfileDao
 import com.ratig.app.data.local.dao.ProtocolDao
 import com.ratig.app.data.local.dao.SessionDao
@@ -33,6 +34,7 @@ object OfflineProvidesModule {
     @Singleton
     fun provideRatigDatabase(@ApplicationContext context: Context): RatigDatabase =
         Room.databaseBuilder(context, RatigDatabase::class.java, RatigDatabase.NAME)
+            .addMigrations(RatigDatabase.MIGRATION_1_2)
             .build()
 
     @Provides
@@ -52,6 +54,10 @@ object OfflineProvidesModule {
 
     @Provides
     fun provideAuditEventDao(database: RatigDatabase): AuditEventDao = database.auditEventDao()
+
+    @Provides
+    fun provideHealthScreeningDao(database: RatigDatabase): HealthScreeningDao =
+        database.healthScreeningDao()
 }
 
 /** Interface bindings for the offline core. */

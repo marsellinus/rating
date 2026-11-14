@@ -35,7 +35,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -397,12 +399,20 @@ private fun TestPhaseArea(
     val stimulus = engineState is EngineState.StimulusVisible
     val backdrop = if (stimulus) StimulusGreen else TestBackdrop
     val contentColor = if (stimulus) Color.Black else Color.White
+    val haptics = LocalHapticFeedback.current
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(backdrop)
-            .pointerInput(Unit) { detectTapGestures { viewModel.engine.onTap() } },
+            .pointerInput(Unit) {
+                detectTapGestures {
+                    // Record first, then confirm: the haptic must never sit
+                    // between the touch and the timestamp sample.
+                    viewModel.engine.onTap()
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                }
+            },
     ) {
         when (val state = engineState) {
             is EngineState.Countdown -> {

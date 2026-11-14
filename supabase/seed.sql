@@ -98,10 +98,10 @@ values
      'v1',
      '{
         "bands": [
-          {"minMs": 0,   "maxMsExclusive": 240, "code": "BAND_1", "label": "Perlu validasi", "severity": 1},
-          {"minMs": 240, "maxMsExclusive": 410, "code": "BAND_2", "label": "Perlu validasi", "severity": 2},
-          {"minMs": 410, "maxMsExclusive": 580, "code": "BAND_3", "label": "Perlu validasi", "severity": 3},
-          {"minMs": 580, "maxMsExclusive": null, "code": "BAND_4", "label": "Perlu validasi", "severity": 4}
+          {"minMs": 0,   "maxMsExclusive": 240, "code": "BAND_1", "label": "Normal", "severity": 1},
+          {"minMs": 240, "maxMsExclusive": 400, "code": "BAND_2", "label": "Fatigue Ringan", "severity": 2},
+          {"minMs": 400, "maxMsExclusive": 580, "code": "BAND_3", "label": "Fatigue Sedang", "severity": 3},
+          {"minMs": 580, "maxMsExclusive": null, "code": "BAND_4", "label": "Fatigue Berat", "severity": 4}
         ],
         "slowResponseThresholdMs": 580,
         "logic": "mean_ms_band",

@@ -217,8 +217,28 @@ fun RatigNavHost(
                 Routes.TEST_RESULT,
                 arguments = listOf(navArgument("sessionId") { type = NavType.StringType }),
             ) {
+                val resultSessionId = it.arguments?.getString("sessionId").orEmpty()
                 com.ratig.app.feature.testflow.TestResultRoute(
                     onDone = { navController.popBackStack(Routes.DASHBOARD, inclusive = false) },
+                    onOpenScreening = {
+                        navController.navigate(Routes.healthScreening(resultSessionId))
+                    },
+                    onNextWorker = {
+                        // Drop the finished result from the back stack: the
+                        // examiner must not navigate back into a closed session.
+                        navController.navigate(Routes.IDENTIFICATION) {
+                            popUpTo(Routes.DASHBOARD) { inclusive = false }
+                        }
+                    },
+                )
+            }
+
+            composable(
+                Routes.HEALTH_SCREENING,
+                arguments = listOf(navArgument("sessionId") { type = NavType.StringType }),
+            ) {
+                com.ratig.app.feature.screening.ScreeningRoute(
+                    onBack = { navController.popBackStack() },
                 )
             }
 

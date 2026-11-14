@@ -174,7 +174,7 @@ Setelah tes selesai, Anda melihat ringkasan hasil:
 | **Std. Deviasi** | Sebaran waktu reaksi |
 | **Percobaan valid** | Jumlah percobaan yang dihitung |
 | **Respons lambat** | Jumlah reaksi melewati ambang lambat |
-| **Kategori** | Klasifikasi kelelahan (mis. "Normal", "Perlu perhatian") |
+| **Kategori** | Klasifikasi kelelahan: Normal, Fatigue Ringan, Fatigue Sedang, Fatigue Berat |
 
 **Kategori** dihitung dari aturan yang **disetujui perusahaan**. Bila aturan
 belum divalidasi, aplikasi menampilkan **"Perlu validasi"** (bukan angka yang
@@ -183,6 +183,37 @@ menyesatkan).
 > Hasil mode **Klasik** yang dipakai untuk klasifikasi. Mode lain memberi
 > **metrik pengamatan** (akurasi, kelalaian) dan tidak digabung menjadi satu
 > skor.
+
+### 7.1 Skrining Kesehatan (Paramedis)
+
+Selain tes waktu reaksi, petugas paramedis dapat mencatat pemeriksaan fisik
+pada sesi yang sama. Dari layar hasil, ketuk **Skrining Kesehatan
+(Paramedis)**, lalu isi:
+
+| Kolom | Satuan | Keterangan |
+|---|---|---|
+| Sistolik | mmHg | Tekanan darah atas |
+| Diastolik | mmHg | Tekanan darah bawah |
+| Nadi | bpm | Denyut jantung saat istirahat |
+| Alkohol | % | Hasil tes napas |
+
+Kosongkan kolom yang tidak diukur — nilai kosong **tidak** dianggap normal.
+
+Aplikasi langsung menampilkan **temuan** dan **rekomendasi**:
+
+| Temuan | Rentang |
+|---|---|
+| Hipotensi / Normal / Hipertensi Ringan / Sedang / Berat | Sistolik <100 / <140 / <160 / <180 / ≥180 |
+| Hipotensi / Normal / Hipertensi Ringan / Sedang / Berat | Diastolik <70 / <90 / <100 / <120 / ≥120 |
+| Bradikardia / Normal / Takikardia Ringan / Sedang / Berat | Nadi <60 / <100 / <110 / <120 / ≥120 |
+| Lolos / Tidak Lolos | Alkohol <0,08 % / ≥0,08 % |
+
+**Rekomendasi** menggabungkan skrining dengan tingkat kelelahan, mengambil
+kondisi terburuk: **Layak bekerja**, **Layak dengan catatan**, atau
+**Tidak layak bekerja**.
+
+> Rekomendasi bersifat saran berbasis angka. **Keputusan akhir kelayakan kerja
+> tetap pada pemeriksa yang berwenang**, sesuai SOP perusahaan.
 
 ---
 

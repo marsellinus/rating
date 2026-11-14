@@ -2,8 +2,11 @@ package com.ratig.app.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.room.TypeConverters
 import com.ratig.app.data.local.dao.AuditEventDao
+import com.ratig.app.data.local.dao.HealthScreeningDao
 import com.ratig.app.data.local.dao.ProfileDao
 import com.ratig.app.data.local.dao.ProtocolDao
 import com.ratig.app.data.local.dao.SessionDao
@@ -13,6 +16,7 @@ import com.ratig.app.data.local.entity.CachedProfileEntity
 import com.ratig.app.data.local.entity.CachedWorkerEntity
 import com.ratig.app.data.local.entity.CachedProtocolEntity
 import com.ratig.app.data.local.entity.LocalAuditEventEntity
+import com.ratig.app.data.local.entity.LocalHealthScreeningEntity
 import com.ratig.app.data.local.entity.LocalTestResultEntity
 import com.ratig.app.data.local.entity.LocalTestSessionEntity
 import com.ratig.app.data.local.entity.LocalTestTrialEntity
@@ -36,8 +40,9 @@ import com.ratig.app.data.local.entity.SyncQueueEntity
         LocalTestResultEntity::class,
         SyncQueueEntity::class,
         LocalAuditEventEntity::class,
+        LocalHealthScreeningEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -55,7 +60,37 @@ abstract class RatigDatabase : RoomDatabase() {
 
     abstract fun auditEventDao(): AuditEventDao
 
+    abstract fun healthScreeningDao(): HealthScreeningDao
+
     companion object {
         const val NAME: String = "ratig.db"
+
+        /**
+         * Adds the paramedic screening table. Kept as an explicit migration so
+         * an existing installation keeps its cached workers and results.
+         */
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `local_health_screenings` (
+                        `session_local_id` TEXT NOT NULL,
+                        `systolic` INTEGER,
+                        `diastolic` INTEGER,
+                        `pulse` INTEGER,
+                        `alcohol_percent` REAL,
+                        `overall_severity` INTEGER NOT NULL,
+                        `recommendation` TEXT NOT NULL,
+                        `findings_text` TEXT,
+                        `note` TEXT,
+                        `recorded_by` TEXT NOT NULL,
+                        `created_at` INTEGER NOT NULL,
+                        `updated_at` INTEGER NOT NULL,
+                        PRIMARY KEY(`session_local_id`)
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
     }
 }

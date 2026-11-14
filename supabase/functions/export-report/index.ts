@@ -13,6 +13,7 @@
 // Deploy: supabase functions deploy export-report
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -139,8 +140,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
   if (to < from) {
     return json({ error: "to must be on or after from" }, 400);
   }
-  if (format !== "csv") {
-    return json({ error: "Only format 'csv' is supported" }, 400);
+  if (format !== "csv" && format !== "xlsx") {
+    return json({ error: "Only format 'csv' or 'xlsx' is supported" }, 400);
   }
   const departmentFilter =
     typeof departmentId === "string" && departmentId.length > 0 ? departmentId : null;
@@ -167,7 +168,22 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return json({ error: `Query failed: ${queryError.message}` }, 500);
   }
 
-  // 4. Stream CSV attachment.
+  // 4. Stream attachment.
+  if (format === "xlsx") {
+    const worksheet = XLSX.utils.json_to_sheet(rows ?? [], { header: [...CSV_COLUMNS] });
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+    const xlsxBuffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+    return new Response(xlsxBuffer, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition": `attachment; filename="ratig-report-${from}_${to}.xlsx"`,
+        "Cache-Control": "no-store",
+      },
+    });
+  }
+
   const csv = toCsv((rows ?? []) as ReportRow[]);
   return new Response(csv, {
     status: 200,

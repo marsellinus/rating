@@ -17,11 +17,16 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.outlined.PersonSearch
+import androidx.compose.material.icons.rounded.HealthAndSafety
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -31,10 +36,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.ratig.app.core.result.AppResult
+import com.ratig.app.data.local.dao.HealthScreeningDao
+import com.ratig.app.data.local.entity.LocalHealthScreeningEntity
 import com.ratig.app.domain.model.TestResult
 import com.ratig.app.domain.repository.ProtocolRepository
 import com.ratig.app.domain.repository.TestSessionRepository
+import com.ratig.app.domain.model.FitnessRecommendation
 import com.ratig.app.domain.usecase.ClassificationOutcome
+import com.ratig.app.domain.usecase.VitalsClassifier
 import com.ratig.app.ui.components.EmptyState
 import com.ratig.app.ui.components.ErrorState
 import com.ratig.app.ui.components.LoadingState
@@ -59,6 +68,8 @@ class TestResultViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val sessionRepository: TestSessionRepository,
     private val protocolRepository: ProtocolRepository,
+    private val screeningDao: HealthScreeningDao,
+    private val vitalsClassifier: VitalsClassifier,
 ) : ViewModel() {
 
     private val sessionId: String = checkNotNull(savedStateHandle["sessionId"])
@@ -73,6 +84,14 @@ class TestResultViewModel @Inject constructor(
         /** True when the label is still the organization-unvalidated placeholder. */
         val needsValidation: Boolean = false,
         val sessionDurationMs: Long? = null,
+        /** Paramedic screening recorded for this session, when present. */
+        val screening: LocalHealthScreeningEntity? = null,
+        /**
+         * Fit-to-work recommendation combining the paramedic screening with the
+         * fatigue classification. Null when no screening was recorded: the
+         * reaction test alone does not decide fitness.
+         */
+        val combinedRecommendation: FitnessRecommendation? = null,
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -107,15 +126,25 @@ class TestResultViewModel @Inject constructor(
                 val end = value.completedAt
                 if (start != null && end != null) end.toEpochMilli() - start.toEpochMilli() else null
             }
+            val screening = runCatching { screeningDao.findBySession(sessionId) }.getOrNull()
+            val severityForDecision = resolveSeverity(result, session?.protocolId)
+            val combined = screening?.let {
+                vitalsClassifier.recommend(
+                    vitals = vitalsClassifier.assess(it.toVitals()),
+                    fatigueSeverity = severityForDecision,
+                )
+            }
             _uiState.update {
                 it.copy(
                     loading = false,
                     result = result,
                     workerName = session?.workerName,
                     sessionDurationMs = durationMs,
-                    severity = resolveSeverity(result, session?.protocolId),
+                    severity = severityForDecision,
                     needsValidation =
                     result.classificationLabel == ClassificationOutcome.UNVALIDATED_LABEL,
+                    screening = screening,
+                    combinedRecommendation = combined,
                 )
             }
         }
@@ -140,7 +169,11 @@ class TestResultViewModel @Inject constructor(
 }
 
 @Composable
-fun TestResultRoute(onDone: () -> Unit) {
+fun TestResultRoute(
+    onDone: () -> Unit,
+    onNextWorker: () -> Unit = onDone,
+    onOpenScreening: () -> Unit = {},
+) {
     val viewModel: TestResultViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -162,7 +195,13 @@ fun TestResultRoute(onDone: () -> Unit) {
                     action = { Button(onClick = viewModel::refresh) { Text("Muat ulang") } },
                 )
             } else {
-                ResultContent(uiState = uiState, result = result, onDone = onDone)
+                ResultContent(
+                    uiState = uiState,
+                    result = result,
+                    onDone = onDone,
+                    onNextWorker = onNextWorker,
+                    onOpenScreening = onOpenScreening,
+                )
             }
         }
     }
@@ -173,6 +212,8 @@ private fun ResultContent(
     uiState: TestResultViewModel.UiState,
     result: TestResult,
     onDone: () -> Unit,
+    onNextWorker: () -> Unit,
+    onOpenScreening: () -> Unit,
 ) {
     val metrics = result.metrics
     Column(
@@ -292,6 +333,62 @@ private fun ResultContent(
             }
         }
 
+        uiState.screening?.let { screening ->
+            Card(Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text("Skrining Kesehatan", style = MaterialTheme.typography.labelLarge)
+                    val vitals = screening.toVitals()
+                    Text(
+                        text = buildString {
+                            vitals.systolic?.let { append("TD $it") }
+                            vitals.diastolic?.let { append("/$it mmHg") }
+                            vitals.pulse?.let {
+                                if (isNotEmpty()) append(" · ")
+                                append("Nadi $it bpm")
+                            }
+                            vitals.alcoholPercent?.let {
+                                if (isNotEmpty()) append(" · ")
+                                append("Alkohol $it %")
+                            }
+                            if (isEmpty()) append("Belum ada pengukuran")
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    val screeningOnly = screening.recommendationValue()
+                    val combined = uiState.combinedRecommendation ?: screeningOnly
+                    Text(
+                        text = "Rekomendasi kelayakan kerja",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    SeverityBadge(
+                        label = combined.label,
+                        severity = combined.severity,
+                    )
+                    if (combined != screeningOnly) {
+                        // Explain why the combined verdict is stricter than the
+                        // screening alone: the fatigue result raised it.
+                        Text(
+                            text = "Ditingkatkan oleh hasil tes waktu reaksi " +
+                                "(skrining saja: ${screeningOnly.label.lowercase()}).",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    screening.note?.let {
+                        Text(
+                            text = "Catatan: $it",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+        }
+
         SeverityLegendCard(modifier = Modifier.fillMaxWidth())
 
         Text(
@@ -301,7 +398,31 @@ private fun ResultContent(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
+        OutlinedButton(
+            onClick = onOpenScreening,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+        ) {
+            Icon(Icons.Rounded.HealthAndSafety, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Skrining Kesehatan (Paramedis)")
+        }
+
+        // Multi-worker operational flow: the examiner normally continues
+        // straight to the next worker, so that action is primary and the
+        // return-to-home action is secondary.
         Button(
+            onClick = onNextWorker,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+        ) {
+            Icon(Icons.Outlined.PersonSearch, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Periksa Pekerja Berikutnya")
+        }
+        OutlinedButton(
             onClick = onDone,
             modifier = Modifier
                 .fillMaxWidth()

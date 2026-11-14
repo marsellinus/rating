@@ -107,6 +107,9 @@ class ReactionTimeEngine(
     /** Presentation timestamp of the current stimulus (clock base); null pre-stimulus. */
     private var currentShownAtNanos: Long? = null
 
+    /** Clock sample taken when the stimulus state was published (refinement floor). */
+    private var provisionalShownAtNanos: Long? = null
+
     /** Timestamp of the last accepted tap (clock base). */
     private var pendingTapNanos: Long? = null
 
@@ -126,6 +129,7 @@ class ReactionTimeEngine(
         countedTrials.clear()
         drainTaps()
         currentShownAtNanos = null
+        provisionalShownAtNanos = null
         pendingTapNanos = null
         _state.value = EngineState.Countdown(COUNTDOWN_TOTAL_MS)
         worker = scope.launch { runSession(config) }
@@ -133,20 +137,25 @@ class ReactionTimeEngine(
 
     /**
      * Called by the UI right after the stimulus frame is composed, passing the
-     * actual `withFrameNanos {}` frame time. Refines the provisional stimulus
-     * timestamp; ignored outside the stimulus phase.
+     * actual `withFrameNanos {}` frame time. Moves the stimulus timestamp back
+     * to the instant the frame was presented, which is what the user actually
+     * saw; ignored outside the stimulus phase.
      */
     fun onStimulusFrameRendered(frameTimeNanos: Long) {
         if (_state.value !is EngineState.StimulusVisible) return
-        // frameTimeNanos uses the System.nanoTime() base (Choreographer); the
-        // frame's age converts it into the MonotonicClock base.
-        val frameLagNanos = (System.nanoTime() - frameTimeNanos).coerceAtLeast(0)
-        val shownAt = clock.nowNanos() - frameLagNanos
-        val previous = currentShownAtNanos
-        if (previous == null || shownAt > previous) {
-            currentShownAtNanos = shownAt
-            _state.value = EngineState.StimulusVisible(shownAtNanos = shownAt)
-        }
+        val provisional = provisionalShownAtNanos ?: return
+        val refined = refineStimulusTimestamp(
+            provisionalNanos = provisional,
+            frameTimeNanos = frameTimeNanos,
+            clockNowNanos = clock.nowNanos(),
+            nanoTimeNowNanos = System.nanoTime(),
+        ) ?: return
+        // Keep the earliest usable presentation instant: a later callback for
+        // the same stimulus must never move the mark forward again.
+        val current = currentShownAtNanos
+        if (current != null && refined >= current) return
+        currentShownAtNanos = refined
+        _state.value = EngineState.StimulusVisible(shownAtNanos = refined)
     }
 
     /**
@@ -172,6 +181,7 @@ class ReactionTimeEngine(
         countedTrials.clear()
         drainTaps()
         currentShownAtNanos = null
+        provisionalShownAtNanos = null
         pendingTapNanos = null
         _state.value = EngineState.Idle
     }
@@ -184,6 +194,7 @@ class ReactionTimeEngine(
         worker?.cancel()
         worker = null
         currentShownAtNanos = null
+        provisionalShownAtNanos = null
         _state.value = EngineState.Idle
     }
 
@@ -208,6 +219,7 @@ class ReactionTimeEngine(
     private suspend fun runTrial(trialNumber: Int, config: EngineConfig) {
         drainTaps()
         currentShownAtNanos = null
+        provisionalShownAtNanos = null
         pendingTapNanos = null
 
         val stimulusInMs = randomStimulusDelay(config)
@@ -233,6 +245,7 @@ class ReactionTimeEngine(
         // Stimulus due: provisional monotonic timestamp now; refined to the
         // actual rendered frame time by onStimulusFrameRendered().
         val provisionalShownAt = clock.nowNanos()
+        provisionalShownAtNanos = provisionalShownAt
         currentShownAtNanos = provisionalShownAt
         _state.value = EngineState.StimulusVisible(shownAtNanos = provisionalShownAt)
 
@@ -250,7 +263,7 @@ class ReactionTimeEngine(
         } else {
             val tapAt = pendingTapNanos ?: clock.nowNanos()
             val shownAt = currentShownAtNanos ?: provisionalShownAt
-            val reactionMs = (tapAt - shownAt) / 1_000_000
+            val reactionMs = reactionMillis(tapAt, shownAt)
             val status =
                 if (reactionMs < config.minPlausibleReactionMs) TrialStatus.INVALID else TrialStatus.VALID
             EngineTrial(

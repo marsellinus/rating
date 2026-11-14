@@ -1,6 +1,8 @@
 package com.ratig.app.core.timing.modes
 
 import com.ratig.app.core.timing.MonotonicClock
+import com.ratig.app.core.timing.reactionMillis
+import com.ratig.app.core.timing.refineStimulusTimestamp
 import com.ratig.app.domain.model.TrialStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -121,6 +123,9 @@ abstract class ModeEngineBase(
     private val taps = Channel<ModeTap>(Channel.CONFLATED)
 
     private var currentShownAtNanos: Long? = null
+
+    /** Clock sample taken when the stimulus state was published (refinement floor). */
+    private var provisionalShownAtNanos: Long? = null
     private var pendingTapNanos: Long? = null
 
     /**
@@ -167,18 +172,20 @@ abstract class ModeEngineBase(
      */
     fun onStimulusFrameRendered(frameTimeNanos: Long) {
         if (_state.value !is ModeEngineState.StimulusVisible) return
-        // frameTimeNanos uses the System.nanoTime() base (Choreographer); the
-        // frame's age converts it into the MonotonicClock base.
-        val frameLagNanos = (System.nanoTime() - frameTimeNanos).coerceAtLeast(0)
-        val shownAt = clock.nowNanos() - frameLagNanos
-        val previous = currentShownAtNanos
-        if (previous == null || shownAt > previous) {
-            currentShownAtNanos = shownAt
-            val stimulus = (_state.value as? ModeEngineState.StimulusVisible)?.stimulus
-            if (stimulus != null) {
-                _state.value = ModeEngineState.StimulusVisible(shownAtNanos = shownAt, stimulus = stimulus)
-            }
-        }
+        val provisional = provisionalShownAtNanos ?: return
+        val refined = refineStimulusTimestamp(
+            provisionalNanos = provisional,
+            frameTimeNanos = frameTimeNanos,
+            clockNowNanos = clock.nowNanos(),
+            nanoTimeNowNanos = System.nanoTime(),
+        ) ?: return
+        // Keep the earliest usable presentation instant: a later callback for
+        // the same stimulus must never move the mark forward again.
+        val current = currentShownAtNanos
+        if (current != null && refined >= current) return
+        currentShownAtNanos = refined
+        val stimulus = (_state.value as? ModeEngineState.StimulusVisible)?.stimulus ?: return
+        _state.value = ModeEngineState.StimulusVisible(shownAtNanos = refined, stimulus = stimulus)
     }
 
     /** Stops the run and discards all recorded trials (hard reset to Idle). */
@@ -188,6 +195,7 @@ abstract class ModeEngineBase(
         countedTrials.clear()
         drainTaps()
         currentShownAtNanos = null
+        provisionalShownAtNanos = null
         _state.value = ModeEngineState.Idle
     }
 
@@ -199,6 +207,7 @@ abstract class ModeEngineBase(
         worker?.cancel()
         worker = null
         currentShownAtNanos = null
+        provisionalShownAtNanos = null
         _state.value = ModeEngineState.Idle
     }
 
@@ -266,6 +275,7 @@ abstract class ModeEngineBase(
     private suspend fun runTrial(trialNumber: Int, config: ModeEngineConfig) {
         drainTaps()
         currentShownAtNanos = null
+        provisionalShownAtNanos = null
         pendingTapNanos = null
 
         // Draw ONCE, before the wait opens; never re-randomized afterwards.
@@ -299,6 +309,7 @@ abstract class ModeEngineBase(
         // Stimulus due: provisional monotonic timestamp now; refined to the
         // actual rendered frame time by onStimulusFrameRendered().
         val provisionalShownAt = clock.nowNanos()
+        provisionalShownAtNanos = provisionalShownAt
         currentShownAtNanos = provisionalShownAt
         _state.value = ModeEngineState.StimulusVisible(shownAtNanos = provisionalShownAt, stimulus = stimulus)
 
@@ -306,8 +317,12 @@ abstract class ModeEngineBase(
         val trial = if (tap != null) {
             val tapAt = pendingTapNanos ?: clock.nowNanos()
             val shownAt = currentShownAtNanos ?: provisionalShownAt
-            val reactionMs = (tapAt - shownAt) / 1_000_000
+            val reactionMs = reactionMillis(tapAt, shownAt)
+            // classifyInTime() returns the mode-specific verdict without a
+            // trial number; stamp it here so record() keeps the trial. Without
+            // this every in-time response is discarded as a practice trial.
             val classified = classifyInTime(stimulus, tap, reactionMs, shownAt, tapAt)
+                .copy(trialNumber = trialNumber)
             val plausible = reactionMs >= config.minPlausibleReactionMs &&
                 reactionMs <= config.maxPlausibleReactionMs
             if (plausible) classified else classified.copy(trialStatus = TrialStatus.INVALID)
@@ -317,7 +332,7 @@ abstract class ModeEngineBase(
             val lateTap = taps.tryReceive().getOrNull()
             val tapAtNanos = pendingTapNanos
             if (lateTap != null && tapAtNanos != null) {
-                classifyLate(stimulus, tapAtNanos)
+                classifyLate(stimulus, tapAtNanos).copy(trialNumber = trialNumber)
             } else {
                 classifyNoResponse(stimulus, currentShownAtNanos ?: provisionalShownAt)
                     .copy(trialNumber = trialNumber)

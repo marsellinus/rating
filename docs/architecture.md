@@ -111,3 +111,41 @@ are never merged into a single score.
 (see `docs/deployment.md`). The service-role key never ships in the APK; all
 authorization is enforced by PostgreSQL Row Level Security
 (`supabase/migrations/0002_security.sql`).
+
+---
+
+## 13. Paramedic screening (skrining kesehatan)
+
+The desktop RATIG application records blood pressure, pulse and breath alcohol
+next to the reaction test, and derives a fit-to-work verdict. The Android app
+mirrors that behaviour so the same worker is judged the same way on both
+platforms.
+
+**Where the data lives.** `local_health_screenings` is a Room table keyed by
+`session_local_id` (one screening per session). It is deliberately device-local:
+the values are health data and the server has no column for them yet. Storing
+them locally keeps screening usable in a blank spot, matching the constraint the
+reaction test already has.
+
+**Thresholds.** `VitalsClassifier` reproduces the desktop `_auto_calc` chain
+verbatim:
+
+| Measurement | Bands (upper bound exclusive) |
+|---|---|
+| Systolic | <100 Hipotensi · <140 Normal · <160 Hipertensi Ringan · <180 Hipertensi Sedang · else Berat |
+| Diastolic | <70 Hipotensi · <90 Normal · <100 Hipertensi Ringan · <120 Hipertensi Sedang · else Berat |
+| Pulse | <60 Bradikardia · <100 Normal · <110 Takikardia Ringan · <120 Takikardia Sedang · else Berat |
+| Alcohol | <0.08 % Lolos · else Tidak Lolos |
+
+An absent measurement produces **no** finding. A missing value must never be
+read as normal, so the classifier distinguishes "not measured" (`severity = -1`)
+from "measured and normal" (`severity = 0`).
+
+**Verdict.** `VitalsClassifier.recommend()` combines the screening with the
+fatigue severity using worst-case: `FIT`, `FIT_WITH_NOTE`, or `NOT_FIT`. The
+result screen shows the combined verdict and, when the reaction test raised it
+above the screening-only verdict, says so explicitly. The verdict remains a
+recommendation; the examiner decides.
+
+**Migration.** Room version 2, `MIGRATION_1_2` adds the table. Verified on
+device: `PRAGMA user_version = 2` and the table exists with all 12 columns.

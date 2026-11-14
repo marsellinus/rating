@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.RATIG" parent="android:Theme.Material.Light.NoActionBar">
+    <!--
+      Launcher/activity theme. It only styles the window BEFORE Compose draws
+      (splash frame, status bar); the real UI colors come from RatigTheme
+      (Material 3). DayNight keeps the pre-Compose window in step with the
+      system light/dark setting.
+    -->
+    <style name="Theme.RATIG" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/ratig_window_background</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
     </style>
 </resources>
