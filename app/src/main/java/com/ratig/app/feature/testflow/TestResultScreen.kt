@@ -99,6 +99,33 @@ class TestResultViewModel @Inject constructor(
 
     init {
         refresh()
+        // The screening screen writes to the database and pops back to this
+        // screen. Observing the row keeps the summary and the combined verdict
+        // in sync without depending on this ViewModel being recreated.
+        viewModelScope.launch {
+            screeningDao.observeBySession(sessionId).collect { screening ->
+                _uiState.update { state ->
+                    state.copy(
+                        screening = screening,
+                        combinedRecommendation = combineRecommendation(
+                            screening = screening,
+                            fatigueSeverity = state.severity,
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    /** Worst-case verdict of the paramedic screening and the fatigue result. */
+    private fun combineRecommendation(
+        screening: LocalHealthScreeningEntity?,
+        fatigueSeverity: Int,
+    ): FitnessRecommendation? = screening?.let {
+        vitalsClassifier.recommend(
+            vitals = vitalsClassifier.assess(it.toVitals()),
+            fatigueSeverity = fatigueSeverity,
+        )
     }
 
     fun refresh() {
@@ -126,14 +153,7 @@ class TestResultViewModel @Inject constructor(
                 val end = value.completedAt
                 if (start != null && end != null) end.toEpochMilli() - start.toEpochMilli() else null
             }
-            val screening = runCatching { screeningDao.findBySession(sessionId) }.getOrNull()
             val severityForDecision = resolveSeverity(result, session?.protocolId)
-            val combined = screening?.let {
-                vitalsClassifier.recommend(
-                    vitals = vitalsClassifier.assess(it.toVitals()),
-                    fatigueSeverity = severityForDecision,
-                )
-            }
             _uiState.update {
                 it.copy(
                     loading = false,
@@ -143,8 +163,10 @@ class TestResultViewModel @Inject constructor(
                     severity = severityForDecision,
                     needsValidation =
                     result.classificationLabel == ClassificationOutcome.UNVALIDATED_LABEL,
-                    screening = screening,
-                    combinedRecommendation = combined,
+                    combinedRecommendation = combineRecommendation(
+                        screening = it.screening,
+                        fatigueSeverity = severityForDecision,
+                    ),
                 )
             }
         }

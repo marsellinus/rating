@@ -54,6 +54,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.ratig.app.core.result.AppResult
+import com.ratig.app.data.local.dao.HealthScreeningDao
+import com.ratig.app.data.local.entity.LocalHealthScreeningEntity
+import com.ratig.app.domain.usecase.VitalsClassifier
 import com.ratig.app.core.time.TimeProvider
 import com.ratig.app.domain.model.FollowUp
 import com.ratig.app.domain.model.FollowUpStatus
@@ -144,6 +147,9 @@ private fun SessionDetailScreen(
                                 onOpenWorker = onOpenWorker,
                             )
                             state.result?.let { result -> ResultCard(result) }
+                            state.screening?.let { screening ->
+                                ScreeningCard(screening = screening, result = state.result)
+                            }
                             TrialsCard(trials = state.trials)
                             FollowUpsSection(
                                 items = state.followUps,
@@ -294,6 +300,63 @@ private fun deviceLabel(key: String): String = when (key) {
 }
 
 // ---------------------------------------------------------------- Result
+
+/**
+ * Paramedic screening recorded for this session, with the fit-to-work verdict
+ * that combines it with the fatigue classification (worst case wins).
+ */
+@Composable
+private fun ScreeningCard(
+    screening: LocalHealthScreeningEntity,
+    result: TestResult?,
+) {
+    val classifier = remember { VitalsClassifier() }
+    val vitals = screening.toVitals()
+    val combined = classifier.recommend(
+        vitals = classifier.assess(vitals),
+        fatigueSeverity = severityForCode(result?.classificationCode),
+    )
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = "Skrining Kesehatan",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            InfoRow(
+                "Tekanan darah",
+                listOfNotNull(
+                    vitals.systolic?.toString(),
+                    vitals.diastolic?.toString(),
+                ).joinToString("/").ifBlank { "-" } + " mmHg",
+            )
+            InfoRow("Nadi", vitals.pulse?.let { "$it bpm" } ?: "-")
+            InfoRow("Alkohol", vitals.alcoholPercent?.let { "$it %" } ?: "-")
+            Row(
+                modifier = Modifier.padding(top = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Kelayakan",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.width(120.dp),
+                )
+                SeverityBadge(label = combined.label, severity = combined.severity)
+            }
+            screening.note?.let { note ->
+                Text(
+                    text = "Catatan: $note",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
 
 @Composable
 private fun ResultCard(result: TestResult) {
@@ -769,6 +832,7 @@ class SessionDetailViewModel @Inject constructor(
     private val testSessionRepository: TestSessionRepository,
     private val followUpRepository: FollowUpRepository,
     private val organizationRepository: OrganizationRepository,
+    private val screeningDao: HealthScreeningDao,
     authRepository: AuthRepository,
 ) : ViewModel() {
 
@@ -785,6 +849,8 @@ class SessionDetailViewModel @Inject constructor(
         val role: UserRole? = null,
         val saving: Boolean = false,
         val actionError: String? = null,
+        /** Paramedic screening recorded for this session, when present. */
+        val screening: LocalHealthScreeningEntity? = null,
     )
 
     private val _uiState = MutableStateFlow(SessionDetailUiState())
@@ -795,6 +861,13 @@ class SessionDetailViewModel @Inject constructor(
             it.copy(
                 role = (authRepository.sessionState.value as? SessionState.Authenticated)?.profile?.role,
             )
+        }
+        if (sessionId.isNotBlank()) {
+            viewModelScope.launch {
+                screeningDao.observeBySession(sessionId).collect { screening ->
+                    _uiState.update { it.copy(screening = screening) }
+                }
+            }
         }
         if (sessionId.isBlank()) {
             _uiState.update { it.copy(loading = false, error = "Sesi tidak ditemukan.") }
