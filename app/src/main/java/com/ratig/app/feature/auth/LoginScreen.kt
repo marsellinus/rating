@@ -401,20 +401,28 @@ private fun LoginContent(
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable { onRememberChange(!uiState.rememberMe) },
+                            // Without a weight the long remember-me label can
+                            // consume the whole row, squeezing the "Lupa sandi?"
+                            // button to 0 width. The text then renders vertically
+                            // (3px wide, hundreds of px tall) at large font scales.
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { onRememberChange(!uiState.rememberMe) },
                         ) {
                             Checkbox(
                                 checked = uiState.rememberMe,
                                 onCheckedChange = onRememberChange,
                             )
+                            Spacer(Modifier.width(4.dp))
                             Text(
                                 text = strings.t(S.LOGIN_REMEMBER),
                                 style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f),
                             )
                         }
                         TextButton(onClick = onForgotPassword) {

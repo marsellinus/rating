@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -78,11 +79,19 @@ fun AllModesTestRoute(
         }
 
         is AllModesTestViewModel.Stage.Saving -> {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    CircularProgressIndicator()
-                    Text("Menyimpan hasil...")
+                    if (state.error == null) {
+                        CircularProgressIndicator()
+                        Text("Menyimpan hasil...")
+                    } else {
+                        Text("Gagal menyimpan", style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.error)
+                        Text(state.error!!, color = MaterialTheme.colorScheme.error,
+                            textAlign = TextAlign.Center)
+                        Button(onClick = viewModel::retryFinalize) { Text("Coba Lagi") }
+                    }
                 }
             }
         }
@@ -127,7 +136,7 @@ fun AllModesTestRoute(
         }
 
         AllModesTestViewModel.Stage.Classic -> {
-            TestSurface(onTap = viewModel::onTap, onFrame = viewModel::onStimulusFrame) {
+            TestSurface(onTap = viewModel::onTap, onFrame = viewModel::onStimulusFrame, state = state) {
                 val s = state.classicState
                 when (s) {
                     is EngineState.Countdown -> BigText("${s.remainingMs / 1000}")
@@ -135,12 +144,11 @@ fun AllModesTestRoute(
                     is EngineState.StimulusVisible -> BigText("TAP!", green = true)
                     else -> Unit
                 }
-                Progress(state)
             }
         }
 
         AllModesTestViewModel.Stage.Rgb -> {
-            TestSurface(onTap = viewModel::onTap, onFrame = viewModel::onStimulusFrame) {
+            TestSurface(onTap = viewModel::onTap, onFrame = viewModel::onStimulusFrame, state = state) {
                 val s = state.modeState
                 if (s is ModeEngineState.StimulusVisible) {
                     val st = s.stimulus
@@ -155,12 +163,17 @@ fun AllModesTestRoute(
                 } else if (s is ModeEngineState.Waiting) {
                     BigText("TUNGGU...", cue = true)
                 }
-                Progress(state)
             }
         }
 
         AllModesTestViewModel.Stage.Grid -> {
-            TestSurface(onTap = viewModel::onTap, onFrame = viewModel::onStimulusFrame) {
+            // The grid cells own their taps. Keeping the whole-surface tap here
+            // would score a positionless (always wrong) response first.
+            TestSurface(
+                onTap = null,
+                onFrame = viewModel::onStimulusFrame,
+                state = state,
+            ) {
                 val s = state.modeState
                 if (s is ModeEngineState.StimulusVisible &&
                     s.stimulus is com.ratig.app.core.timing.modes.ModeStimulus.Grid
@@ -199,12 +212,11 @@ fun AllModesTestRoute(
                 } else if (s is ModeEngineState.Waiting) {
                     BigText("TUNGGU...", cue = true)
                 }
-                Progress(state)
             }
         }
 
         AllModesTestViewModel.Stage.Focus -> {
-            TestSurface(onTap = viewModel::onTap, onFrame = viewModel::onStimulusFrame) {
+            TestSurface(onTap = viewModel::onTap, onFrame = viewModel::onStimulusFrame, state = state) {
                 val s = state.modeState
                 if (s is ModeEngineState.StimulusVisible &&
                     s.stimulus is com.ratig.app.core.timing.modes.ModeStimulus.FocusCircle
@@ -217,7 +229,6 @@ fun AllModesTestRoute(
                 } else if (s is ModeEngineState.Waiting) {
                     BigText("TUNGGU...", cue = true)
                 }
-                Progress(state)
             }
         }
     }
@@ -225,28 +236,37 @@ fun AllModesTestRoute(
 
 @Composable
 private fun TestSurface(
-    onTap: () -> Unit,
+    onTap: (() -> Unit)?,
     onFrame: (Long) -> Unit,
-    content: @Composable () -> Unit,
+    state: AllModesTestViewModel.UiState,
+    stimulus: @Composable () -> Unit,
 ) {
     val backdrop = MaterialTheme.colorScheme.surface
-    Box(
-        Modifier.fillMaxSize().background(backdrop)
-            .pointerInput(Unit) { detectTapGestures { onTap() } },
-    ) {
-        LaunchedEffect(Unit) { onFrame(withFrameNanos { it }) }
-        content()
-    }
-}
+    val tapModifier = if (onTap != null) {
+        Modifier.pointerInput(Unit) { detectTapGestures { onTap() } }
+    } else Modifier
+    Box(Modifier.fillMaxSize().background(backdrop).then(tapModifier)) {
+        // Stimulus is centred in its own layer so it can never push the header.
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { stimulus() }
 
-@Composable
-private fun Progress(state: AllModesTestViewModel.UiState) {
-    Text(
-        text = "${state.progressLabel} · ${state.trialNumber}/${state.trialTotal}",
-        style = MaterialTheme.typography.labelLarge,
-        modifier = Modifier.fillMaxWidth().padding(12.dp),
-        textAlign = TextAlign.Center,
-    )
+        // Header is one Column, laid out top-down: no overlapping text.
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = "${state.progressLabel} · ${state.trialNumber}/${state.trialTotal}",
+                style = MaterialTheme.typography.labelLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Instruction(state)
+            Feedback(state.feedback)
+        }
+    }
 }
 
 @Composable
@@ -266,4 +286,42 @@ private fun rgbColor(c: com.ratig.app.core.timing.modes.RgbColor): Color = when 
     com.ratig.app.core.timing.modes.RgbColor.RED -> Color(0xFFE53935)
     com.ratig.app.core.timing.modes.RgbColor.GREEN -> Color(0xFF43A047)
     com.ratig.app.core.timing.modes.RgbColor.BLUE -> Color(0xFF1E88E5)
+}
+
+@Composable
+private fun Instruction(state: AllModesTestViewModel.UiState) {
+    Surface(
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+    ) {
+        Text(
+            text = state.instruction,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(12.dp),
+        )
+    }
+}
+
+@Composable
+private fun Feedback(text: String?) {
+    if (text == null) return
+    val good = text.startsWith("Benar")
+    Surface(
+        color = if (good) Color(0xFFE8F5E9) else Color(0xFFFFEBEE),
+        contentColor = if (good) Color(0xFF1B5E20) else Color(0xFFB71C1C),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(12.dp),
+        )
+    }
 }

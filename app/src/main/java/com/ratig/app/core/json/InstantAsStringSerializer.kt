@@ -1,6 +1,9 @@
 package com.ratig.app.core.json
 
 import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -25,6 +28,16 @@ object InstantAsStringSerializer : KSerializer<Instant> {
         encoder.encodeString(value.toString())
     }
 
-    override fun deserialize(decoder: Decoder): Instant =
-        Instant.parse(decoder.decodeString())
+    override fun deserialize(decoder: Decoder): Instant {
+        val raw = decoder.decodeString()
+        return try {
+            Instant.parse(raw)
+        } catch (e: DateTimeParseException) {
+            // Android's java.time.Instant.parse accepts only the 'Z' form, while
+            // Supabase/PostgREST returns '+00:00'. Desktop JDK accepts both, so
+            // JVM unit tests never exposed this - only a real device did.
+            // OffsetDateTime handles both spellings.
+            OffsetDateTime.parse(raw, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant()
+        }
+    }
 }

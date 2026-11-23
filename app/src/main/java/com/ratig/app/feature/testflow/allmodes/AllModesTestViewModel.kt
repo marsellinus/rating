@@ -78,6 +78,10 @@ class AllModesTestViewModel @Inject constructor(
         val trialTotal: Int = 0,
         val classicState: EngineState = EngineState.Idle,
         val modeState: ModeEngineState = ModeEngineState.Idle,
+        /** What the worker must do right now. Always visible during a mode. */
+        val instruction: String = "",
+        /** Result of the last response, shown immediately after each trial. */
+        val feedback: String? = null,
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -169,8 +173,23 @@ class AllModesTestViewModel @Inject constructor(
         startedAtNanos = clock.nowNanos()
         viewModelScope.launch {
             engine.onTrialDone.collect { trial ->
-                allTrials += trial.toRecord(sessionId)
-                _uiState.update { it.copy(trialNumber = allTrials.size) }
+                allTrials += trial.copy(trialNumber = allTrials.size + 1).toRecord(sessionId)
+                _uiState.update {
+                    it.copy(
+                        trialNumber = allTrials.size,
+                        feedback = when {
+                            trial.falseStart -> "Terlalu cepat — tunggu warna hijau"
+                            trial.missedResponse -> "Terlewat — tidak ada respons"
+                            trial.status == TrialStatus.INVALID -> "Respons terlalu cepat untuk dihitung"
+                            else -> "Benar · ${trial.reactionTimeMs} ms"
+                        },
+                    )
+                }
+            }
+        }
+        viewModelScope.launch {
+            engine.state.collect { st ->
+                _uiState.update { it.copy(classicState = st) }
             }
         }
         viewModelScope.launch {
@@ -188,7 +207,14 @@ class AllModesTestViewModel @Inject constructor(
                 practiceTrialCount = practiceCount,
             )
         )
-        _uiState.update { it.copy(stage = Stage.Classic) }
+        _uiState.update {
+            it.copy(
+                stage = Stage.Classic,
+                instruction = "TEKAN layar secepatnya saat warna HIJAU muncul. " +
+                    "Jangan menekan sebelum warna muncul.",
+                feedback = null,
+            )
+        }
     }
 
     private fun startMode(which: ModeStage) {
@@ -212,8 +238,23 @@ class AllModesTestViewModel @Inject constructor(
         modeEngine = engine
         viewModelScope.launch {
             engine.onTrialDone.collect { trial ->
-                allTrials += trial.toRecord(sessionId)
-                _uiState.update { it.copy(trialNumber = allTrials.size) }
+                allTrials += trial.copy(trialNumber = allTrials.size + 1).toRecord(sessionId)
+                _uiState.update {
+                    it.copy(
+                        trialNumber = allTrials.size,
+                        feedback = when {
+                            trial.falseStart -> "Terlalu cepat — tunggu warna hijau"
+                            trial.missedResponse -> "Terlewat — tidak ada respons"
+                            trial.trialStatus == TrialStatus.INVALID -> "Respons terlalu cepat untuk dihitung"
+                            else -> "Benar · ${trial.reactionTimeMs} ms"
+                        },
+                    )
+                }
+            }
+        }
+        viewModelScope.launch {
+            engine.state.collect { st ->
+                _uiState.update { it.copy(modeState = st) }
             }
         }
         viewModelScope.launch {
@@ -238,11 +279,27 @@ class AllModesTestViewModel @Inject constructor(
                     ModeStage.FOCUS -> Stage.Focus
                 },
                 progressLabel = which.label,
+                instruction = when (which) {
+                    ModeStage.RGB -> {
+                        val c = frozenConfig.rgbTargetColor
+                        "TARGET: ${c.shape.label} ${c.label} (${c.symbol}). " +
+                            "Tekan HANYA jika bentuk dan warna itu muncul. " +
+                            "Yang lain JANGAN ditekan."
+                    }
+                    ModeStage.GRID ->
+                        "TARGET: simbol \"${frozenConfig.targetSymbol}\". " +
+                            "Tekan HANYA tombol yang berisi simbol itu. " +
+                            "Tombol lain dan sel kosong JANGAN ditekan."
+                    ModeStage.FOCUS ->
+                        "TARGET: lingkaran HIJAU = TEKAN. Lingkaran MERAH = JANGAN ditekan."
+                },
+                feedback = null,
             )
         }
     }
 
     private suspend fun finalize() {
+        android.util.Log.e("RATIG_ALLMODES", "finalize start: trials=${allTrials.size} session=$sessionId")
         val device = DeviceMetadata.current()
         when (val result = sessionRepository.finalizeSession(
             FinalizeRequest(
@@ -255,11 +312,15 @@ class AllModesTestViewModel @Inject constructor(
             is AppResult.Success -> _uiState.update {
                 it.copy(stage = Stage.Done(sessionId), error = null)
             }
-            is AppResult.Failure -> _uiState.update { it.copy(error = result.error.userMessage) }
+            is AppResult.Failure -> {
+                android.util.Log.e("RATIG_ALLMODES", "finalize FAILED: ${result.error.userMessage}")
+                _uiState.update { it.copy(error = result.error.userMessage) }
+            }
         }
     }
 
     fun retryFinalize() {
+        _uiState.update { it.copy(error = null) }
         viewModelScope.launch { finalize() }
     }
 }
