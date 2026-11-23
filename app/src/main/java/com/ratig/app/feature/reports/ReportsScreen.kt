@@ -490,7 +490,6 @@ fun ReportsRoute(viewModel: ReportsViewModel = hiltViewModel()) {
                 uiState.previewLoaded -> ReportPreviewSection(
                     uiState = uiState,
                     onExportExcel = viewModel::exportXlsx,
-                onExportCsv = viewModel::exportCsv,
                     onExportPdf = viewModel::exportPdf,
                 )
             }
@@ -584,7 +583,6 @@ private fun <T> DropdownSelector(
 private fun ReportPreviewSection(
     uiState: ReportsUiState,
     onExportExcel: () -> Unit,
-    onExportCsv: () -> Unit,
     onExportPdf: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -598,11 +596,6 @@ private fun ReportPreviewSection(
                 Icon(Icons.Rounded.FileDownload, contentDescription = null)
                 Spacer(Modifier.width(4.dp))
                 Text("Ekspor Excel")
-            }
-            OutlinedButton(onClick = onExportCsv, enabled = !uiState.exporting) {
-                Icon(Icons.Rounded.FileDownload, contentDescription = null)
-                Spacer(Modifier.width(4.dp))
-                Text("Ekspor CSV")
             }
             OutlinedButton(onClick = onExportPdf, enabled = !uiState.exporting) {
                 Icon(Icons.Rounded.Description, contentDescription = null)
