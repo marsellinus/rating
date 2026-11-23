@@ -23,7 +23,7 @@ object Routes {
     const val REACTION_TEST = "reaction_test/{sessionId}"           // sessionId
     const val MODE_TEST = "mode_test/{sessionId}"                   // sessionId
     const val ALL_MODES_TEST = "all_modes_test/{sessionId}"          // one session, 4 modes
-    const val TEST_RESULT = "test_result/{sessionId}"               // sessionId
+    const val TEST_RESULT = "test_result/{sessionId}?durationMs={durationMs}"
     const val HEALTH_SCREENING = "health_screening/{sessionId}"     // sessionId
 
     const val HISTORY = "history"
@@ -55,7 +55,8 @@ object Routes {
     fun reactionTest(sessionId: String) = "reaction_test/$sessionId"
     fun modeTest(sessionId: String) = "mode_test/$sessionId"
     fun allModesTest(sessionId: String) = "all_modes_test/$sessionId"
-    fun testResult(sessionId: String) = "test_result/$sessionId"
+    fun testResult(sessionId: String, durationMs: Long = -1L) =
+        "test_result/$sessionId?durationMs=$durationMs"
     fun healthScreening(sessionId: String) = "health_screening/$sessionId"
     fun sessionDetail(sessionId: String) = "session_detail/$sessionId"
 }

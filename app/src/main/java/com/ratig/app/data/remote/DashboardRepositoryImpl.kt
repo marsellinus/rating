@@ -140,7 +140,7 @@ class DashboardRepositoryImpl @Inject constructor(
         sessionsToday = o.num("sessions_today", "sessionsToday") ?: 0L,
         sessionsLast7Days = o.num("sessions_last_7_days", "sessionsLast7Days") ?: 0L,
         openFollowUps = o.num("open_follow_ups", "openFollowUps") ?: 0L,
-        recentResults = o["recent_results"].asObjectList().mapNotNull(::parseRecentResult),
+        recentResults = (o["recent_results"] ?: o["recentResults"]).asObjectList().mapNotNull(::parseRecentResult),
     )
 
     private fun parseClassification(o: JsonObject): ClassificationCount = ClassificationCount(

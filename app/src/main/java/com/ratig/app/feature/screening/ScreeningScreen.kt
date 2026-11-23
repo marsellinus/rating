@@ -41,6 +41,7 @@ import androidx.lifecycle.viewModelScope
 import com.ratig.app.data.local.dao.HealthScreeningDao
 import com.ratig.app.data.local.entity.LocalHealthScreeningEntity
 import com.ratig.app.domain.model.FitnessRecommendation
+import com.ratig.app.domain.model.UserRole
 import com.ratig.app.domain.model.Vitals
 import com.ratig.app.domain.model.VitalsAssessment
 import com.ratig.app.domain.repository.SessionState
@@ -83,12 +84,20 @@ class ScreeningViewModel @Inject constructor(
         val recommendation: FitnessRecommendation = FitnessRecommendation.FIT,
         val saved: Boolean = false,
         val loading: Boolean = true,
+        /** Worker accounts may only view a screening recorded by staff. */
+        val readOnly: Boolean = false,
     )
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     init {
+        _uiState.update {
+            it.copy(
+                readOnly = (authRepository.sessionState.value as? SessionState.Authenticated)
+                    ?.profile?.role == UserRole.USER,
+            )
+        }
         viewModelScope.launch {
             val existing = runCatching { dao.findBySession(sessionId) }.getOrNull()
             _uiState.update { state ->
@@ -111,25 +120,26 @@ class ScreeningViewModel @Inject constructor(
         }
     }
 
-    fun onSystolic(value: String) = update(vitals = { it.copy(systolic = value.toIntOrNull()) }) {
+    fun onSystolic(value: String): Unit = if (_uiState.value.readOnly) Unit else update(vitals = { it.copy(systolic = value.toIntOrNull()) }) {
         it.copy(systolic = value.filter(Char::isDigit).take(3))
     }
 
-    fun onDiastolic(value: String) = update(vitals = { it.copy(diastolic = value.toIntOrNull()) }) {
+    fun onDiastolic(value: String): Unit = if (_uiState.value.readOnly) Unit else update(vitals = { it.copy(diastolic = value.toIntOrNull()) }) {
         it.copy(diastolic = value.filter(Char::isDigit).take(3))
     }
 
-    fun onPulse(value: String) = update(vitals = { it.copy(pulse = value.toIntOrNull()) }) {
+    fun onPulse(value: String): Unit = if (_uiState.value.readOnly) Unit else update(vitals = { it.copy(pulse = value.toIntOrNull()) }) {
         it.copy(pulse = value.filter(Char::isDigit).take(3))
     }
 
-    fun onAlcohol(value: String) = update(
+    fun onAlcohol(value: String): Unit = if (_uiState.value.readOnly) Unit else update(
         vitals = { it.copy(alcoholPercent = value.replace(',', '.').toDoubleOrNull()) },
     ) {
         it.copy(alcohol = value.filter { ch -> ch.isDigit() || ch == '.' || ch == ',' }.take(5))
     }
 
     fun onNote(value: String) {
+        if (_uiState.value.readOnly) return
         _uiState.update { it.copy(note = value) }
     }
 
@@ -157,6 +167,10 @@ class ScreeningViewModel @Inject constructor(
 
     /** Persists the screening for this session; idempotent per session. */
     fun save(onSaved: () -> Unit) {
+        if (_uiState.value.readOnly) {
+            onSaved()
+            return
+        }
         val state = _uiState.value
         val vitals = currentVitals(state)
         viewModelScope.launch {
@@ -215,18 +229,36 @@ fun ScreeningRoute(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
+            if (state.readOnly) {
+                Surface(
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = "Mode lihat saja. Skrining diisi oleh paramedis/admin " +
+                            "saat pemeriksaan berlangsung.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(14.dp),
+                    )
+                }
+            }
+
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 NumberField(
                     label = "Sistolik (mmHg)",
                     value = state.systolic,
                     onValueChange = viewModel::onSystolic,
                     modifier = Modifier.weight(1f),
+                    enabled = !state.readOnly,
                 )
                 NumberField(
                     label = "Diastolik (mmHg)",
                     value = state.diastolic,
                     onValueChange = viewModel::onDiastolic,
                     modifier = Modifier.weight(1f),
+                    enabled = !state.readOnly,
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -235,6 +267,7 @@ fun ScreeningRoute(
                     value = state.pulse,
                     onValueChange = viewModel::onPulse,
                     modifier = Modifier.weight(1f),
+                    enabled = !state.readOnly,
                 )
                 NumberField(
                     label = "Alkohol (%)",
@@ -242,6 +275,7 @@ fun ScreeningRoute(
                     onValueChange = viewModel::onAlcohol,
                     modifier = Modifier.weight(1f),
                     decimal = true,
+                    enabled = !state.readOnly,
                 )
             }
 
@@ -249,6 +283,7 @@ fun ScreeningRoute(
                 value = state.note,
                 onValueChange = viewModel::onNote,
                 label = { Text("Catatan pemeriksa (opsional)") },
+                enabled = !state.readOnly,
                 minLines = 2,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -280,14 +315,14 @@ fun ScreeningRoute(
 
             Spacer(Modifier.height(4.dp))
             Button(
-                onClick = { viewModel.save(onBack) },
+                onClick = { if (state.readOnly) onBack() else viewModel.save(onBack) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
             ) {
                 Icon(Icons.Rounded.HealthAndSafety, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Simpan Skrining")
+                Text(if (state.readOnly) "Kembali" else "Simpan Skrining")
             }
 
             Text(
@@ -337,6 +372,7 @@ private fun NumberField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     decimal: Boolean = false,
+    enabled: Boolean = true,
 ) {
     OutlinedTextField(
         value = value,
@@ -346,6 +382,7 @@ private fun NumberField(
         keyboardOptions = KeyboardOptions(
             keyboardType = if (decimal) KeyboardType.Decimal else KeyboardType.Number,
         ),
+        enabled = enabled,
         modifier = modifier,
     )
 }

@@ -61,7 +61,7 @@ class ScreeningViewModelTest {
                     id = id,
                     fullName = "Pemeriksa",
                     email = "examiner@ratig.test",
-                    role = UserRole.USER,
+                    role = UserRole.ADMIN,
                     accountStatus = AccountStatus.ACTIVE,
                 )
             )
@@ -208,3 +208,5 @@ class ScreeningViewModelTest {
         assertEquals(190, dao.stored["session-1"]!!.systolic)
     }
 }
+
+// Regression: Worker accounts must not be able to change a health screening.

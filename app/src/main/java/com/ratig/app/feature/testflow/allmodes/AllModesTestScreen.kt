@@ -46,7 +46,7 @@ import androidx.compose.runtime.LaunchedEffect
  */
 @Composable
 fun AllModesTestRoute(
-    onDone: (String) -> Unit,
+    onDone: (String, Long) -> Unit,
     onCancel: () -> Unit,
     viewModel: AllModesTestViewModel = hiltViewModel(),
 ) {
@@ -72,7 +72,7 @@ fun AllModesTestRoute(
                     fontWeight = FontWeight.Bold)
                 Text("Keempat mode telah dijalankan dalam satu sesi.",
                     style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
-                Button(onClick = { onDone(stage.sessionId) }, Modifier.fillMaxWidth().height(56.dp)) {
+                Button(onClick = { onDone(stage.sessionId, stage.durationMs) }, Modifier.fillMaxWidth().height(56.dp)) {
                     Text("Lihat Hasil")
                 }
             }

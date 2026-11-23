@@ -84,6 +84,9 @@ class TestResultViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val sessionId: String = checkNotNull(savedStateHandle["sessionId"])
+    /** Duration supplied by the all-modes flow; -1 means derive from the session. */
+    private val navigationDurationMs: Long =
+        (savedStateHandle.get<Long>("durationMs") ?: -1L)
 
     data class UiState(
         val loading: Boolean = true,
@@ -179,10 +182,14 @@ class TestResultViewModel @Inject constructor(
                 is AppResult.Success -> loaded.value
                 is AppResult.Failure -> null
             }
-            val durationMs = session?.let { value ->
-                val start = value.startedAt
-                val end = value.completedAt
-                if (start != null && end != null) end.toEpochMilli() - start.toEpochMilli() else null
+            val durationMs = if (navigationDurationMs > 0) {
+                navigationDurationMs
+            } else {
+                session?.let { value ->
+                    val start = value.startedAt
+                    val end = value.completedAt
+                    if (start != null && end != null) end.toEpochMilli() - start.toEpochMilli() else null
+                }
             }
             val appliedRule = resolveRule(result, session?.protocolId)
             val severityForDecision = appliedRule

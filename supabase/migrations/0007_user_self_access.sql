@@ -154,6 +154,7 @@ declare
     v_caller uuid := auth.uid();
     v_today  date := (now() at time zone 'Asia/Jakarta')::date;
     v_result jsonb;
+    v_staff  boolean;
 begin
     if v_caller is null or (
         not is_examiner()
@@ -161,6 +162,8 @@ begin
     ) then
         raise exception 'FORBIDDEN: sign-in required';
     end if;
+
+    v_staff := is_examiner();
 
     select jsonb_build_object(
         'scheduledToday',
@@ -170,11 +173,13 @@ begin
                 and (sc.scheduled_at at time zone 'Asia/Jakarta')::date = v_today),
         'sessionsToday',
             (select count(*) from public.test_sessions s
-              where s.examiner_id = v_caller
+              where (case when v_staff then s.examiner_id = v_caller
+                          else s.worker_id in (select id from public.workers where user_id = v_caller) end)
                 and (s.created_at at time zone 'Asia/Jakarta')::date = v_today),
         'sessionsLast7Days',
             (select count(*) from public.test_sessions s
-              where s.examiner_id = v_caller
+              where (case when v_staff then s.examiner_id = v_caller
+                          else s.worker_id in (select id from public.workers where user_id = v_caller) end)
                 and s.created_at >= now() - interval '7 days'),
         'openFollowUps',
             (select count(*) from public.follow_ups f
@@ -211,7 +216,8 @@ begin
                     from public.test_results r
                     join public.test_sessions s on s.id = r.session_id
                     join public.workers w on w.id = s.worker_id
-                    where s.examiner_id = v_caller
+                    where case when v_staff then s.examiner_id = v_caller
+                               else s.worker_id in (select id from public.workers where user_id = v_caller) end
                     order by s.completed_at desc
                     limit 10
                 ) t

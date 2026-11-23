@@ -28,6 +28,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -61,6 +62,7 @@ import com.ratig.app.ui.components.LoadingState
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkersRoute(
+    onBack: () -> Unit,
     onOpenWorker: (String) -> Unit,
     onAddWorker: () -> Unit,
 ) {
@@ -84,6 +86,14 @@ fun WorkersRoute(
         topBar = {
             TopAppBar(
                 title = { Text("Pekerja") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = "Kembali",
+                        )
+                    }
+                },
                 actions = {
                     IconButton(onClick = viewModel::refresh) {
                         Icon(Icons.Outlined.Refresh, contentDescription = "Muat ulang")

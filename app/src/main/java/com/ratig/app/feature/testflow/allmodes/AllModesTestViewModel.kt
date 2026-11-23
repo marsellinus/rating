@@ -66,7 +66,7 @@ class AllModesTestViewModel @Inject constructor(
         data object TransitionToFocus : Stage
         data object Focus : Stage
         data object Saving : Stage
-        data class Done(val sessionId: String) : Stage
+        data class Done(val sessionId: String, val durationMs: Long) : Stage
     }
 
     data class UiState(
@@ -74,7 +74,9 @@ class AllModesTestViewModel @Inject constructor(
         val loading: Boolean = true,
         val error: String? = null,
         val progressLabel: String = "",
+        /** Attempt number WITHIN the current mode (1..8), shown in the UI. */
         val trialNumber: Int = 0,
+        /** Attempts per mode, including warm-ups (8). */
         val trialTotal: Int = 0,
         val classicState: EngineState = EngineState.Idle,
         val modeState: ModeEngineState = ModeEngineState.Idle,
@@ -94,6 +96,8 @@ class AllModesTestViewModel @Inject constructor(
     private var frozenConfig: ModeConfiguration = ModeConfiguration.DEFAULT
     private var seedLong: Long = 0L
     private var startedAtNanos: Long = 0L
+    /** All attempts including the two warm-up trials of each mode. */
+    private var attempts = 0
 
     init { viewModelScope.launch { prepare() } }
 
@@ -118,12 +122,19 @@ class AllModesTestViewModel @Inject constructor(
             .sanitized()
         seedLong = session.randomSeed?.fold(1125899906842597L) { acc, c -> 31 * acc + c.code }
             ?: UUID.randomUUID().hashCode().toLong()
-        practiceCount = protocol?.configuration?.practiceTrialCount ?: 0
-        val trials = protocol?.trialCount ?: 10
+        // Tester request: 8 trials per mode, not 10. One session runs four
+        // modes, so the total is 32. The cap keeps the examiner's workflow
+        // short even if a protocol is configured with more trials.
+        // Set started_at + in_progress on the server BEFORE the first stimulus.
+        // No network happens during measurement. This makes the session detail
+        // and the result screen show a real start time / duration.
+        runCatching { sessionRepository.markInProgress(sessionId) }
+
+        val trials = minOf(protocol?.trialCount ?: TRIALS_PER_MODE, TRIALS_PER_MODE)
         _uiState.update {
             it.copy(
                 loading = false,
-                trialTotal = trials * 4,
+                trialTotal = trials + PRACTICE_PER_MODE,
                 progressLabel = "Mode 1 dari 4 · Waktu Reaksi Klasik",
             )
         }
@@ -170,13 +181,19 @@ class AllModesTestViewModel @Inject constructor(
         val protocol = _uiState.value.trialTotal / 4
         val engine = ReactionTimeEngine(clock, scope = viewModelScope)
         classicEngine = engine
+        attempts = 0
         startedAtNanos = clock.nowNanos()
         viewModelScope.launch {
             engine.onTrialDone.collect { trial ->
-                allTrials += trial.copy(trialNumber = allTrials.size + 1).toRecord(sessionId)
+                attempts++
+                val modeAttempt = attempts % (TRIALS_PER_MODE + PRACTICE_PER_MODE)
+                    .let { if (it == 0) TRIALS_PER_MODE + PRACTICE_PER_MODE else it }
+                if (trial.trialNumber > 0) {
+                    allTrials += trial.copy(trialNumber = allTrials.size + 1).toRecord(sessionId)
+                }
                 _uiState.update {
                     it.copy(
-                        trialNumber = allTrials.size,
+                        trialNumber = modeAttempt,
                         feedback = when {
                             trial.falseStart -> "Terlalu cepat — tunggu warna hijau"
                             trial.missedResponse -> "Terlewat — tidak ada respons"
@@ -211,7 +228,7 @@ class AllModesTestViewModel @Inject constructor(
                 responseTimeoutMs = 2_000,
                 interTrialDelayMs = frozenConfig.restMs,
                 minPlausibleReactionMs = frozenConfig.minPlausibleReactionMs,
-                practiceTrialCount = practiceCount,
+                practiceTrialCount = PRACTICE_PER_MODE,
             )
         )
         _uiState.update {
@@ -231,7 +248,7 @@ class AllModesTestViewModel @Inject constructor(
             delayMinMs = 1_500,
             delayMaxMs = 4_500,
             responseTimeoutMs = 2_000,
-            practiceTrialCount = 0, // practice is already covered in classic
+            practiceTrialCount = PRACTICE_PER_MODE,
             restMs = frozenConfig.restMs,
             falseStartRule = frozenConfig.falseStart,
             minPlausibleReactionMs = frozenConfig.minPlausibleReactionMs,
@@ -243,12 +260,18 @@ class AllModesTestViewModel @Inject constructor(
             ModeStage.FOCUS -> FocusInhibitionModeEngine(clock, seedLong, frozenConfig, viewModelScope)
         }
         modeEngine = engine
+        attempts = 0
         viewModelScope.launch {
             engine.onTrialDone.collect { trial ->
-                allTrials += trial.copy(trialNumber = allTrials.size + 1).toRecord(sessionId)
+                attempts++
+                val modeAttempt = attempts % (TRIALS_PER_MODE + PRACTICE_PER_MODE)
+                    .let { if (it == 0) TRIALS_PER_MODE + PRACTICE_PER_MODE else it }
+                if (trial.trialNumber > 0) {
+                    allTrials += trial.copy(trialNumber = allTrials.size + 1).toRecord(sessionId)
+                }
                 _uiState.update {
                     it.copy(
-                        trialNumber = allTrials.size,
+                        trialNumber = modeAttempt,
                         feedback = when {
                             trial.falseStart -> "Terlalu cepat — tunggu tanda muncul"
                             trial.missedResponse -> "Terlewat — tidak ada respons"
@@ -328,8 +351,13 @@ class AllModesTestViewModel @Inject constructor(
                 deviceMetadata = device,
             )
         )) {
-            is AppResult.Success -> _uiState.update {
-                it.copy(stage = Stage.Done(sessionId), error = null)
+            is AppResult.Success -> {
+                val durationMs = if (startedAtNanos > 0) {
+                    (clock.nowNanos() - startedAtNanos) / 1_000_000L
+                } else -1L
+                _uiState.update {
+                    it.copy(stage = Stage.Done(sessionId, durationMs), error = null)
+                }
             }
             is AppResult.Failure -> {
                 android.util.Log.e("RATIG_ALLMODES", "finalize FAILED: ${result.error.userMessage}")
@@ -341,6 +369,14 @@ class AllModesTestViewModel @Inject constructor(
     fun retryFinalize() {
         _uiState.update { it.copy(error = null) }
         viewModelScope.launch { finalize() }
+    }
+
+    companion object {
+        /** Counted trials per mode (tester decision: 6 of every 8 count). */
+        const val TRIALS_PER_MODE = 6
+        /** Warm-up trials per mode; emitted by the engine but not recorded. */
+        const val PRACTICE_PER_MODE = 2
+        const val MODE_COUNT = 4
     }
 }
 

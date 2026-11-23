@@ -91,6 +91,25 @@ private fun FollowUpsScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            item(key = "info") {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            text = "Apa itu Tindak Lanjut?",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            text = "Catatan tindakan setelah pemeriksaan: periksa ulang, " +
+                                "istirahat, evaluasi petugas, atau eskalasi. " +
+                                "Ini bukan diagnosis dan bukan keputusan akhir — " +
+                                "petugas yang berwenang tetap memutuskan.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
             item(key = "filters") {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(

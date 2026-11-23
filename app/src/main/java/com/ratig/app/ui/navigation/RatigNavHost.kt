@@ -160,6 +160,7 @@ fun RatigNavHost(
 
             composable(Routes.WORKERS) {
                 com.ratig.app.feature.workers.WorkersRoute(
+                    onBack = { navController.popBackStack() },
                     onOpenWorker = { navController.navigate(Routes.workerDetail(it)) },
                     onAddWorker = { navController.navigate(Routes.workerEdit(null)) },
                 )
@@ -204,7 +205,8 @@ fun RatigNavHost(
                 arguments = listOf(navArgument("sessionId") { type = NavType.StringType }),
             ) {
                 com.ratig.app.feature.testflow.allmodes.AllModesTestRoute(
-                    onDone = { navController.navigate(Routes.testResult(it)) {
+                    onDone = { id, durationMs ->
+                        navController.navigate(Routes.testResult(id, durationMs)) {
                         popUpTo(Routes.DASHBOARD) { inclusive = false }
                     } },
                     onCancel = { navController.popBackStack(Routes.DASHBOARD, inclusive = false) },
@@ -233,7 +235,10 @@ fun RatigNavHost(
 
             composable(
                 Routes.TEST_RESULT,
-                arguments = listOf(navArgument("sessionId") { type = NavType.StringType }),
+                arguments = listOf(
+                    navArgument("sessionId") { type = NavType.StringType },
+                    navArgument("durationMs") { type = NavType.LongType; defaultValue = -1L },
+                ),
             ) {
                 val resultSessionId = it.arguments?.getString("sessionId").orEmpty()
                 com.ratig.app.feature.testflow.TestResultRoute(
@@ -284,6 +289,7 @@ fun RatigNavHost(
 
             composable(Routes.SCHEDULES) {
                 com.ratig.app.feature.schedules.SchedulesRoute(
+                    onBack = { navController.popBackStack() },
                     onOpenWorker = { navController.navigate(Routes.workerDetail(it)) },
                     onManageShifts = { navController.navigate(Routes.SHIFTS) },
                 )
@@ -296,7 +302,9 @@ fun RatigNavHost(
             }
 
             composable(Routes.REPORTS) {
-                com.ratig.app.feature.reports.ReportsRoute()
+                com.ratig.app.feature.reports.ReportsRoute(
+                    onBack = { navController.popBackStack() },
+                )
             }
 
             composable(Routes.PROFILE) {
