@@ -12,13 +12,15 @@
 -- Run in Supabase SQL Editor. Replaces finalize_test_session's statistics
 -- subquery; all other behaviour is preserved.
 
-create or replace function public.finalize_test_session(
+drop function if exists public.finalize_test_session(uuid, jsonb, text, jsonb);
+
+create function public.finalize_test_session(
     p_session_id uuid,
     p_trials jsonb,
     p_app_version text default null,
     p_device_metadata jsonb default null
 )
-returns public.test_results
+returns jsonb
 language plpgsql
 security definer
 set search_path = public
@@ -228,5 +230,9 @@ begin
        set session_status = 'finalized', completed_at = now()
      where id = p_session_id;
 
-    return v_result;
+    return to_jsonb(v_result);
 end $$;
+
+-- DROP FUNCTION also drops its grants; restore them.
+grant execute on function public.finalize_test_session(uuid, jsonb, text, jsonb)
+    to authenticated, service_role;
