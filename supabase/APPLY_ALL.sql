@@ -379,8 +379,12 @@ begin
                    limit 1
                ) as shift_id
         from public.test_sessions s
+        -- FINALIZED rows are immutable (trigger prevent_finalized_mutation).
+        -- They are corrected at read time by v_report_rows (migration 0011),
+        -- so the backfill here only touches non-finalized sessions.
         where s.shift_id is null
           and s.completed_at is not null
+          and s.session_status <> 'finalized'
     )
     update public.test_sessions s
        set shift_id = r.shift_id
