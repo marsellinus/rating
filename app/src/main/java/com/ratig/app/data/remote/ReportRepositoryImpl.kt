@@ -1,5 +1,6 @@
 package com.ratig.app.data.remote
 
+import com.ratig.app.core.json.JsonCodec
 import com.ratig.app.core.result.AppResult
 import com.ratig.app.data.remote.dto.ReportRowDto
 import com.ratig.app.data.reports.ReportFilter
@@ -10,6 +11,7 @@ import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.serialization.json.JsonObject
 
 /**
  * Report read model sourced from the `v_report_rows` view with date range +
@@ -22,7 +24,7 @@ class ReportRepositoryImpl @Inject constructor(
 ) : ReportRepository {
 
     override suspend fun rows(filter: ReportFilter): AppResult<List<ReportRow>> = AppResult.of {
-        supabase.postgrest[V_REPORT_ROWS].select {
+        val rows = supabase.postgrest[V_REPORT_ROWS].select {
             filter {
                 gte("session_completed_at", filter.from.toString())
                 lte("session_completed_at", filter.to.toString())
@@ -31,7 +33,18 @@ class ReportRepositoryImpl @Inject constructor(
             }
             order("session_completed_at", Order.DESCENDING)
             range(0, (filter.limit - 1).toLong())
-        }.decodeList<ReportRowDto>().map { it.toDomain() }
+        }.decodeList<kotlinx.serialization.json.JsonObject>()
+
+        // One malformed row must not blank the whole report. Decode per row and
+        // skip only the broken ones; the Excel/CSV export stays usable even if
+        // every row is skipped (it will simply be empty, with the count shown).
+        rows.mapNotNull { element ->
+            runCatching {
+                JsonCodec.json.decodeFromJsonElement(
+                    ReportRowDto.serializer(), element,
+                ).toDomain()
+            }.getOrNull()
+        }
     }
 
     private companion object {

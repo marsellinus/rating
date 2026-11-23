@@ -41,9 +41,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import com.ratig.app.domain.repository.OrganizationRepository
 import com.ratig.app.domain.repository.ProtocolRepository
 import com.ratig.app.domain.repository.TestSessionRepository
 import com.ratig.app.domain.repository.WorkerRepository
+import com.ratig.app.domain.usecase.ShiftResolver
 import com.ratig.app.domain.model.Worker
 import com.ratig.app.domain.model.TestMode
 import com.ratig.app.ui.components.LegendBand
@@ -641,6 +643,8 @@ class DashboardViewModel @Inject constructor(
     private val protocolRepository: ProtocolRepository,
     private val workerRepository: WorkerRepository,
     private val sessionRepository: TestSessionRepository,
+    private val shiftResolver: ShiftResolver,
+    private val organizationRepository: OrganizationRepository,
     authRepository: AuthRepository,
 ) : ViewModel() {
 
@@ -726,6 +730,10 @@ class DashboardViewModel @Inject constructor(
                 is AppResult.Success -> loaded.value
                 is AppResult.Failure -> emptyList()
             }
+            val shiftList = when (val loaded = organizationRepository.listShifts(activeOnly = true)) {
+                is AppResult.Success -> loaded.value
+                is AppResult.Failure -> emptyList()
+            }
             val protocol = protocols.firstOrNull()
             if (protocol == null) {
                 _uiState.update {
@@ -744,7 +752,8 @@ class DashboardViewModel @Inject constructor(
                 workerId = worker.id,
                 protocolId = protocol.id,
                 fatigueRuleId = fatigueRuleId,
-                shiftId = worker.shiftId,
+                shiftId = shiftResolver.resolve(TimeProvider.nowUtc(), shiftList)?.id
+                    ?: worker.shiftId,
                 testMode = TestMode.CLASSIC,
             )) {
                 is AppResult.Success -> {

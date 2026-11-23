@@ -152,7 +152,7 @@ fun RatigNavHost(
                     onOpenAdmin = { route -> navController.navigate(route) },
                     onStartIdentification = { navController.navigate(Routes.IDENTIFICATION) },
                     onStartSelfTest = { sessionId ->
-                        navController.navigate(Routes.testInstructions(sessionId))
+                        navController.navigate(Routes.allModesTest(sessionId))
                     },
                     onOpenSyncStatus = { navController.navigate(Routes.SYNC_STATUS) },
                 )
@@ -181,7 +181,7 @@ fun RatigNavHost(
                 com.ratig.app.feature.workers.WorkerDetailRoute(
                     onBack = { navController.popBackStack() },
                     onEdit = { workerId -> navController.navigate(Routes.workerEdit(workerId)) },
-                    onStartTest = { sessionId -> navController.navigate(Routes.testInstructions(sessionId)) },
+                    onStartTest = { sessionId -> navController.navigate(Routes.allModesTest(sessionId)) },
                     onOpenSession = { navController.navigate(Routes.sessionDetail(it)) },
                 )
             }
@@ -196,6 +196,18 @@ fun RatigNavHost(
                         navController.navigate(route) { popUpTo(Routes.DASHBOARD) { inclusive = false } }
                     },
                     onAborted = { navController.popBackStack(Routes.DASHBOARD, inclusive = false) },
+                )
+            }
+
+            composable(
+                Routes.ALL_MODES_TEST,
+                arguments = listOf(navArgument("sessionId") { type = NavType.StringType }),
+            ) {
+                com.ratig.app.feature.testflow.allmodes.AllModesTestRoute(
+                    onDone = { navController.navigate(Routes.testResult(it)) {
+                        popUpTo(Routes.DASHBOARD) { inclusive = false }
+                    } },
+                    onCancel = { navController.popBackStack(Routes.DASHBOARD, inclusive = false) },
                 )
             }
 
@@ -337,7 +349,7 @@ fun RatigNavHost(
             composable(Routes.IDENTIFICATION) {
                 com.ratig.app.feature.identification.IdentificationRoute(
                     onBack = { navController.popBackStack() },
-                    onSessionReady = { navController.navigate(Routes.testInstructions(it)) },
+                    onSessionReady = { navController.navigate(Routes.allModesTest(it)) },
                     onOpenWorkerEdit = { navController.navigate(Routes.workerEdit(null)) },
                 )
             }

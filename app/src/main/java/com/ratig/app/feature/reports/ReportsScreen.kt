@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -53,6 +54,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.core.content.FileProvider
 import com.ratig.app.core.export.CsvBuilder
 import com.ratig.app.core.export.PdfBuilder
+import com.ratig.app.core.export.XlsxBuilder
 import com.ratig.app.core.result.onFailure
 import com.ratig.app.core.result.onSuccess
 import com.ratig.app.core.time.TimeProvider
@@ -155,6 +157,53 @@ class ReportsViewModel @Inject constructor(
                 .onFailure { error ->
                     _uiState.update { it.copy(loading = false, error = error.userMessage) }
                 }
+        }
+    }
+
+    /** Excel is the primary report format; CSV remains available as option 2. */
+    fun exportXlsx() {
+        export(
+            mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            shareTitle = "Bagikan laporan Excel",
+            fileNameBase = "laporan-reaksi-waktu",
+            extension = "xlsx",
+        ) { rows ->
+            val xlsx = XlsxBuilder()
+            val columns = listOf(
+                "Tanggal Selesai", "Nama Pekerja", "No. Induk", "Departemen", "Area Kerja", "Shift",
+                "Pemeriksa", "Valid", "Mean (ms)", "Median (ms)", "Min (ms)", "Max (ms)", "SD (ms)",
+                "Slow Count", "Kategori (Kode)", "Kategori (Label)", "Versi Aturan", "Tindak Lanjut",
+            )
+            xlsx.header(
+                columns,
+                listOf(22, 24, 20, 16, 18, 12, 18, 9, 12, 12, 11, 11, 11, 12, 16, 18, 12, 16),
+            )
+            rows.forEach { row ->
+                xlsx.row(
+                    listOf(
+                        formatDate(row.sessionCompletedAt),
+                        row.workerName,
+                        row.workerNumber,
+                        row.departmentName.orEmpty(),
+                        row.workAreaName.orEmpty(),
+                        row.shiftName.orEmpty(),
+                        row.examinerName.orEmpty(),
+                        row.validTrialCount.toString(),
+                        formatNumber(row.meanReactionTimeMs),
+                        formatNumber(row.medianReactionTimeMs),
+                        row.minReactionTimeMs?.toString().orEmpty(),
+                        row.maxReactionTimeMs?.toString().orEmpty(),
+                        formatNumber(row.standardDeviationMs),
+                        row.slowResponseCount.toString(),
+                        row.classificationCode.orEmpty(),
+                        row.classificationLabel.orEmpty(),
+                        row.ruleVersion.orEmpty(),
+                        row.followUpStatus.orEmpty(),
+                    ),
+                    numericColumns = setOf(7, 8, 9, 10, 11, 12, 13),
+                )
+            }
+            xlsx.build()
         }
     }
 
@@ -366,7 +415,12 @@ fun ReportsRoute(viewModel: ReportsViewModel = hiltViewModel()) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text("Periode", style = MaterialTheme.typography.titleSmall)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 FilterChip(
                     selected = uiState.presetDays == 7,
                     onClick = { viewModel.applyPreset(7) },
@@ -386,9 +440,13 @@ fun ReportsRoute(viewModel: ReportsViewModel = hiltViewModel()) {
                     selected = uiState.presetDays == null,
                     onClick = { viewModel.setCustomRange(uiState.fromDate, uiState.toDate) },
                     label = { Text("Kustom") },
+                    modifier = Modifier.widthIn(min = 96.dp),
                 )
             }
             Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -431,7 +489,8 @@ fun ReportsRoute(viewModel: ReportsViewModel = hiltViewModel()) {
                 )
                 uiState.previewLoaded -> ReportPreviewSection(
                     uiState = uiState,
-                    onExportCsv = viewModel::exportCsv,
+                    onExportExcel = viewModel::exportXlsx,
+                onExportCsv = viewModel::exportCsv,
                     onExportPdf = viewModel::exportPdf,
                 )
             }
@@ -524,6 +583,7 @@ private fun <T> DropdownSelector(
 @Composable
 private fun ReportPreviewSection(
     uiState: ReportsUiState,
+    onExportExcel: () -> Unit,
     onExportCsv: () -> Unit,
     onExportPdf: () -> Unit,
 ) {
@@ -534,6 +594,11 @@ private fun ReportPreviewSection(
             style = MaterialTheme.typography.titleSmall,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = onExportExcel, enabled = !uiState.exporting) {
+                Icon(Icons.Rounded.FileDownload, contentDescription = null)
+                Spacer(Modifier.width(4.dp))
+                Text("Ekspor Excel")
+            }
             OutlinedButton(onClick = onExportCsv, enabled = !uiState.exporting) {
                 Icon(Icons.Rounded.FileDownload, contentDescription = null)
                 Spacer(Modifier.width(4.dp))

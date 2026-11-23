@@ -64,8 +64,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ratig.app.core.time.TimeProvider
-import com.ratig.app.core.timing.modes.modeLabel
-import com.ratig.app.domain.model.TestMode
 import com.ratig.app.feature.identification.WorkerCandidate
 import com.ratig.app.ui.components.ConfirmDialog
 import com.ratig.app.ui.components.MetricTile
@@ -147,7 +145,6 @@ fun IdentificationRoute(
             onStartFresh = viewModel::startFreshIdentification,
             onSelectProtocol = viewModel::selectProtocol,
             onSelectShift = viewModel::selectShift,
-            onSelectMode = viewModel::selectMode,
             onRetrySetup = viewModel::retrySetup,
             onStartSession = viewModel::startSession,
             onRefreshCounters = viewModel::refreshCounters,
@@ -175,7 +172,6 @@ private fun IdentificationScreen(
     onStartFresh: () -> Unit,
     onSelectProtocol: (String) -> Unit,
     onSelectShift: (String?) -> Unit,
-    onSelectMode: (TestMode) -> Unit,
     onRetrySetup: () -> Unit,
     onStartSession: () -> Unit,
     onRefreshCounters: () -> Unit,
@@ -210,7 +206,7 @@ private fun IdentificationScreen(
             )
 
             BigActionButton(
-                label = "Input NIK",
+                label = "Input NIP",
                 icon = { Icon(Icons.Outlined.Keyboard, contentDescription = null) },
                 onClick = onOpenManualInput,
             )
@@ -248,7 +244,6 @@ private fun IdentificationScreen(
                     state = state,
                     onSelectProtocol = onSelectProtocol,
                     onSelectShift = onSelectShift,
-                    onSelectMode = onSelectMode,
                     onRetrySetup = onRetrySetup,
                     onStartSession = onStartSession,
                 )
@@ -260,7 +255,7 @@ private fun IdentificationScreen(
                     title = "Ganti pekerja?",
                     message =
                         "Pemeriksaan untuk $currentName belum diproses. " +
-                            "Gunakan hasil pencarian untuk NIK ${candidate.maskedNik} " +
+                            "Gunakan hasil pencarian untuk NIP ${candidate.maskedNik} " +
                             "(${candidate.worker.fullName})?",
                     confirmLabel = "Ganti Pekerja",
                     onConfirm = onConfirmSwitch,
@@ -381,12 +376,12 @@ private fun NikInputField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Nomor Induk Kependudukan (NIK)") },
-            placeholder = { Text("Masukkan $minLength digit NIK") },
+            label = { Text("Nomor Induk Pekerja (NIP)") },
+            placeholder = { Text("Masukkan $minLength digit NIP") },
             isError = error != null,
             supportingText = {
                 Text(
-                    error ?: "Hanya angka; NIK tersimpan sebagai teks (awalan 0 aman).",
+                    error ?: "Hanya angka; NIP tersimpan sebagai teks (awalan 0 aman).",
                     color = if (error != null) {
                         MaterialTheme.colorScheme.error
                     } else {
@@ -397,7 +392,7 @@ private fun NikInputField(
             trailingIcon = {
                 if (value.isNotEmpty()) {
                     IconButton(onClick = onClear) {
-                        Icon(Icons.Outlined.Clear, contentDescription = "Hapus NIK")
+                        Icon(Icons.Outlined.Clear, contentDescription = "Hapus NIP")
                     }
                 }
             },
@@ -447,7 +442,7 @@ private fun SearchResultSection(
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    "Periksa kembali NIK yang dimasukkan, lalu cari lagi. " +
+                    "Periksa kembali NIP yang dimasukkan, lalu cari lagi. " +
                         "Pekerja baru harus didaftarkan terlebih dahulu oleh petugas.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -522,7 +517,7 @@ private fun WorkerCard(
 
             // Masked NIK only — the full NIK is never re-displayed.
             Text(
-                "NIK: ${candidate.maskedNik}",
+                "NIP: ${candidate.maskedNik}",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
             )
@@ -645,20 +640,11 @@ private fun lastExamSummary(lastExam: com.ratig.app.domain.model.TestSession?): 
 }
 
 @OptIn(ExperimentalLayoutApi::class)
-/** One-line, plain-language description of what each mode measures. */
-private fun modeDescription(mode: TestMode): String = when (mode) {
-    TestMode.CLASSIC -> "Waktu reaksi sederhana. Satu-satunya mode untuk klasifikasi kelelahan."
-    TestMode.RGB_RANDOM -> "Menekan hanya saat warna target muncul. Menguji diskriminasi visual."
-    TestMode.RANDOM_BUTTON -> "Mencari dan menekan tombol berlambang target. Menguji koordinasi mata-tangan."
-    TestMode.FOCUS_INHIBITION -> "Menekan pada sinyal hijau, menahan diri pada sinyal merah."
-}
-
 @Composable
 private fun SessionSetupSection(
     state: IdentificationUiState,
     onSelectProtocol: (String) -> Unit,
     onSelectShift: (String?) -> Unit,
-    onSelectMode: (TestMode) -> Unit,
     onRetrySetup: () -> Unit,
     onStartSession: () -> Unit,
 ) {
@@ -721,31 +707,6 @@ private fun SessionSetupSection(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                }
-            }
-
-            Text("Mode Pemeriksaan", style = MaterialTheme.typography.titleSmall)
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                TestMode.entries.forEach { mode ->
-                    val selected = mode == state.selectedMode
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelectMode(mode) }
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(selected = selected, onClick = { onSelectMode(mode) })
-                        Spacer(Modifier.width(4.dp))
-                        Column {
-                            Text(mode.modeLabel(), style = MaterialTheme.typography.bodyLarge)
-                            Text(
-                                text = modeDescription(mode),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
                 }
             }
 

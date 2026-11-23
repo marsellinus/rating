@@ -159,7 +159,7 @@ private fun PermissionDeniedContent(
         Spacer(Modifier.height(8.dp))
         Text(
             "Aktifkan izin kamera untuk memindai kode. " +
-                "Anda tetap dapat memasukkan NIK secara manual.",
+                "Anda tetap dapat memasukkan NIP secara manual.",
             style = MaterialTheme.typography.bodyMedium,
             color = Color.White.copy(alpha = 0.75f),
             textAlign = TextAlign.Center,
@@ -286,7 +286,7 @@ private fun CameraContent(
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Anda tetap dapat memasukkan NIK secara manual.",
+                    "Anda tetap dapat memasukkan NIP secara manual.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White.copy(alpha = 0.75f),
                     textAlign = TextAlign.Center,
