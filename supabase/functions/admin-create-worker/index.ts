@@ -27,7 +27,7 @@
 // Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (server-side only)
 // Deploy: supabase functions deploy admin-create-worker
 
-import { createClient, type User } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMP_NO_RE = /^[0-9]{4,32}$/;
@@ -67,7 +67,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
   if (!token) return json({ error: "Sesi berakhir. Silakan masuk kembali." }, 401);
 
-  let caller: User;
+  let caller: Awaited<ReturnType<typeof admin.auth.getUser>>['data']['user'];
   try {
     const { data, error } = await admin.auth.getUser(token);
     if (error || !data?.user) return json({ error: "Sesi berakhir. Silakan masuk kembali." }, 401);

@@ -203,97 +203,50 @@ class WorkerRepositoryImpl @Inject constructor(
     }
 
     /**
-     * Creates the worker AND its login account.
+     * Creates the worker AND its login account in one atomic server-side flow.
      *
-     * Uses the already-deployed `admin-create-user` edge function for the auth
-     * account (service-role key stays server-side), then inserts the worker row
-     * linked to that account. `admin-create-worker` is preferable because it is
-     * one server-side flow, but it is optional: this path keeps onboarding
-     * usable with the functions currently deployed on the project.
-     *
-     * Duplicate NIP and email are checked BEFORE creating the auth account so
-     * the common failure cannot leave an orphan account behind.
+     * The edge function holds the service-role key, validates the caller is an
+     * admin, checks duplicate NIP/email, creates auth.users + profile(role=user)
+     * + workers with user_id linked, and rolls back the auth user if any later
+     * step fails. The app never sees a privileged key.
      */
     override suspend fun createWithAccount(worker: Worker, password: String): AppResult<Worker> {
-        val employeeNumber = worker.employeeNumber.trim()
-        val email = worker.email?.trim()?.lowercase().orEmpty()
-
-        when (val available = employeeNumberAvailable(employeeNumber, excludeId = null)) {
-            is AppResult.Failure -> return available
-            is AppResult.Success -> if (!available.value) {
-                return AppResult.Failure(duplicateEmployeeNumberError(employeeNumber))
-            }
-        }
-        if (email.isEmpty()) {
-            return AppResult.Failure(
-                AppError.Validation("Email wajib diisi untuk membuat akun login."),
-            )
-        }
-        val emailAvailable = when (val loaded = emailAvailable(email)) {
-            is AppResult.Failure -> return loaded
-            is AppResult.Success -> loaded.value
-        }
-        if (!emailAvailable) {
-            return AppResult.Failure(
-                AppError.Conflict("Email \"$email\" sudah dipakai akun lain."),
-            )
-        }
-
-        // 1. Auth account via the deployed edge function.
         val payload = buildJsonObject {
-            put("email", email)
+            put("employee_number", worker.employeeNumber.trim())
             put("full_name", worker.fullName.trim())
-            put("role", "user")
+            put("email", worker.email?.trim()?.lowercase().orEmpty())
             put("password", password)
-            put("account_status", "active")
+            worker.departmentId?.let { put("department_id", it) }
+            worker.workAreaId?.let { put("work_area_id", it) }
+            worker.shiftId?.let { put("shift_id", it) }
+            worker.jobTitle?.let { put("job_title", it) }
+            put("active_status", worker.activeStatus)
         }
-        val accountCall = AppResult.of {
-            val response: HttpResponse = supabase.functions.invoke("admin-create-user", payload)
+        val call = AppResult.of {
+            val response: HttpResponse = supabase.functions.invoke("admin-create-worker", payload)
             response.status.value to response.body<String>()
         }
-        val userId = when (accountCall) {
-            is AppResult.Failure -> return accountCall
+        return when (call) {
+            is AppResult.Failure -> call
             is AppResult.Success -> {
-                val (status, body) = accountCall.value
+                val (status, body) = call.value
                 if (status !in 200..299) {
                     val message = runCatching {
                         JsonCodec.decode<JsonObject>(body)["error"]?.jsonPrimitive?.content
                     }.getOrNull()
-                    return AppResult.Failure(
-                        AppError.Validation(message ?: "Gagal membuat akun login."),
-                    )
+                    AppResult.Failure(AppError.Validation(message ?: "Gagal mendaftarkan pekerja."))
+                } else {
+                    AppResult.of {
+                        val root = JsonCodec.decode<JsonObject>(body)
+                        val workerElement = root["worker"]!!
+                        val dto: WorkerDto = JsonCodec.json.decodeFromJsonElement(WorkerDto.serializer(), workerElement)
+                        val enriched = runCatching { enrich(dto) }.getOrElse { dto.toDomain() }
+                        runCatching { cacheWorker(enriched, dto.nik) }
+                        enriched
+                    }
                 }
-                runCatching {
-                    JsonCodec.decode<JsonObject>(body)["user_id"]?.jsonPrimitive?.content
-                }.getOrNull()
-                    ?: return AppResult.Failure(
-                        AppError.Unexpected("Akun dibuat tetapi id tidak diterima dari server."),
-                    )
             }
         }
-
-        // 2. Worker row linked to that account.
-        return AppResult.of {
-            val created = supabase.postgrest["workers"]
-                .insert(
-                    WorkerDto.fromDomain(worker).copy(
-                        nik = employeeNumber,
-                        userId = userId,
-                    ),
-                ) { select() }
-                .decodeSingle<WorkerDto>()
-            val enriched = runCatching { enrich(created) }.getOrElse { created.toDomain() }
-            runCatching { cacheWorker(enriched, created.nik) }
-            enriched
-        }
-    }
-
-    /** True when no profile uses this email. */
-    private suspend fun emailAvailable(email: String): AppResult<Boolean> = AppResult.of {
-        supabase.postgrest["profiles"].select {
-            filter { eq("email", email) }
-            limit(1)
-        }.decodeList<com.ratig.app.data.remote.dto.ProfileDto>().isEmpty()
     }
 
     override suspend fun update(worker: Worker): AppResult<Worker> {
