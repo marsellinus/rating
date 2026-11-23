@@ -28,8 +28,7 @@ set config = jsonb_set(r.config, '{bands}', (
             end
         )
         from jsonb_array_elements(r.config -> 'bands') band
-    )),
-    updated_at = now()
+    ))
 where r.config -> 'bands' @> '[{"code":"BAND_3","maxMsExclusive":580}]'::jsonb;
 
 -- Verification:
