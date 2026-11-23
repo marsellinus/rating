@@ -123,6 +123,18 @@ class AuthRepositoryImpl @Inject constructor(
         _sessionState.value = SessionState.Unauthenticated
     }
 
+    override suspend fun updatePassword(newPassword: String): AppResult<Unit> = AppResult.of {
+        supabase.auth.updateUser {
+            password = newPassword
+        }
+        Unit
+    }
+
+    override suspend fun resetPasswordForEmail(email: String): AppResult<Unit> = AppResult.of {
+        supabase.auth.resetPasswordForEmail(email.trim())
+        Unit
+    }
+
     override suspend fun signInWithPassword(email: String, password: String): AppResult<Unit> {
         if (!appConfig.isConfigured) return AppResult.Failure(AppError.NotConfigured)
         val exchange = AppResult.of {

@@ -21,16 +21,16 @@ class ReportRepositoryImpl @Inject constructor(
     private val supabase: SupabaseClient,
 ) : ReportRepository {
 
-    override suspend fun rows(request: ReportFilter): AppResult<List<ReportRow>> = AppResult.of {
+    override suspend fun rows(filter: ReportFilter): AppResult<List<ReportRow>> = AppResult.of {
         supabase.postgrest[V_REPORT_ROWS].select {
             filter {
-                gte("session_completed_at", request.from.toString())
-                lte("session_completed_at", request.to.toString())
-                if (request.departmentId != null) eq("department_id", request.departmentId)
-                if (request.shiftId != null) eq("shift_id", request.shiftId)
+                gte("session_completed_at", filter.from.toString())
+                lte("session_completed_at", filter.to.toString())
+                if (filter.departmentId != null) eq("department_id", filter.departmentId)
+                if (filter.shiftId != null) eq("shift_id", filter.shiftId)
             }
             order("session_completed_at", Order.DESCENDING)
-            range(0, (request.limit - 1).toLong())
+            range(0, (filter.limit - 1).toLong())
         }.decodeList<ReportRowDto>().map { it.toDomain() }
     }
 

@@ -26,11 +26,14 @@ import androidx.compose.material.icons.rounded.HourglassTop
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.PersonAdd
+import androidx.compose.material.icons.outlined.CloudSync
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,6 +42,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import com.ratig.app.domain.repository.ProtocolRepository
+import com.ratig.app.domain.repository.TestSessionRepository
+import com.ratig.app.domain.repository.WorkerRepository
+import com.ratig.app.domain.model.Worker
+import com.ratig.app.domain.model.TestMode
 import com.ratig.app.ui.components.LegendBand
 import com.ratig.app.ui.components.SeverityLegendCard
 import com.ratig.app.ui.components.bandDisplayName
@@ -99,6 +106,7 @@ fun DashboardRoute(
     onOpenWorker: (String) -> Unit,
     onOpenAdmin: (String) -> Unit,
     onStartIdentification: () -> Unit = {},
+    onStartSelfTest: (String) -> Unit = {},
     onOpenSyncStatus: () -> Unit = {},
 ) {
     val viewModel: DashboardViewModel = hiltViewModel()
@@ -114,6 +122,7 @@ fun DashboardRoute(
         onOpenWorker = onOpenWorker,
         onOpenAdmin = onOpenAdmin,
         onStartIdentification = onStartIdentification,
+        onStartSelfTest = { viewModel.startSelfTest(onStartSelfTest) },
         onOpenSyncStatus = onOpenSyncStatus,
     )
 }
@@ -128,6 +137,7 @@ private fun DashboardScreen(
     onOpenWorker: (String) -> Unit,
     onOpenAdmin: (String) -> Unit,
     onStartIdentification: () -> Unit,
+    onStartSelfTest: () -> Unit,
     onOpenSyncStatus: () -> Unit,
 ) {
     val admin = state.admin
@@ -142,6 +152,7 @@ private fun DashboardScreen(
                 onOpenSession = onOpenSession,
                 onOpenWorker = onOpenWorker,
                 onOpenAdmin = onOpenAdmin,
+                onOpenSyncStatus = onOpenSyncStatus,
             )
         state.role == UserRole.ADMIN && management != null ->
             ManagementDashboardContent(
@@ -154,14 +165,15 @@ private fun DashboardScreen(
                 exporting = state.exporting,
                 onExport = onExport,
             )
-        state.role == UserRole.USER && examiner != null ->
-            ExaminerDashboardContent(
-                stats = examiner,
-                onOpenSession = onOpenSession,
-                onStartIdentification = onStartIdentification,
-                legendBands = state.legendBands,
-            )
-        state.role == UserRole.USER -> WorkerHomeContent(legendBands = state.legendBands)
+        state.role == UserRole.USER -> UserHomeContent(
+            worker = state.selfWorker,
+            recent = examiner?.recentResults.orEmpty(),
+            starting = state.startingSelfTest,
+            error = state.selfTestError,
+            onStart = onStartSelfTest,
+            onOpenSession = onOpenSession,
+            legendBands = state.legendBands,
+        )
         else -> EmptyState(
             icon = Icons.Rounded.Info,
             title = "Dasbor tidak tersedia",
@@ -178,6 +190,7 @@ private fun AdminDashboardContent(
     onOpenSession: (String) -> Unit,
     onOpenWorker: (String) -> Unit,
     onOpenAdmin: (String) -> Unit,
+    onOpenSyncStatus: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -231,6 +244,15 @@ private fun AdminDashboardContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+
+        OutlinedButton(
+            onClick = onOpenSyncStatus,
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+        ) {
+            Icon(Icons.Outlined.CloudSync, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Status Sinkronisasi & Data Offline")
+        }
     }
 }
 
@@ -241,6 +263,7 @@ private fun ExaminerDashboardContent(
     stats: ExaminerDashboardStats,
     onOpenSession: (String) -> Unit,
     onStartIdentification: () -> Unit,
+    onOpenSyncStatus: () -> Unit,
     legendBands: List<LegendBand>? = null,
 ) {
     Column(
@@ -270,6 +293,15 @@ private fun ExaminerDashboardContent(
             Icon(Icons.Outlined.PersonSearch, contentDescription = null)
             Spacer(Modifier.width(8.dp))
             Text("Pemeriksaan Baru")
+        }
+
+        OutlinedButton(
+            onClick = onOpenSyncStatus,
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+        ) {
+            Icon(Icons.Outlined.CloudSync, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Status Sinkronisasi & Data Lokal")
         }
 
         SectionCard("Langkah Pemeriksaan") {
@@ -607,6 +639,8 @@ private fun formatMs(value: Double): String = String.format(java.util.Locale.US,
 class DashboardViewModel @Inject constructor(
     private val dashboardRepository: DashboardRepository,
     private val protocolRepository: ProtocolRepository,
+    private val workerRepository: WorkerRepository,
+    private val sessionRepository: TestSessionRepository,
     authRepository: AuthRepository,
 ) : ViewModel() {
 
@@ -619,6 +653,10 @@ class DashboardViewModel @Inject constructor(
          * it shows the ranges that actually apply. Null when unavailable.
          */
         val legendBands: List<LegendBand>? = null,
+        /** The worker record linked to the logged-in User's own account. */
+        val selfWorker: Worker? = null,
+        val startingSelfTest: Boolean = false,
+        val selfTestError: String? = null,
         val role: UserRole? = null,
         val admin: AdminDashboardStats? = null,
         val examiner: ExaminerDashboardStats? = null,
@@ -644,10 +682,77 @@ class DashboardViewModel @Inject constructor(
                     when (role) {
                         UserRole.SUPER_ADMIN -> loadAdmin()
                         UserRole.ADMIN -> loadManagement(_uiState.value.periodDays)
-                        UserRole.USER -> loadExaminer()
+                        UserRole.USER -> {
+                            loadSelf()
+                            loadExaminer()
+                        }
                     }
                 } else if (role == null && session is SessionState.Error) {
                     _uiState.update { it.copy(loading = false, error = session.message) }
+                }
+            }
+        }
+    }
+
+    /** Loads the worker record belonging to the currently logged-in User. */
+    private suspend fun loadSelf() {
+        when (val result = workerRepository.getMyRecord()) {
+            is AppResult.Success -> _uiState.update { it.copy(selfWorker = result.value) }
+            is AppResult.Failure -> Unit // the UI shows a clear "not linked" state
+        }
+    }
+
+    /**
+     * Starts a session for the User's own worker record. Protocol and shift are
+     * resolved here rather than asked in the UI: ONE PERSON = ONE ACCOUNT means
+     * a worker never goes through examiner identification.
+     */
+    fun startSelfTest(onReady: (String) -> Unit) {
+        if (_uiState.value.startingSelfTest) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(startingSelfTest = true, selfTestError = null) }
+            val worker = _uiState.value.selfWorker
+                ?: (workerRepository.getMyRecord() as? AppResult.Success)?.value
+            if (worker == null) {
+                _uiState.update {
+                    it.copy(
+                        startingSelfTest = false,
+                        selfTestError = "Akun Anda belum tertaut ke data pekerja. Hubungi administrator.",
+                    )
+                }
+                return@launch
+            }
+            val protocols = when (val loaded = protocolRepository.listActiveProtocols()) {
+                is AppResult.Success -> loaded.value
+                is AppResult.Failure -> emptyList()
+            }
+            val protocol = protocols.firstOrNull()
+            if (protocol == null) {
+                _uiState.update {
+                    it.copy(
+                        startingSelfTest = false,
+                        selfTestError = "Belum ada protokol aktif. Hubungi administrator.",
+                    )
+                }
+                return@launch
+            }
+            val fatigueRuleId = when (val r = protocolRepository.effectiveRule(protocol.id)) {
+                is AppResult.Success -> r.value?.id
+                is AppResult.Failure -> null
+            }
+            when (val created = sessionRepository.createSession(
+                workerId = worker.id,
+                protocolId = protocol.id,
+                fatigueRuleId = fatigueRuleId,
+                shiftId = worker.shiftId,
+                testMode = TestMode.CLASSIC,
+            )) {
+                is AppResult.Success -> {
+                    _uiState.update { it.copy(startingSelfTest = false) }
+                    onReady(created.value.id)
+                }
+                is AppResult.Failure -> _uiState.update {
+                    it.copy(startingSelfTest = false, selfTestError = created.error.userMessage)
                 }
             }
         }
@@ -788,5 +893,126 @@ class DashboardViewModel @Inject constructor(
 
     companion object {
         const val DEFAULT_PERIOD_DAYS = 30
+    }
+}
+
+/**
+ * Home screen for the User (worker) role.
+ *
+ * ONE PERSON = ONE ACCOUNT: a User only sees its own identity card, a direct
+ * "Mulai Tes" action and its own recent results. There is no worker directory,
+ * no identification screen and no "next worker" action on the result screen.
+ */
+@Composable
+private fun UserHomeContent(
+    worker: Worker?,
+    recent: List<RecentResult>,
+    starting: Boolean,
+    error: String?,
+    onStart: () -> Unit,
+    onOpenSession: (String) -> Unit,
+    legendBands: List<LegendBand>?,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Text(
+            text = "Beranda Saya",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+        )
+
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Outlined.PersonSearch,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp),
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        text = "Data Pekerja Saya",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                if (worker == null) {
+                    Text(
+                        text = "Akun Anda belum tertaut ke data pekerja. Hubungi administrator.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                } else {
+                    SelfInfoRow("Nama", worker.fullName)
+                    SelfInfoRow("Nomor Induk Pekerja", worker.employeeNumber)
+                    SelfInfoRow("Departemen", worker.departmentName ?: "-")
+                    SelfInfoRow("Area Kerja", worker.workAreaName ?: "-")
+                    SelfInfoRow("Shift", worker.shiftName ?: "-")
+                }
+            }
+        }
+
+        if (error != null) {
+            Text(text = error, color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium)
+        }
+
+        Button(
+            onClick = onStart,
+            enabled = worker != null && !starting,
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+        ) {
+            if (starting) {
+                CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+            } else {
+                Icon(Icons.Rounded.TouchApp, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Mulai Tes Saya")
+            }
+        }
+
+        SectionCard("Riwayat Pemeriksaan Saya") {
+            if (recent.isEmpty()) {
+                Text(
+                    text = "Belum ada pemeriksaan. Tekan \"Mulai Tes Saya\" untuk memulai.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                recent.forEach { result ->
+                    ResultRow(result = result, onOpenSession = onOpenSession)
+                }
+            }
+        }
+
+        SeverityLegendCard(
+            modifier = Modifier.fillMaxWidth(),
+            bands = legendBands,
+        )
+    }
+}
+
+@Composable
+private fun SelfInfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(120.dp),
+        )
+        Text(text = value, style = MaterialTheme.typography.bodyMedium)
     }
 }

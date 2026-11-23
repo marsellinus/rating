@@ -16,10 +16,10 @@ import java.time.Instant
  */
 @Serializable
 data class AuditLogDto(
-    val id: String,
+    val id: String = "",
     @SerialName("actor_id") val actorId: String? = null,
-    val action: String,
-    @SerialName("entity_type") val entityType: String,
+    val action: String = "",
+    @SerialName("entity_type") val entityType: String = "",
     @SerialName("entity_id") val entityId: String? = null,
     @Serializable(with = InstantAsStringSerializer::class)
     @SerialName("occurred_at") val occurredAt: Instant? = null,

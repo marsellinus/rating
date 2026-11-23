@@ -22,13 +22,13 @@ import java.time.Instant
 
 @Serializable
 data class TestProtocolDto(
-    val id: String,
-    val name: String,
-    @SerialName("protocol_version") val protocolVersion: String,
-    @SerialName("trial_count") val trialCount: Int,
-    @SerialName("stimulus_delay_min_ms") val stimulusDelayMinMs: Long,
-    @SerialName("stimulus_delay_max_ms") val stimulusDelayMaxMs: Long,
-    @SerialName("response_timeout_ms") val responseTimeoutMs: Long,
+    val id: String = "",
+    val name: String = "",
+    @SerialName("protocol_version") val protocolVersion: String = "",
+    @SerialName("trial_count") val trialCount: Int = 0,
+    @SerialName("stimulus_delay_min_ms") val stimulusDelayMinMs: Long = 0L,
+    @SerialName("stimulus_delay_max_ms") val stimulusDelayMaxMs: Long = 0L,
+    @SerialName("response_timeout_ms") val responseTimeoutMs: Long = 0L,
     val configuration: JsonElement = JsonNull,
     val status: ProtocolStatus = ProtocolStatus.DRAFT,
     @SerialName("created_by") val createdBy: String? = null,
@@ -68,12 +68,12 @@ data class ProtocolInsertDto(
 
 @Serializable
 data class FatigueRuleDto(
-    val id: String,
-    @SerialName("protocol_id") val protocolId: String,
-    @SerialName("rule_version") val ruleVersion: String,
+    val id: String = "",
+    @SerialName("protocol_id") val protocolId: String = "",
+    @SerialName("rule_version") val ruleVersion: String = "",
     val config: JsonElement = JsonNull,
     @SerialName("effective_from") @Serializable(with = InstantAsStringSerializer::class)
-    val effectiveFrom: Instant,
+    val effectiveFrom: Instant = Instant.EPOCH,
     @SerialName("effective_until") @Serializable(with = InstantAsStringSerializer::class)
     val effectiveUntil: Instant? = null,
     @SerialName("approval_status") val approvalStatus: ApprovalStatus = ApprovalStatus.DRAFT,

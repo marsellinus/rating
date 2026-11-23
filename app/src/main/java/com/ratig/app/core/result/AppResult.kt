@@ -96,6 +96,8 @@ fun Throwable.toAppError(): AppError {
             AppError.Validation("Data terkait tidak ditemukan atau tidak valid.")
         lower.contains("23514") || lower.contains("check constraint") ->
             AppError.Validation("Nilai tidak memenuhi aturan data yang berlaku.")
+        lower.contains("23502") || lower.contains("not-null") ->
+            AppError.Validation("Ada data wajib yang belum terisi.")
         lower.contains("401") || lower.contains("jwt") || lower.contains("unauthorized") ->
             AppError.NotAuthenticated
         lower.contains("403") -> AppError.Forbidden()

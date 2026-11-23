@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.FactCheck
 import androidx.compose.material.icons.outlined.HelpOutline
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.ManageAccounts
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Person
@@ -31,25 +33,36 @@ import androidx.compose.material.icons.outlined.ReceiptLong
 import androidx.compose.material.icons.outlined.Rule
 import androidx.compose.material.icons.outlined.Science
 import androidx.compose.material.icons.outlined.Storage
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -70,6 +83,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -85,6 +99,8 @@ class ProfileViewModel @Inject constructor(
         val profile: UserProfile? = null,
         val error: String? = null,
         val signingOut: Boolean = false,
+        val changingPassword: Boolean = false,
+        val passwordChangeError: String? = null,
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -106,7 +122,7 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = authRepository.refreshProfile()) {
                 is AppResult.Success ->
-                    _uiState.value = UiState(loading = false, profile = result.value)
+                    _uiState.value = _uiState.value.copy(loading = false, profile = result.value)
                 is AppResult.Failure ->
                     _uiState.value = _uiState.value.copy(
                         loading = false,
@@ -114,6 +130,26 @@ class ProfileViewModel @Inject constructor(
                     )
             }
         }
+    }
+
+    fun changePassword(newPassword: String, onSuccess: () -> Unit) {
+        if (_uiState.value.changingPassword) return
+        _uiState.update { it.copy(changingPassword = true, passwordChangeError = null) }
+        viewModelScope.launch {
+            when (val result = authRepository.updatePassword(newPassword)) {
+                is AppResult.Success -> {
+                    _uiState.update { it.copy(changingPassword = false, passwordChangeError = null) }
+                    onSuccess()
+                }
+                is AppResult.Failure -> {
+                    _uiState.update { it.copy(changingPassword = false, passwordChangeError = result.error.userMessage) }
+                }
+            }
+        }
+    }
+
+    fun clearPasswordError() {
+        _uiState.update { it.copy(passwordChangeError = null) }
     }
 
     fun signOut() {
@@ -162,6 +198,7 @@ fun ProfileRoute(onSignOut: () -> Unit, onOpenAdmin: (String) -> Unit) {
     val signOutCompleted by viewModel.signOutCompleted.collectAsStateWithLifecycle()
 
     var showSignOutDialog by rememberSaveable { mutableStateOf(false) }
+    var showChangePasswordDialog by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(signOutCompleted) {
         if (signOutCompleted) onSignOut()
@@ -176,6 +213,10 @@ fun ProfileRoute(onSignOut: () -> Unit, onOpenAdmin: (String) -> Unit) {
                 appVersion = viewModel.appVersion,
                 signingOut = uiState.signingOut,
                 onOpenAdmin = onOpenAdmin,
+                onRequestChangePassword = {
+                    viewModel.clearPasswordError()
+                    showChangePasswordDialog = true
+                },
                 onRequestSignOut = { showSignOutDialog = true },
             )
             else -> ErrorState(
@@ -183,6 +224,19 @@ fun ProfileRoute(onSignOut: () -> Unit, onOpenAdmin: (String) -> Unit) {
                 onRetry = viewModel::refreshProfile,
             )
         }
+    }
+
+    if (showChangePasswordDialog) {
+        ChangePasswordDialog(
+            changing = uiState.changingPassword,
+            error = uiState.passwordChangeError,
+            onDismiss = { showChangePasswordDialog = false },
+            onSubmit = { newPassword ->
+                viewModel.changePassword(newPassword) {
+                    showChangePasswordDialog = false
+                }
+            },
+        )
     }
 
     if (showSignOutDialog) {
@@ -206,6 +260,7 @@ private fun ProfileContent(
     appVersion: String,
     signingOut: Boolean,
     onOpenAdmin: (String) -> Unit,
+    onRequestChangePassword: () -> Unit,
     onRequestSignOut: () -> Unit,
 ) {
     val isAdmin = profile.role == UserRole.ADMIN || profile.role == UserRole.SUPER_ADMIN
@@ -278,6 +333,20 @@ private fun ProfileContent(
                     )
                 }
             }
+        }
+
+        OutlinedButton(
+            onClick = onRequestChangePassword,
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = MaterialTheme.shapes.medium,
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Lock,
+                contentDescription = null,
+                modifier = Modifier.size(22.dp),
+            )
+            Spacer(Modifier.width(8.dp))
+            Text("Ubah Password Akun", style = MaterialTheme.typography.titleMedium)
         }
 
         OutlinedButton(
@@ -365,4 +434,89 @@ private fun ProfileMenuRow(
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
+}
+
+@Composable
+private fun ChangePasswordDialog(
+    changing: Boolean,
+    error: String?,
+    onDismiss: () -> Unit,
+    onSubmit: (String) -> Unit,
+) {
+    var newPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var showPassword by remember { mutableStateOf(false) }
+    var localError by remember { mutableStateOf<String?>(null) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Ubah Password Akun") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                val displayError = localError ?: error
+                if (displayError != null) {
+                    Text(
+                        text = displayError,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+                OutlinedTextField(
+                    value = newPassword,
+                    onValueChange = { newPassword = it; localError = null },
+                    label = { Text("Password Baru") },
+                    placeholder = { Text("Minimal 6 karakter") },
+                    visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { showPassword = !showPassword }) {
+                            Icon(
+                                if (showPassword) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                                contentDescription = null,
+                            )
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    singleLine = true,
+                    enabled = !changing,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it; localError = null },
+                    label = { Text("Konfirmasi Password") },
+                    visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    singleLine = true,
+                    enabled = !changing,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val trimmed = newPassword.trim()
+                    if (trimmed.length < 6) {
+                        localError = "Password minimal 6 karakter."
+                    } else if (trimmed != confirmPassword.trim()) {
+                        localError = "Konfirmasi password tidak cocok."
+                    } else {
+                        onSubmit(trimmed)
+                    }
+                },
+                enabled = !changing && newPassword.isNotBlank(),
+            ) {
+                if (changing) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                } else {
+                    Text("Simpan")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !changing) {
+                Text("Batal")
+            }
+        },
+    )
 }

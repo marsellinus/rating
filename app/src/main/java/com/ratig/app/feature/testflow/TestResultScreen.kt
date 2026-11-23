@@ -40,6 +40,9 @@ import com.ratig.app.data.local.dao.HealthScreeningDao
 import com.ratig.app.data.local.entity.LocalHealthScreeningEntity
 import com.ratig.app.domain.model.TestResult
 import com.ratig.app.domain.repository.ProtocolRepository
+import com.ratig.app.domain.repository.AuthRepository
+import com.ratig.app.domain.repository.SessionState
+import com.ratig.app.domain.model.UserRole
 import com.ratig.app.domain.repository.TestSessionRepository
 import com.ratig.app.domain.model.FitnessRecommendation
 import com.ratig.app.domain.usecase.ClassificationOutcome
@@ -77,6 +80,7 @@ class TestResultViewModel @Inject constructor(
     private val screeningDao: HealthScreeningDao,
     private val vitalsClassifier: VitalsClassifier,
     private val modeQualityClassifier: ModeQualityClassifier,
+    authRepository: AuthRepository,
 ) : ViewModel() {
 
     private val sessionId: String = checkNotNull(savedStateHandle["sessionId"])
@@ -104,6 +108,8 @@ class TestResultViewModel @Inject constructor(
          * Classic mode, where the fatigue classification is the indicator.
          */
         val modeQuality: ModeQualityClassifier.Quality? = null,
+        /** One person = one account: a User never moves on to another worker. */
+        val isWorkerSelfService: Boolean = false,
         /**
          * Bands of the rule that was actually applied, for the legend. Null when
          * the rule cannot be resolved, in which case the legend omits ranges
@@ -116,6 +122,13 @@ class TestResultViewModel @Inject constructor(
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     init {
+        _uiState.update {
+            it.copy(
+                isWorkerSelfService =
+                    (authRepository.sessionState.value as? SessionState.Authenticated)
+                        ?.profile?.role == UserRole.USER,
+            )
+        }
         refresh()
         // The screening screen writes to the database and pops back to this
         // screen. Observing the row keeps the summary and the combined verdict
@@ -488,15 +501,17 @@ private fun ResultContent(
         // Multi-worker operational flow: the examiner normally continues
         // straight to the next worker, so that action is primary and the
         // return-to-home action is secondary.
-        Button(
-            onClick = onNextWorker,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-        ) {
-            Icon(Icons.Outlined.PersonSearch, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text("Periksa Pekerja Berikutnya")
+        if (!uiState.isWorkerSelfService) {
+            Button(
+                onClick = onNextWorker,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+            ) {
+                Icon(Icons.Outlined.PersonSearch, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Periksa Pekerja Berikutnya")
+            }
         }
         OutlinedButton(
             onClick = onDone,

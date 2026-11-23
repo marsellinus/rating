@@ -18,8 +18,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class FollowUpDto(
     val id: String? = null,
-    @SerialName("session_id") val sessionId: String,
-    @SerialName("action_type") val actionType: String,
+    @SerialName("session_id") val sessionId: String = "",
+    @SerialName("action_type") val actionType: String = "",
     val notes: String? = null,
     val status: String? = null,
     @SerialName("assigned_to") val assignedTo: String? = null,

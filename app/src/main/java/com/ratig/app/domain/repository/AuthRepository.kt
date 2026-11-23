@@ -36,6 +36,12 @@ interface AuthRepository {
 
     suspend fun signOut(): AppResult<Unit>
 
+    /** Changes the currently signed-in user's password. */
+    suspend fun updatePassword(newPassword: String): AppResult<Unit>
+
+    /** Sends a password reset email via Supabase Auth. */
+    suspend fun resetPasswordForEmail(email: String): AppResult<Unit>
+
     /** Reloads the current profile (after approval, role change, etc). */
     suspend fun refreshProfile(): AppResult<UserProfile>
 }

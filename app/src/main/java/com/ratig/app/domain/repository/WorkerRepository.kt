@@ -13,6 +13,11 @@ interface WorkerRepository {
     /** Exact-match NIK lookup (server when online, cache when offline). */
     suspend fun findByNik(nik: String): AppResult<Worker?>
     suspend fun create(worker: Worker): AppResult<Worker>
+    /**
+     * Creates the worker row AND its login account in one server-side flow.
+     * Used when an admin supplies a password in the worker form.
+     */
+    suspend fun createWithAccount(worker: Worker, password: String): AppResult<Worker>
     suspend fun update(worker: Worker): AppResult<Worker>
     /** Soft delete: sets active_status = false; history stays intact. */
     suspend fun deactivate(id: String): AppResult<Unit>

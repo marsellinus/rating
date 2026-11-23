@@ -43,7 +43,10 @@ fun RatigNavHost(
     val strings = LocalStrings.current
     val bottomDests = buildList {
         add(BottomDest(Routes.DASHBOARD, S.NAV_HOME, Icons.Outlined.Home))
-        if (role != null) {
+        // ONE PERSON = ONE ACCOUNT: a plain User must never see the worker
+        // directory, even though hide-only UI is not access control (RLS
+        // migration 0007 enforces the same rule server-side).
+        if (role == UserRole.ADMIN || role == UserRole.SUPER_ADMIN) {
             add(BottomDest(Routes.WORKERS, S.NAV_WORKERS, Icons.Outlined.People))
         }
         add(BottomDest(Routes.HISTORY, S.NAV_HISTORY, Icons.Outlined.History))
@@ -148,6 +151,9 @@ fun RatigNavHost(
                     onOpenWorker = { navController.navigate(Routes.workerDetail(it)) },
                     onOpenAdmin = { route -> navController.navigate(route) },
                     onStartIdentification = { navController.navigate(Routes.IDENTIFICATION) },
+                    onStartSelfTest = { sessionId ->
+                        navController.navigate(Routes.testInstructions(sessionId))
+                    },
                     onOpenSyncStatus = { navController.navigate(Routes.SYNC_STATUS) },
                 )
             }

@@ -13,7 +13,7 @@ import java.time.LocalTime
 data class DepartmentDto(
     /** Server-generated uuid; null (omitted) on INSERT. */
     val id: String? = null,
-    val name: String,
+    val name: String = "",
     val description: String? = null,
     @SerialName("active_status") val activeStatus: Boolean = true,
     @Serializable(with = InstantAsStringSerializer::class)
@@ -41,8 +41,8 @@ fun DepartmentDto.Companion.fromDomain(department: Department): DepartmentDto = 
 data class WorkAreaDto(
     /** Server-generated uuid; null (omitted) on INSERT. */
     val id: String? = null,
-    @SerialName("department_id") val departmentId: String,
-    val name: String,
+    @SerialName("department_id") val departmentId: String = "",
+    val name: String = "",
     val description: String? = null,
     @SerialName("active_status") val activeStatus: Boolean = true,
     @Serializable(with = InstantAsStringSerializer::class)
@@ -75,9 +75,9 @@ fun WorkAreaDto.Companion.fromDomain(area: WorkArea): WorkAreaDto = WorkAreaDto(
 data class ShiftDto(
     /** Server-generated uuid; null (omitted) on INSERT. */
     val id: String? = null,
-    val name: String,
-    @SerialName("start_time") val startTime: String,
-    @SerialName("end_time") val endTime: String,
+    val name: String = "",
+    @SerialName("start_time") val startTime: String = "00:00:00",
+    @SerialName("end_time") val endTime: String = "00:00:00",
     val timezone: String = "Asia/Jakarta",
     @SerialName("active_status") val activeStatus: Boolean = true,
     @Serializable(with = InstantAsStringSerializer::class)

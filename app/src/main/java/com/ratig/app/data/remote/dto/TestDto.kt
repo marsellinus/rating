@@ -23,11 +23,11 @@ import java.time.Instant
 
 @Serializable
 data class TestSessionDto(
-    val id: String,
-    @SerialName("worker_id") val workerId: String,
-    @SerialName("examiner_id") val examinerId: String,
+    val id: String = "",
+    @SerialName("worker_id") val workerId: String = "",
+    @SerialName("examiner_id") val examinerId: String = "",
     @SerialName("shift_id") val shiftId: String? = null,
-    @SerialName("protocol_id") val protocolId: String,
+    @SerialName("protocol_id") val protocolId: String = "",
     @SerialName("fatigue_rule_id") val fatigueRuleId: String? = null,
     @SerialName("app_version") val appVersion: String? = null,
     @SerialName("device_metadata") val deviceMetadata: JsonObject = JsonObject(emptyMap()),
@@ -99,9 +99,9 @@ data class TestSessionInsertDto(
 
 @Serializable
 data class TrialDto(
-    val id: String,
-    @SerialName("session_id") val sessionId: String,
-    @SerialName("trial_number") val trialNumber: Int,
+    val id: String = "",
+    @SerialName("session_id") val sessionId: String = "",
+    @SerialName("trial_number") val trialNumber: Int = 0,
     @SerialName("stimulus_at_monotonic_ns") val stimulusAtMonotonicNs: Long? = null,
     @SerialName("tap_at_monotonic_ns") val tapAtMonotonicNs: Long? = null,
     @SerialName("reaction_time_ms") val reactionTimeMs: Long? = null,
@@ -169,9 +169,9 @@ data class TrialInsertDto(
 
 @Serializable
 data class TestResultDto(
-    val id: String,
-    @SerialName("session_id") val sessionId: String,
-    @SerialName("valid_trial_count") val validTrialCount: Int,
+    val id: String = "",
+    @SerialName("session_id") val sessionId: String = "",
+    @SerialName("valid_trial_count") val validTrialCount: Int = 0,
     @SerialName("invalid_trial_count") val invalidTrialCount: Int = 0,
     @SerialName("missed_response_count") val missedResponseCount: Int = 0,
     @SerialName("false_start_count") val falseStartCount: Int = 0,

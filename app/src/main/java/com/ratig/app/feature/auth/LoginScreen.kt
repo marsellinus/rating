@@ -24,6 +24,7 @@ import androidx.compose.material.icons.rounded.HourglassTop
 import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -36,6 +37,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -73,6 +75,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -86,6 +89,9 @@ class LoginViewModel @Inject constructor(
         val error: String? = null,
         val showPassword: Boolean = false,
         val rememberMe: Boolean = true,
+        val resettingPassword: Boolean = false,
+        val resetSuccessMessage: String? = null,
+        val resetErrorMessage: String? = null,
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -154,6 +160,46 @@ class LoginViewModel @Inject constructor(
             }
         }
     }
+
+    fun resetPassword(email: String, onSuccess: () -> Unit) {
+        val trimmed = email.trim()
+        if (trimmed.isBlank() || !EMAIL_REGEX.matches(trimmed)) {
+            _uiState.update { it.copy(resetErrorMessage = "Format email tidak valid.") }
+            return
+        }
+        _uiState.update { it.copy(resettingPassword = true, resetErrorMessage = null) }
+        viewModelScope.launch {
+            val result = authRepository.resetPasswordForEmail(trimmed)
+            when (result) {
+                is AppResult.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            resettingPassword = false,
+                            resetSuccessMessage = "Tautan reset kata sandi telah dikirim ke $trimmed. Silakan periksa kotak masuk atau spam email Anda.",
+                            resetErrorMessage = null,
+                        )
+                    }
+                    onSuccess()
+                }
+                is AppResult.Failure -> {
+                    _uiState.update {
+                        it.copy(
+                            resettingPassword = false,
+                            resetErrorMessage = result.error.userMessage,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun clearResetMessages() {
+        _uiState.update { it.copy(resetSuccessMessage = null, resetErrorMessage = null) }
+    }
+
+    companion object {
+        private val EMAIL_REGEX = Regex("^[A-Za-z0-9+_.\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}$")
+    }
 }
 
 @Composable
@@ -164,6 +210,8 @@ fun LoginRoute(onSignedIn: () -> Unit, onPending: () -> Unit) {
     val rememberedEmail by viewModel.rememberedEmail.collectAsStateWithLifecycle()
 
     var navigated by rememberSaveable { mutableStateOf(false) }
+    var showForgotPasswordDialog by rememberSaveable { mutableStateOf(false) }
+
     LaunchedEffect(sessionState) {
         if (navigated) return@LaunchedEffect
         when (sessionState) {
@@ -186,8 +234,26 @@ fun LoginRoute(onSignedIn: () -> Unit, onPending: () -> Unit) {
         onSignInWithPassword = viewModel::signInWithPassword,
         onTogglePassword = viewModel::togglePasswordVisibility,
         onRememberChange = viewModel::setRememberMe,
+        onForgotPassword = {
+            viewModel.clearResetMessages()
+            showForgotPasswordDialog = true
+        },
         googleAvailable = viewModel.googleAvailable,
     )
+
+    if (showForgotPasswordDialog) {
+        ForgotPasswordDialog(
+            initialEmail = rememberedEmail,
+            resetting = uiState.resettingPassword,
+            error = uiState.resetErrorMessage,
+            onDismiss = { showForgotPasswordDialog = false },
+            onSubmit = { targetEmail ->
+                viewModel.resetPassword(targetEmail) {
+                    showForgotPasswordDialog = false
+                }
+            },
+        )
+    }
 }
 
 @Composable
@@ -198,6 +264,7 @@ private fun LoginContent(
     onSignInWithPassword: (String, String) -> Unit,
     onTogglePassword: () -> Unit,
     onRememberChange: (Boolean) -> Unit,
+    onForgotPassword: () -> Unit,
     googleAvailable: Boolean,
 ) {
     val context = LocalContext.current
@@ -249,6 +316,22 @@ private fun LoginContent(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                     )
+
+                    if (uiState.resetSuccessMessage != null) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            shape = MaterialTheme.shapes.medium,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(
+                                text = uiState.resetSuccessMessage,
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                            )
+                        }
+                    }
 
                     if (uiState.error != null) {
                         Surface(
@@ -318,18 +401,29 @@ private fun LoginContent(
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onRememberChange(!uiState.rememberMe) },
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Checkbox(
-                            checked = uiState.rememberMe,
-                            onCheckedChange = onRememberChange,
-                        )
-                        Text(
-                            text = strings.t(S.LOGIN_REMEMBER),
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable { onRememberChange(!uiState.rememberMe) },
+                        ) {
+                            Checkbox(
+                                checked = uiState.rememberMe,
+                                onCheckedChange = onRememberChange,
+                            )
+                            Text(
+                                text = strings.t(S.LOGIN_REMEMBER),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
+                        TextButton(onClick = onForgotPassword) {
+                            Text(
+                                text = "Lupa sandi?",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
                     }
 
                     Button(
@@ -560,4 +654,68 @@ private fun PendingApprovalContent(
             }
         }
     }
+}
+
+@Composable
+private fun ForgotPasswordDialog(
+    initialEmail: String,
+    resetting: Boolean,
+    error: String?,
+    onDismiss: () -> Unit,
+    onSubmit: (String) -> Unit,
+) {
+    var email by rememberSaveable { mutableStateOf(initialEmail) }
+    AlertDialog(
+        onDismissRequest = { if (!resetting) onDismiss() },
+        title = { Text("Lupa Kata Sandi", style = MaterialTheme.typography.titleLarge) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = "Masukkan alamat email akun Anda. Tautan untuk mengatur ulang kata sandi akan dikirim ke email tersebut.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Email Akun") },
+                    singleLine = true,
+                    enabled = !resetting,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                if (error != null) {
+                    Text(
+                        text = error,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onSubmit(email) },
+                enabled = !resetting && email.isNotBlank(),
+            ) {
+                if (resetting) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Mengirim...")
+                } else {
+                    Text("Kirim Tautan")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !resetting,
+            ) {
+                Text("Batal")
+            }
+        },
+    )
 }

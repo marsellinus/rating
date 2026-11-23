@@ -97,9 +97,9 @@ data class SyncTrialPayloadDto(
  */
 @Serializable
 data class ServerResultDto(
-    @SerialName("id") val id: String,
-    @SerialName("session_id") val sessionId: String,
-    @SerialName("valid_trial_count") val validTrialCount: Int,
+    @SerialName("id") val id: String = "",
+    @SerialName("session_id") val sessionId: String = "",
+    @SerialName("valid_trial_count") val validTrialCount: Int = 0,
     @SerialName("invalid_trial_count") val invalidTrialCount: Int = 0,
     @SerialName("missed_response_count") val missedResponseCount: Int = 0,
     @SerialName("false_start_count") val falseStartCount: Int = 0,

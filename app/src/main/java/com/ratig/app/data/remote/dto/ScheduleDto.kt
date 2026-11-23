@@ -13,13 +13,13 @@ import java.time.Instant
  */
 @Serializable
 data class ScheduleDto(
-    val id: String,
-    @SerialName("worker_id") val workerId: String,
-    @SerialName("examiner_id") val examinerId: String,
+    val id: String = "",
+    @SerialName("worker_id") val workerId: String = "",
+    @SerialName("examiner_id") val examinerId: String = "",
     @SerialName("shift_id") val shiftId: String? = null,
     @Serializable(with = InstantAsStringSerializer::class)
-    @SerialName("scheduled_at") val scheduledAt: Instant,
-    val status: String,
+    @SerialName("scheduled_at") val scheduledAt: Instant = Instant.EPOCH,
+    val status: String = "scheduled",
     val notes: String? = null,
     @Serializable(with = InstantAsStringSerializer::class)
     @SerialName("created_at") val createdAt: Instant? = null,

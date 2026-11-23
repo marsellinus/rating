@@ -21,8 +21,8 @@ import java.time.Instant
 data class WorkerDto(
     /** Server-generated uuid; null (omitted) on INSERT. */
     val id: String? = null,
-    @SerialName("employee_number") val employeeNumber: String,
-    @SerialName("full_name") val fullName: String,
+    @SerialName("employee_number") val employeeNumber: String = "",
+    @SerialName("full_name") val fullName: String = "",
     /**
      * Business key (`workers.nik`, digits only, unique). Nullable so INSERT
      * bodies omit it (the column has a server-side policy); SELECTs populate
@@ -71,15 +71,24 @@ fun WorkerDto.toDomain(
  * id always comes from the server (`gen_random_uuid()`), so [Worker.id] is
  * intentionally ignored (blank or not).
  */
-fun WorkerDto.Companion.fromDomain(worker: Worker): WorkerDto = WorkerDto(
-    id = null,
-    employeeNumber = worker.employeeNumber.trim(),
-    fullName = worker.fullName.trim(),
-    email = worker.email?.trim()?.takeIf { it.isNotEmpty() },
-    departmentId = worker.departmentId,
-    workAreaId = worker.workAreaId,
-    jobTitle = worker.jobTitle?.trim()?.takeIf { it.isNotEmpty() },
-    shiftId = worker.shiftId,
-    activeStatus = worker.activeStatus,
-    userId = worker.userId,
-)
+fun WorkerDto.Companion.fromDomain(worker: Worker): WorkerDto {
+    val trimmedEmpNo = worker.employeeNumber.trim()
+    val nikValue = if (trimmedEmpNo.matches(Regex("^[0-9]{4,32}$"))) {
+        trimmedEmpNo
+    } else {
+        "9" + (kotlin.math.abs(trimmedEmpNo.hashCode().toLong()) % 100000000000000L).toString().padStart(15, '0')
+    }
+    return WorkerDto(
+        id = null,
+        employeeNumber = trimmedEmpNo,
+        fullName = worker.fullName.trim(),
+        nik = nikValue,
+        email = worker.email?.trim()?.takeIf { it.isNotEmpty() },
+        departmentId = worker.departmentId,
+        workAreaId = worker.workAreaId,
+        jobTitle = worker.jobTitle?.trim()?.takeIf { it.isNotEmpty() },
+        shiftId = worker.shiftId,
+        activeStatus = worker.activeStatus,
+        userId = worker.userId,
+    )
+}

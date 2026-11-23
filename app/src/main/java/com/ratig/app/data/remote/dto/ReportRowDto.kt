@@ -13,14 +13,15 @@ import java.time.Instant
  */
 @Serializable
 data class ReportRowDto(
-    @SerialName("session_id") val sessionId: String,
+    @SerialName("session_id") val sessionId: String = "",
     @Serializable(with = InstantAsStringSerializer::class)
     @SerialName("session_created_at") val sessionCreatedAt: Instant? = null,
     @Serializable(with = InstantAsStringSerializer::class)
     @SerialName("session_completed_at") val sessionCompletedAt: Instant? = null,
-    @SerialName("worker_id") val workerId: String,
-    @SerialName("worker_number") val workerNumber: String,
-    @SerialName("worker_name") val workerName: String,
+    @SerialName("worker_id") val workerId: String = "",
+    @SerialName("worker_number") val workerNumber: String = "",
+    @SerialName("employee_number") val employeeNumber: String? = null,
+    @SerialName("worker_name") val workerName: String = "",
     @SerialName("department_name") val departmentName: String? = null,
     @SerialName("work_area_name") val workAreaName: String? = null,
     @SerialName("shift_name") val shiftName: String? = null,
@@ -45,7 +46,7 @@ data class ReportRowDto(
         sessionCreatedAt = sessionCreatedAt,
         sessionCompletedAt = sessionCompletedAt,
         workerId = workerId,
-        workerNumber = workerNumber,
+        workerNumber = workerNumber.ifEmpty { employeeNumber.orEmpty() },
         workerName = workerName,
         departmentName = departmentName,
         workAreaName = workAreaName,

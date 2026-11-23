@@ -21,7 +21,17 @@ import com.ratig.app.domain.repository.WorkerRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.query.Order
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.call.body
+import com.ratig.app.core.json.JsonCodec
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import kotlinx.serialization.serializer
 import java.time.Instant
 import javax.inject.Inject
 import kotlin.concurrent.Volatile
@@ -183,7 +193,51 @@ class WorkerRepositoryImpl @Inject constructor(
             val created = supabase.postgrest["workers"]
                 .insert(WorkerDto.fromDomain(worker)) { select() }
                 .decodeSingle<WorkerDto>()
-            enrich(created)
+            // The INSERT already succeeded. Enrichment and caching are
+            // best-effort: a failure there must not be reported as a failed
+            // save (the old behaviour produced "data masuk tapi error").
+            val enriched = runCatching { enrich(created) }.getOrElse { created.toDomain() }
+            runCatching { cacheWorker(enriched, created.nik) }
+            enriched
+        }
+    }
+
+    override suspend fun createWithAccount(worker: Worker, password: String): AppResult<Worker> {
+        val payload = buildJsonObject {
+            put("employee_number", worker.employeeNumber.trim())
+            put("full_name", worker.fullName.trim())
+            put("email", worker.email?.trim()?.lowercase().orEmpty())
+            put("password", password)
+            worker.departmentId?.let { put("department_id", it) }
+            worker.workAreaId?.let { put("work_area_id", it) }
+            worker.shiftId?.let { put("shift_id", it) }
+            worker.jobTitle?.let { put("job_title", it) }
+            put("active_status", worker.activeStatus)
+        }
+        val call = AppResult.of {
+            val response: HttpResponse = supabase.functions.invoke("admin-create-worker", payload)
+            response.status.value to response.body<String>()
+        }
+        return when (call) {
+            is AppResult.Failure -> call
+            is AppResult.Success -> {
+                val (status, body) = call.value
+                if (status !in 200..299) {
+                    val message = runCatching {
+                        JsonCodec.decode<JsonObject>(body)["error"]?.jsonPrimitive?.content
+                    }.getOrNull()
+                    AppResult.Failure(AppError.Validation(message ?: "Gagal mendaftarkan pekerja."))
+                } else {
+                    AppResult.of {
+                        val root = JsonCodec.decode<JsonObject>(body)
+                        val workerElement = root["worker"]!!
+                        val dto: WorkerDto = JsonCodec.json.decodeFromJsonElement(WorkerDto.serializer(), workerElement)
+                        val enriched = runCatching { enrich(dto) }.getOrElse { dto.toDomain() }
+                        runCatching { cacheWorker(enriched, dto.nik) }
+                        enriched
+                    }
+                }
+            }
         }
     }
 
@@ -210,7 +264,11 @@ class WorkerRepositoryImpl @Inject constructor(
                     select()
                 },
             ).decodeSingleOrNull<WorkerDto>()
-            if (updated == null) null else enrich(updated)
+            if (updated == null) null else {
+                val enriched = enrich(updated)
+                cacheWorker(enriched, updated.nik)
+                enriched
+            }
         }
         return when (result) {
             is AppResult.Success -> result.value?.let { AppResult.Success(it) }

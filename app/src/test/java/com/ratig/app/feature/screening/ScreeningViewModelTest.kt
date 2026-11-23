@@ -76,6 +76,8 @@ class ScreeningViewModelTest {
             password: String,
         ) = AppResult.Success(Unit)
         override suspend fun signOut() = AppResult.Success(Unit)
+        override suspend fun updatePassword(newPassword: String) = AppResult.Success(Unit)
+        override suspend fun resetPasswordForEmail(email: String) = AppResult.Success(Unit)
         override suspend fun refreshProfile() =
             AppResult.Success((sessionState.value as SessionState.Authenticated).profile)
     }

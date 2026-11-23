@@ -43,11 +43,14 @@ class WorkerEditViewModel @Inject constructor(
         val employeeNumber: String = "",
         val fullName: String = "",
         val email: String = "",
+        val password: String = "",
+        val showPassword: Boolean = false,
         val jobTitle: String = "",
         val departmentId: String? = null,
         val workAreaId: String? = null,
         val shiftId: String? = null,
         val activeStatus: Boolean = true,
+        val existingUserId: String? = null,
         // Options
         val departments: List<Department> = emptyList(),
         val workAreas: List<WorkArea> = emptyList(),
@@ -57,6 +60,7 @@ class WorkerEditViewModel @Inject constructor(
         val employeeNumberError: String? = null,
         val fullNameError: String? = null,
         val emailError: String? = null,
+        val passwordError: String? = null,
     )
 
     private val workerId: String? = savedStateHandle.get<String>("workerId")
@@ -76,6 +80,12 @@ class WorkerEditViewModel @Inject constructor(
 
     fun onEmailChange(value: String) =
         _uiState.update { it.copy(email = value, emailError = null) }
+
+    fun onPasswordChange(value: String) =
+        _uiState.update { it.copy(password = value, passwordError = null) }
+
+    fun toggleShowPassword() =
+        _uiState.update { it.copy(showPassword = !it.showPassword) }
 
     fun onJobTitleChange(value: String) =
         _uiState.update { it.copy(jobTitle = value) }
@@ -113,12 +123,25 @@ class WorkerEditViewModel @Inject constructor(
         } else {
             null
         }
-        if (employeeNumberError != null || fullNameError != null || emailError != null) {
+        val trimmedPassword = state.password.trim()
+        val passwordError = if (trimmedPassword.isNotEmpty()) {
+            if (trimmedEmail.isEmpty()) {
+                "Email wajib diisi jika membuat password login."
+            } else if (trimmedPassword.length < 8) {
+                "Password minimal 8 karakter."
+            } else {
+                null
+            }
+        } else {
+            null
+        }
+        if (employeeNumberError != null || fullNameError != null || emailError != null || passwordError != null) {
             _uiState.update {
                 it.copy(
                     employeeNumberError = employeeNumberError,
                     fullNameError = fullNameError,
                     emailError = emailError,
+                    passwordError = passwordError,
                 )
             }
             return
@@ -137,11 +160,18 @@ class WorkerEditViewModel @Inject constructor(
                 jobTitle = current.jobTitle.trim().takeIf { it.isNotEmpty() },
                 shiftId = current.shiftId,
                 activeStatus = current.activeStatus,
+                userId = current.existingUserId,
             )
-            val result = if (current.isNew) {
-                workerRepository.create(worker)
-            } else {
-                workerRepository.update(worker)
+
+            // ONE PERSON = ONE ACCOUNT. With a password, the server creates the
+            // auth user, the profile and the worker row in one transaction-like
+            // flow and rolls back on failure. Without a password, only the
+            // worker profile is saved (clinic/pos workflow).
+            val result = when {
+                current.isNew && trimmedPassword.isNotEmpty() ->
+                    workerRepository.createWithAccount(worker, trimmedPassword)
+                current.isNew -> workerRepository.create(worker)
+                else -> workerRepository.update(worker)
             }
             result
                 .onSuccess {
@@ -213,6 +243,7 @@ class WorkerEditViewModel @Inject constructor(
                                     workAreaId = worker.workAreaId,
                                     shiftId = worker.shiftId,
                                     activeStatus = worker.activeStatus,
+                                    existingUserId = worker.userId,
                                     departments = departments,
                                     shifts = shifts,
                                 )
