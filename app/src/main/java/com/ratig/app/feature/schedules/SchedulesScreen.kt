@@ -66,10 +66,13 @@ import com.ratig.app.core.time.TimeProvider
 import com.ratig.app.domain.model.ScheduleEntry
 import com.ratig.app.domain.model.ScheduleStatus
 import com.ratig.app.domain.model.Shift
+import com.ratig.app.domain.model.UserRole
 import com.ratig.app.domain.model.Worker
 import com.ratig.app.domain.model.WorkerFilter
 import com.ratig.app.domain.repository.OrganizationRepository
 import com.ratig.app.domain.repository.ScheduleRepository
+import com.ratig.app.domain.repository.AuthRepository
+import com.ratig.app.domain.repository.SessionState
 import com.ratig.app.domain.repository.WorkerRepository
 import com.ratig.app.ui.components.ConfirmDialog
 import com.ratig.app.ui.components.EmptyState
@@ -101,6 +104,8 @@ data class SchedulesUiState(
     val shifts: List<Shift> = emptyList(),
     val workerResults: List<Worker> = emptyList(),
     val currentUserId: String? = null,
+    /** Staff only: RLS allows schedule/shift writes for admin roles. */
+    val canManage: Boolean = false,
     val actionMessage: String? = null,
     val actionError: String? = null,
 )
@@ -110,11 +115,20 @@ class SchedulesViewModel @Inject constructor(
     private val scheduleRepository: ScheduleRepository,
     private val workerRepository: WorkerRepository,
     private val organizationRepository: OrganizationRepository,
+    authRepository: AuthRepository,
     supabase: SupabaseClient,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
-        SchedulesUiState(currentUserId = supabase.auth.currentUserOrNull()?.id),
+        SchedulesUiState(
+            currentUserId = supabase.auth.currentUserOrNull()?.id,
+            canManage = when (
+                (authRepository.sessionState.value as? SessionState.Authenticated)?.profile?.role
+            ) {
+                UserRole.ADMIN, UserRole.SUPER_ADMIN -> true
+                else -> false
+            },
+        ),
     )
     val uiState: StateFlow<SchedulesUiState> = _uiState.asStateFlow()
 
@@ -295,13 +309,15 @@ fun SchedulesRoute(
                     }
                 },
                 actions = {
-                    TextButton(onClick = onManageShifts) { Text("Kelola Shift") }
+                    if (uiState.canManage) {
+                        TextButton(onClick = onManageShifts) { Text("Kelola Shift") }
+                    }
                 },
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showCreateDialog = true }) {
+            if (uiState.canManage) FloatingActionButton(onClick = { showCreateDialog = true }) {
                 Icon(Icons.Rounded.Add, contentDescription = "Buat jadwal")
             }
         },
