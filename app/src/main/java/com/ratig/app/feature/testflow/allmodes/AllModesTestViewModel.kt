@@ -189,7 +189,14 @@ class AllModesTestViewModel @Inject constructor(
         }
         viewModelScope.launch {
             engine.state.collect { st ->
-                _uiState.update { it.copy(classicState = st) }
+                _uiState.update { state ->
+                    val enteringNewTrial = st is EngineState.Waiting ||
+                        st is EngineState.Countdown
+                    state.copy(
+                        classicState = st,
+                        feedback = if (enteringNewTrial) null else state.feedback,
+                    )
+                }
             }
         }
         viewModelScope.launch {
@@ -243,10 +250,15 @@ class AllModesTestViewModel @Inject constructor(
                     it.copy(
                         trialNumber = allTrials.size,
                         feedback = when {
-                            trial.falseStart -> "Terlalu cepat — tunggu warna hijau"
+                            trial.falseStart -> "Terlalu cepat — tunggu tanda muncul"
                             trial.missedResponse -> "Terlewat — tidak ada respons"
-                            trial.trialStatus == TrialStatus.INVALID -> "Respons terlalu cepat untuk dihitung"
-                            else -> "Benar · ${trial.reactionTimeMs} ms"
+                            trial.trialStatus == TrialStatus.INVALID ->
+                                "Respons terlalu cepat untuk dihitung"
+                            trial.responseCorrect == true ->
+                                trial.reactionTimeMs?.let { "Benar · $it ms" } ?: "Benar"
+                            trial.responseType == "none" ->
+                                "Benar — respons ditahan dengan tepat"
+                            else -> "Salah — bukan target yang diminta"
                         },
                     )
                 }
@@ -254,7 +266,14 @@ class AllModesTestViewModel @Inject constructor(
         }
         viewModelScope.launch {
             engine.state.collect { st ->
-                _uiState.update { it.copy(modeState = st) }
+                _uiState.update { state ->
+                    val enteringNewTrial = st is ModeEngineState.Waiting ||
+                        st is ModeEngineState.Countdown
+                    state.copy(
+                        modeState = st,
+                        feedback = if (enteringNewTrial) null else state.feedback,
+                    )
+                }
             }
         }
         viewModelScope.launch {

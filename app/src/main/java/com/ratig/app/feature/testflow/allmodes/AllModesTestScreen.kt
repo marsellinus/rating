@@ -180,16 +180,24 @@ fun AllModesTestRoute(
                 ) {
                     val grid = s.stimulus as com.ratig.app.core.timing.modes.ModeStimulus.Grid
                     val n = kotlin.math.sqrt(grid.symbols.size.toDouble()).toInt()
-                    Column(Modifier.fillMaxSize().padding(24.dp),
-                        verticalArrangement = Arrangement.Center) {
+                    // Fixed, explicitly-sized cells. Using only weight() inside a
+                    // weighted Row made cells collapse on some densities, so the
+                    // target symbol sometimes vanished from the screen.
+                    val cellSize = if (n <= 3) 132.dp else if (n == 4) 104.dp else 84.dp
+                    Column(
+                        Modifier.fillMaxSize().padding(16.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
                         for (row in 0 until n) {
-                            Row(Modifier.fillMaxWidth().weight(1f),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                 for (col in 0 until n) {
                                     val idx = row * n + col
                                     val symbol = grid.symbols[idx]
                                     Box(
-                                        Modifier.weight(1f).clip(RoundedCornerShape(12.dp))
+                                        Modifier
+                                            .size(cellSize)
+                                            .clip(RoundedCornerShape(12.dp))
                                             .background(
                                                 if (symbol == null) Color(0xFF37474F)
                                                 else MaterialTheme.colorScheme.primaryContainer
@@ -207,6 +215,7 @@ fun AllModesTestRoute(
                                     }
                                 }
                             }
+                            if (row < n - 1) Spacer(Modifier.height(10.dp))
                         }
                     }
                 } else if (s is ModeEngineState.Waiting) {

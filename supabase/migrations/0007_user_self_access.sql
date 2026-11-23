@@ -136,3 +136,86 @@ create policy test_trials_insert on public.test_trials
 --    select public.is_examiner();        -- false for a plain 'user' account
 --    select count(*) from public.workers;-- 1 for a self-linked worker account
 -- ---------------------------------------------------------------------------
+
+-- ---------------------------------------------------------------------------
+-- 6. Keep the examiner dashboard readable for self-service workers.
+--    After is_examiner() is narrowed above, a plain User would otherwise be
+--    rejected by dashboard_examiner() even for its OWN sessions. The JSON
+--    shape stays identical to the original RPC - the app parses these keys.
+-- ---------------------------------------------------------------------------
+create or replace function public.dashboard_examiner()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+    v_caller uuid := auth.uid();
+    v_today  date := (now() at time zone 'Asia/Jakarta')::date;
+    v_result jsonb;
+begin
+    if v_caller is null or (
+        not is_examiner()
+        and not exists (select 1 from public.workers w where w.user_id = v_caller)
+    ) then
+        raise exception 'FORBIDDEN: sign-in required';
+    end if;
+
+    select jsonb_build_object(
+        'scheduledToday',
+            (select count(*) from public.schedules sc
+              where (sc.examiner_id = v_caller
+                     or sc.worker_id in (select id from public.workers where user_id = v_caller))
+                and (sc.scheduled_at at time zone 'Asia/Jakarta')::date = v_today),
+        'sessionsToday',
+            (select count(*) from public.test_sessions s
+              where s.examiner_id = v_caller
+                and (s.created_at at time zone 'Asia/Jakarta')::date = v_today),
+        'sessionsLast7Days',
+            (select count(*) from public.test_sessions s
+              where s.examiner_id = v_caller
+                and s.created_at >= now() - interval '7 days'),
+        'openFollowUps',
+            (select count(*) from public.follow_ups f
+              join public.test_sessions s on s.id = f.session_id
+              where f.status in ('open', 'in_progress')
+                and (f.assigned_to = v_caller or s.examiner_id = v_caller)),
+        'recentResults',
+            coalesce((
+                select jsonb_agg(jsonb_build_object(
+                            'sessionId', t.session_id,
+                            'workerName', t.worker_name,
+                            'completedAt', to_char(t.completed_at at time zone 'UTC',
+                                                   'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+                            'classificationCode', t.classification_code,
+                            'classificationLabel', t.classification_label,
+                            'severity', coalesce((
+                                select (band ->> 'severity')::int
+                                from public.fatigue_rules fr,
+                                     jsonb_array_elements(fr.config -> 'bands') band
+                                where fr.id = t.rule_id
+                                  and band ->> 'code' = t.classification_code
+                                limit 1
+                            ), 0),
+                            'meanReactionTimeMs', t.mean_reaction_time_ms)
+                    order by t.completed_at desc)
+                from (
+                    select s.id as session_id,
+                           w.full_name as worker_name,
+                           s.completed_at,
+                           r.classification_code,
+                           r.classification_label,
+                           r.rule_id,
+                           r.mean_reaction_time_ms
+                    from public.test_results r
+                    join public.test_sessions s on s.id = r.session_id
+                    join public.workers w on w.id = s.worker_id
+                    where s.examiner_id = v_caller
+                    order by s.completed_at desc
+                    limit 10
+                ) t
+            ), '[]'::jsonb)
+    ) into v_result;
+    return v_result;
+end $$;

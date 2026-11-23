@@ -17,21 +17,21 @@ class SeverityLegendTest {
     fun `a bounded band prints the last included millisecond`() {
         // maxMsExclusive = 240 means 239 ms is still in this band.
         assertEquals("0–239 ms", RuleBand(0, 240, "B1", "Normal", 1).rangeLabel())
-        assertEquals("240–399 ms", RuleBand(240, 400, "B2", "Ringan", 2).rangeLabel())
+        assertEquals("240–400 ms", RuleBand(240, 401, "B2", "Ringan", 2).rangeLabel())
     }
 
     @Test
     fun `the open ended band prints a lower bound only`() {
-        assertEquals("≥ 580 ms", RuleBand(580, null, "B4", "Berat", 4).rangeLabel())
+        assertEquals("≥ 581 ms", RuleBand(581, null, "B4", "Berat", 4).rangeLabel())
     }
 
     @Test
     fun `consecutive bands leave no gap and no overlap`() {
         val bands = listOf(
             RuleBand(0, 240, "B1", "Normal", 1),
-            RuleBand(240, 400, "B2", "Ringan", 2),
-            RuleBand(400, 580, "B3", "Sedang", 3),
-            RuleBand(580, null, "B4", "Berat", 4),
+            RuleBand(240, 401, "B2", "Ringan", 2),
+            RuleBand(401, 581, "B3", "Sedang", 3),
+            RuleBand(581, null, "B4", "Berat", 4),
         )
         bands.zipWithNext().forEach { (lower, upper) ->
             assertEquals(

@@ -99,9 +99,9 @@ values
      '{
         "bands": [
           {"minMs": 0,   "maxMsExclusive": 240, "code": "BAND_1", "label": "Normal", "severity": 1},
-          {"minMs": 240, "maxMsExclusive": 400, "code": "BAND_2", "label": "Fatigue Ringan", "severity": 2},
-          {"minMs": 400, "maxMsExclusive": 580, "code": "BAND_3", "label": "Fatigue Sedang", "severity": 3},
-          {"minMs": 580, "maxMsExclusive": null, "code": "BAND_4", "label": "Fatigue Berat", "severity": 4}
+          {"minMs": 240, "maxMsExclusive": 401, "code": "BAND_2", "label": "Fatigue Ringan", "severity": 2},
+          {"minMs": 401, "maxMsExclusive": 581, "code": "BAND_3", "label": "Fatigue Sedang", "severity": 3},
+          {"minMs": 581, "maxMsExclusive": null, "code": "BAND_4", "label": "Fatigue Berat", "severity": 4}
         ],
         "slowResponseThresholdMs": 580,
         "logic": "mean_ms_band",
