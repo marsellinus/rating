@@ -13,24 +13,22 @@
 -- Idempotent: only updates rows still carrying the old boundaries.
 
 update public.fatigue_rules r
-set config = jsonb_set(
-        jsonb_set(r.config, '{bands}', (
-            select jsonb_agg(
-                case
-                    when band ->> 'code' = 'BAND_2' then
-                        jsonb_set(band, '{maxMsExclusive}', '401'::jsonb)
-                    when band ->> 'code' = 'BAND_3' then
-                        jsonb_set(
-                            jsonb_set(band, '{minMs}', '401'::jsonb),
-                            '{maxMsExclusive}', '581'::jsonb)
-                    when band ->> 'code' = 'BAND_4' then
-                        jsonb_set(band, '{minMs}', '581'::jsonb)
-                    else band
-                end
-            )
-            from jsonb_array_elements(r.config -> 'bands') band
-        ))
-    ),
+set config = jsonb_set(r.config, '{bands}', (
+        select jsonb_agg(
+            case
+                when band ->> 'code' = 'BAND_2' then
+                    jsonb_set(band, '{maxMsExclusive}', '401'::jsonb)
+                when band ->> 'code' = 'BAND_3' then
+                    jsonb_set(
+                        jsonb_set(band, '{minMs}', '401'::jsonb),
+                        '{maxMsExclusive}', '581'::jsonb)
+                when band ->> 'code' = 'BAND_4' then
+                    jsonb_set(band, '{minMs}', '581'::jsonb)
+                else band
+            end
+        )
+        from jsonb_array_elements(r.config -> 'bands') band
+    )),
     updated_at = now()
 where r.config -> 'bands' @> '[{"code":"BAND_3","maxMsExclusive":580}]'::jsonb;
 
