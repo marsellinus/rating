@@ -274,6 +274,9 @@ dilakukan oleh Super Admin.
 
 - **Menu Riwayat** menampilkan daftar pemeriksaan (Semua / 7 / 30 / 90 hari),
   dengan filter departemen, shift, status, dan kategori.
+- Untuk peran **Pengguna**, Riwayat sudah otomatis hanya berisi sesi miliknya.
+  Filter **Departemen** diganti informasi **Departemen Anda** (diambil dari data
+  pekerja yang tertaut akun) — tidak perlu memilih departemen lagi.
 - Ketuk salah satu untuk membuka **Detail Sesi**, berisi:
   - Informasi sesi (pekerja, pemeriksa, shift, protokol, waktu, status)
   - Metadata perangkat (model, OS, versi aplikasi)

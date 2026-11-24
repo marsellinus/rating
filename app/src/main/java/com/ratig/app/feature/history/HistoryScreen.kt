@@ -55,8 +55,12 @@ import com.ratig.app.domain.model.Department
 import com.ratig.app.domain.model.SessionStatus
 import com.ratig.app.domain.model.Shift
 import com.ratig.app.domain.model.TestSession
+import com.ratig.app.domain.model.UserRole
+import com.ratig.app.domain.repository.AuthRepository
 import com.ratig.app.domain.repository.OrganizationRepository
+import com.ratig.app.domain.repository.SessionState
 import com.ratig.app.domain.repository.TestSessionRepository
+import com.ratig.app.domain.repository.WorkerRepository
 import com.ratig.app.ui.components.EmptyState
 import com.ratig.app.ui.components.ErrorState
 import com.ratig.app.ui.components.LoadingState
@@ -199,14 +203,31 @@ private fun FiltersSection(
                 DayChip("90 Hari", 90, state.filters.days == 90, onDaysChange, Modifier.weight(1f))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                LabeledDropdown(
-                    label = "Departemen",
-                    options = listOf(FilterOption(null, "Semua")) +
-                        state.departments.map { FilterOption(it.id, it.name) },
-                    selectedValue = state.filters.departmentId,
-                    modifier = Modifier.weight(1f),
-                    onSelect = onDepartmentChange,
-                )
+                // A worker belongs to exactly one department and RLS already
+                // limits history to their own sessions. Showing a department
+                // picker would only offer choices that cannot change the list.
+                if (state.isWorkerRole) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Departemen Anda",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = state.ownDepartmentName ?: "—",
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    }
+                } else {
+                    LabeledDropdown(
+                        label = "Departemen",
+                        options = listOf(FilterOption(null, "Semua")) +
+                            state.departments.map { FilterOption(it.id, it.name) },
+                        selectedValue = state.filters.departmentId,
+                        modifier = Modifier.weight(1f),
+                        onSelect = onDepartmentChange,
+                    )
+                }
                 LabeledDropdown(
                     label = "Shift",
                     options = listOf(FilterOption(null, "Semua")) +
@@ -407,6 +428,8 @@ private val classificationOptions: List<Pair<String, String>> = listOf(
 class HistoryViewModel @Inject constructor(
     private val testSessionRepository: TestSessionRepository,
     private val organizationRepository: OrganizationRepository,
+    private val workerRepository: WorkerRepository,
+    authRepository: AuthRepository,
 ) : ViewModel() {
 
     data class HistoryFilters(
@@ -430,12 +453,17 @@ class HistoryViewModel @Inject constructor(
         val filters: HistoryFilters = HistoryFilters(),
         val departments: List<Department> = emptyList(),
         val shifts: List<Shift> = emptyList(),
+        val isWorkerRole: Boolean = false,
+        val ownDepartmentName: String? = null,
     )
 
     private val _uiState = MutableStateFlow(HistoryUiState())
     val uiState: StateFlow<HistoryUiState> = _uiState.asStateFlow()
 
     init {
+        val isWorkerRole =
+            (authRepository.sessionState.value as? SessionState.Authenticated)?.profile?.role == UserRole.USER
+        _uiState.update { it.copy(isWorkerRole = isWorkerRole) }
         load(reset = true)
         viewModelScope.launch {
             val departments = organizationRepository.listDepartments(activeOnly = false)
@@ -445,6 +473,13 @@ class HistoryViewModel @Inject constructor(
                     departments = (departments as? AppResult.Success)?.value ?: emptyList(),
                     shifts = (shifts as? AppResult.Success)?.value ?: emptyList(),
                 )
+            }
+            if (isWorkerRole) {
+                val own = workerRepository.getMyRecord()
+                val departmentId = (own as? AppResult.Success)?.value?.departmentId
+                val departmentName = (own as? AppResult.Success)?.value?.departmentName
+                    ?: _uiState.value.departments.firstOrNull { it.id == departmentId }?.name
+                _uiState.update { it.copy(ownDepartmentName = departmentName) }
             }
         }
     }
