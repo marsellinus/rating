@@ -1,8 +1,14 @@
-# Google OAuth setup
+# Google OAuth setup (opsional)
 
-RATIG signs users in with **Google ID tokens via Android Credential Manager**,
-then exchanges the token with Supabase Auth. There is no WebView and no
-`compose-auth` plugin.
+> **Tidak diperlukan untuk setup standar.** RATIG memakai **email/kata sandi**
+> sebagai jalur login utama. Biarkan `google.webClientId` kosong di
+> `local.properties` bila Google tidak dipakai — tombol Google tidak muncul dan
+> seluruh fungsi aplikasi tetap tersedia. Panduan ini hanya untuk deployment
+> yang secara sadar mengaktifkan tombol Google.
+
+Jika diaktifkan, RATIG memakai **Google ID tokens via Android Credential
+Manager**, lalu menukarnya dengan Supabase Auth. Tidak ada WebView dan tidak
+ada `compose-auth` plugin.
 
 Flow (`data/remote/AuthRepositoryImpl.kt`):
 

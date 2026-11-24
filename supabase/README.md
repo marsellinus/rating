@@ -1,6 +1,6 @@
 # RATIG — Supabase backend
 
-PostgreSQL schema, Row Level Security, server-authoritative RPCs and two Deno
+PostgreSQL schema, Row Level Security, server-authoritative RPCs and four Deno
 Edge Functions for the RATIG decision-support app.
 
 ```
@@ -9,11 +9,17 @@ supabase/
 │   ├── 0001_schema.sql             # extensions, tables, constraints, indexes, views
 │   ├── 0002_security.sql           # RLS policies, auth trigger, RPCs, audit triggers
 │   ├── 0003_operational_modes.sql  # workers.nik, test modes, mode metrics, finalize v2
-│   └── 0004_roles.sql              # 3-role model (super_admin/admin/user) + RPC gates
+│   ├── 0004_roles.sql              # 3-role model (super_admin/admin/user) + RPC gates
+│   ├── 0005–0011_*.sql             # NIK trigger, view/report fixes, backfills,
+│   │                               # mode classification, band alignment
+│   ├── 0012_backfill_classification_labels.sql  # dashboard label cleanup
+│   └── 0013_lock_admin_privileges.sql           # enforce 3-tier RLS on server
+├── APPLY_ALL.sql              # ready-to-paste 0005–0013 (idempotent)
 ├── functions/
-│   ├── approve-account/     # POST { user_id }  — admin/super_admin
-│   ├── admin-create-user/   # POST { email, full_name, role, ... } — admin/super_admin
-│   └── export-report/       # POST { from, to, department_id?, format: "csv" } — admin/super_admin
+│   ├── approve-account/      # POST { user_id } — admin/super_admin
+│   ├── admin-create-user/    # POST { email, full_name, role, ... } — admin/super_admin
+│   ├── admin-create-worker/  # POST { employee_number, full_name, email?, password?, ... }
+│   └── export-report/        # POST { from, to, department_id?, format: "csv" } — admin/super_admin
 ├── seed.sql                 # DEVELOPMENT-ONLY data — never run in production
 ├── config.toml
 └── .env.example
@@ -28,11 +34,13 @@ supabase link --project-ref <project-ref>
 supabase db push          # applies supabase/migrations/* in order
 ```
 
-**Option B — dashboard SQL editor:** open *SQL Editor*, paste the full content
-of `0001_schema.sql`, run it, then `0002_security.sql`, then
-`0003_operational_modes.sql`, then `0004_roles.sql`. Order matters: security
-depends on schema, `0003` redefines `finalize_test_session` (v2), and `0004`
-collapses roles to super_admin/admin/user on top of both.
+**Option B — dashboard SQL editor:** open *SQL Editor* and paste, in order:
+`0001_schema.sql`, `0002_security.sql`, `0003_operational_modes.sql`,
+`0004_roles.sql`. For an existing project that already has 0001–0004, paste the
+single `APPLY_ALL.sql` file (0005–0013, idempotent) instead of all nine files.
+Order matters: security depends on the schema, `0003` redefines
+`finalize_test_session` (v2), `0004` collapses roles to
+super_admin/admin/user, and `0013` makes those roles authoritative in RLS.
 
 Development data (optional): run `seed.sql` the same way, or `supabase db reset`
 (which replays migrations + `seed.sql` locally).
@@ -42,6 +50,7 @@ Development data (optional): run `seed.sql` the same way, or `supabase db reset`
 ```bash
 supabase functions deploy approve-account
 supabase functions deploy admin-create-user
+supabase functions deploy admin-create-worker
 supabase functions deploy export-report
 ```
 
@@ -52,7 +61,7 @@ cp supabase/.env.example supabase/.env    # fill in the values
 supabase functions serve --env-file supabase/.env
 ```
 
-All three functions expect `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`
+All four functions expect `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`
 (server-side only — never ship the service-role key in the APK) and a caller
 `Authorization: Bearer <user jwt>` header. The app keeps its own copy of the
 URL/anon key in `core/config/AppConfig.kt`.
@@ -64,12 +73,15 @@ RATIG has three roles:
 | Role | App area |
 |---|---|
 | `super_admin` | Everything: user/role administration, master data, protocols, rules, monitoring |
-| `admin` | Manage users + monitoring (cannot change system/master data) |
+| `admin` | Manage ordinary `user` accounts + monitoring (cannot change system/master data) |
 | `user` | Run tests + view own history |
 
-Google sign-in creates a `profiles` row via the `on_auth_user_created` trigger
-with `role='user'`, `account_status='pending'`. Promote the first super admin
-with SQL (dashboard SQL editor):
+The standard login is **email/password**. Accounts are created by an
+administrator; the optional Google button only appears when
+`google.webClientId` is configured. Any new Auth user gets a `profiles` row via
+the `on_auth_user_created` trigger with `role='user'`,
+`account_status='pending'`. Promote the first super admin with SQL (dashboard
+SQL editor):
 
 ```sql
 UPDATE public.profiles
@@ -77,11 +89,22 @@ UPDATE public.profiles
  WHERE email = 'you@example.com';   -- replace
 ```
 
-After that, onboard everyone from the app: **Profil → Pengguna → (+) Tambah
-Pengguna** (or the `admin-create-user` function). A `super_admin` may create
-admins; an `admin` may create `user` accounts. Activating/suspending and role
-changes are audited automatically. Only a `super_admin` may grant the
-`super_admin` role (enforced by RLS).
+After that, onboard everyone from the app:
+
+- **Pekerja → (+) Tambah Pekerja** has two paths. With a password, the app
+  calls `admin-create-worker`, which creates the worker record **and** a
+  `user` login atomically; email and password are both required there, password
+  is ≥8 characters, duplicate NIP/email are rejected, and the Auth user is
+  rolled back if worker creation fails. Without a password, only the worker
+  record is created and that worker has no app login (the examiner runs tests
+  on their behalf).
+- **Profil → Pengguna → (+) Tambah Pengguna** uses `admin-create-user` for
+  additional application accounts. A `super_admin` may create `admin`/`user`;
+  an `admin` may create **only** `user` (enforced in both the Edge Function and
+  RLS — migration 0013).
+
+Activating/suspending and role changes are audited automatically. Only a
+`super_admin` may grant the `super_admin` role.
 
 ## 4. RPC surface (PostgREST, `supabase.postgrest.rpc`)
 
@@ -206,6 +229,43 @@ update public.test_sessions set interruption_reason = 'tamper' where id = '<fina
 -- expect: ERROR FINALIZED_IMMUTABLE ...
 rollback;
 ```
+
+### Scenario 6 — admin cannot escalate privileges (migration 0013)
+
+A plain `admin` may manage `user` rows, but must not write system/master data
+or grant administrative roles. UI hiding alone is not access control; these
+SQL checks verify the server contract. Replace the UUIDs with real ids.
+
+```sql
+begin;
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "<admin-auth-user-uuid>", "role": "authenticated"}';
+
+update public.fatigue_rules set rule_version = rule_version;
+-- expect: 0 rows (RLS: write requires is_super_admin()).
+
+update public.test_protocols set status = status;
+-- expect: 0 rows.
+
+update public.profiles set role = 'admin' where email = 'ordinary-user@example.com';
+-- expect: 0 rows / permission denied (SQL client: 42501).
+
+insert into public.departments (name) values ('HACK');
+-- expect: ERROR new row violates row-level security policy.
+rollback;
+
+begin;
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "<super-admin-auth-user-uuid>", "role": "authenticated"}';
+
+update public.fatigue_rules set rule_version = rule_version;
+-- expect: 1+ rows (super_admin is allowed).
+rollback;
+```
+
+Edge Function check (with a real admin JWT): `POST /functions/v1/admin-create-user`
+with `{"role":"admin", ...}` must return `403 Forbidden: hanya super admin
+dapat membuat admin`; the same call with a super-admin JWT returns `201`.
 
 ## 6. Notes
 

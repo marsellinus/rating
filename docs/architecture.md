@@ -108,9 +108,14 @@ are never merged into a single score.
 ## Configuration
 
 `AppConfig` reads public values injected at build time from `local.properties`
-(see `docs/deployment.md`). The service-role key never ships in the APK; all
-authorization is enforced by PostgreSQL Row Level Security
-(`supabase/migrations/0002_security.sql`).
+(see `docs/deployment.md`). Only `supabase.url` and `supabase.anonKey` are
+required; a blank `google.webClientId` hides the optional Google button and
+leaves email/password login fully usable. The service-role key never ships in
+the APK; all authorization is enforced by PostgreSQL Row Level Security. The
+role contract is finalized in `supabase/migrations/0013_lock_admin_privileges.sql`:
+`super_admin` owns configuration/admin accounts, `admin` manages ordinary users
+and monitoring, `user` only runs tests and views own history. UI visibility is
+never the only gate.
 
 ---
 

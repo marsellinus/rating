@@ -38,10 +38,12 @@ Aplikasi Android untuk **pemeriksaan kelelahan pekerja berbasis waktu reaksi**
 5. **Tiga Peran dengan Halaman Berbeda**
    - `super_admin` — semua: kelola admin & pengguna, protokol, aturan, data
      master, audit, pemantauan.
-   - `admin` — kelola pengguna + pemantauan & laporan.
+   - `admin` — kelola **pengguna biasa** (`user`) + pemantauan & laporan.
    - `user` — menjalankan tes + melihat riwayat sendiri.
-   - Hak akses ditegakkan oleh **Row Level Security** di server, bukan hanya
-     di aplikasi.
+   - Hak akses ditegakkan oleh **Row Level Security** di server (migrasi
+     `0013`), bukan hanya di aplikasi. Admin tidak bisa menulis data master /
+     protokol / aturan, tidak bisa mengangkat user menjadi admin, dan tidak
+     bisa membuat akun admin lewat API maupun Edge Function.
 
 6. **Keamanan & Privasi**
    - Kunci layanan (service key) **tidak pernah** disimpan di aplikasi.
@@ -79,8 +81,11 @@ app/                     Aplikasi Android (Kotlin + Compose)
     ui/                  navigasi, komponen bersama, tema
   src/test/              Unit test JVM
 supabase/
-  migrations/            0001 skema · 0002 keamanan · 0003 mode · 0004 peran
-  functions/             approve-account · admin-create-user · export-report
+  migrations/            0001–0013 (skema, keamanan, mode, peran,
+                         perbaikan operasional, backfill, penguncian RLS)
+  APPLY_ALL.sql          gabungan migrations 0005–0013 untuk SQL Editor
+  functions/             approve-account · admin-create-user ·
+                         admin-create-worker · export-report
   seed.sql, config.toml
 docs/                    architecture, deployment, oauth-setup, proposal
 USER-MANUAL.md           Buku panduan pengguna
@@ -133,8 +138,12 @@ Penggunaan**.
    sdk.dir=/path/to/Android/Sdk
    supabase.url=https://xxxx.supabase.co
    supabase.anonKey=<anon key publik — BUKAN service_role>
-   google.webClientId=<Google OAuth Web Client ID>
+   # Opsional; kosongkan untuk login email/kata sandi saja:
+   google.webClientId=
    ```
+
+   `google.webClientId` tidak wajib. Jika kosong, tombol Google tidak muncul;
+   aplikasi tetap bisa dipakai penuh dengan email/kata sandi.
 
 2. **Build APK debug:**
 
@@ -163,8 +172,8 @@ Penggunaan**.
 | [PROPOSAL.md](PROPOSAL.md) | Proposal proyek (juga `.docx`/`.pdf` di `docs/proposal/`) |
 | [docs/architecture.md](docs/architecture.md) | Arsitektur, timing, offline, sync |
 | [docs/deployment.md](docs/deployment.md) | Toolchain, konfigurasi, signing, checklist |
-| [docs/oauth-setup.md](docs/oauth-setup.md) | Google OAuth + Credential Manager |
-| [supabase/README.md](supabase/README.md) | Migrasi, RPC, skenario RLS |
+| [docs/oauth-setup.md](docs/oauth-setup.md) | Google OAuth opsional (Credential Manager); tidak dipakai di setup standar |
+| [supabase/README.md](supabase/README.md) | Migrasi 0001–0013, RPC, matriks RLS & peran |
 | [CONTRACT.md](CONTRACT.md) / [CONTRACT-2.md](CONTRACT-2.md) | Kontrak antarmuka & arsitektur |
 
 Galeri antarmuka: `docs/proposal/RATIG-UI-Gallery.pdf` (dan 21 gambar di
@@ -174,9 +183,9 @@ Galeri antarmuka: `docs/proposal/RATIG-UI-Gallery.pdf` (dan 21 gambar di
 
 ## Pengujian
 
-- Unit test JVM mencakup: kalkulasi metrik, klasifikasi kelelahan, validasi &
-  masking NIK, payload QR, klasifikasi kegagalan sinkronisasi, penulis CSV, dan
-  jembatan `jsonb`.
+- **138 unit test JVM** mencakup: kalkulasi metrik, klasifikasi kelelahan,
+  validasi & masking NIK, payload QR, klasifikasi kegagalan sinkronisasi,
+  penulis CSV, jembatan `jsonb`, dan parser dasbor `camelCase`/`snake_case`.
 
 ```bash
 ./gradlew :app:testDebugUnitTest

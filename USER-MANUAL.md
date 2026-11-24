@@ -9,20 +9,21 @@ Versi aplikasi 1.0.0 · Android
 
 1. [Pengenalan](#1-pengenalan)
 2. [Persyaratan Perangkat](#2-persyaratan-perangkat)
-3. [Masuk ke Aplikasi](#3-masuk-ke-aplikasi)
+3. [Setup Awal & Masuk](#3-setup-awal--masuk)
 4. [Mengenal Peran Pengguna](#4-mengenal-peran-pengguna)
-5. [Pemeriksaan Pekerja (Alur Utama)](#5-pemeriksaan-pekerja-alur-utama)
-6. [Menggunakan Pemindai NIK/QR](#6-menggunakan-pemindai-nikqr)
-7. [Memahami Hasil Pemeriksaan](#7-memahami-hasil-pemeriksaan)
-8. [Mode Pemeriksaan](#8-mode-pemeriksaan)
-9. [Riwayat & Detail Sesi](#9-riwayat--detail-sesi)
-10. [Bekerja Tanpa Internet (Offline)](#10-bekerja-tanpa-internet-offline)
-11. [Halaman Super Admin](#11-halaman-super-admin)
-12. [Halaman Admin](#12-halaman-admin)
-13. [Halaman Pengguna](#13-halaman-pengguna)
-14. [Laporan & Ekspor](#14-laporan--ekspor)
-15. [Menangani Masalah (Troubleshooting)](#15-menangani-masalah-troubleshooting)
-16. [Pertanyaan Umum (FAQ)](#16-pertanyaan-umum-faq)
+5. [Menambah Pekerja Baru](#5-menambah-pekerja-baru)
+6. [Pemeriksaan Pekerja (Alur Utama)](#6-pemeriksaan-pekerja-alur-utama)
+7. [Menggunakan Pemindai NIK/QR](#7-menggunakan-pemindai-nikqr)
+8. [Memahami Hasil Pemeriksaan](#8-memahami-hasil-pemeriksaan)
+9. [Mode Pemeriksaan](#9-mode-pemeriksaan)
+10. [Riwayat & Detail Sesi](#10-riwayat--detail-sesi)
+11. [Bekerja Tanpa Internet (Offline)](#11-bekerja-tanpa-internet-offline)
+12. [Halaman Super Admin](#12-halaman-super-admin)
+13. [Halaman Admin](#13-halaman-admin)
+14. [Halaman Pengguna](#14-halaman-pengguna)
+15. [Laporan & Ekspor](#15-laporan--ekspor)
+16. [Menangani Masalah (Troubleshooting)](#16-menangani-masalah-troubleshooting)
+17. [Pertanyaan Umum (FAQ)](#17-pertanyaan-umum-faq)
 
 ---
 
@@ -106,15 +107,50 @@ Aplikasi memiliki **tiga peran**, masing-masing dengan halaman berbeda:
 
 | Peran | Halaman Utama | Bisa Melakukan |
 |---|---|---|
-| **Super Admin** | Dasbor Super Admin | Semua hal: kelola pengguna & admin, protokol, aturan, data master, audit, pemantauan |
-| **Admin** | Dasbor Admin | Kelola pengguna (peran *Pengguna*) + pemantauan & laporan |
+| **Super Admin** | Dasbor Super Admin | Semua hal: kelola admin & pengguna, protokol, aturan, data master, audit, pemantauan |
+| **Admin** | Dasbor Admin | Kelola pekerja & pengguna (peran *Pengguna*) + pemantauan & laporan |
 | **Pengguna** | Beranda Pengguna | Menjalankan tes + melihat riwayat pemeriksaan sendiri |
 
-Menu yang tampil menyesuaikan peran Anda secara otomatis.
+Menu yang tampil menyesuaikan peran Anda secara otomatis. Pembatasan ini
+**ditegakkan juga di server** (RLS). Jadi walaupun Admin mencoba memanggil API
+langsung, Admin tetap tidak dapat mengubah protokol/aturan/data master, tidak
+dapat mengangkat Pengguna menjadi Admin, dan tidak dapat membuat akun Admin.
 
 ---
 
-## 5. Pemeriksaan Pekerja (Alur Utama)
+## 5. Menambah Pekerja Baru
+
+**Siapa:** Admin atau Super Admin. Buka **menu Pekerja → tombol (+) Tambah**
+(bukan menu Pengguna — lihat §13 untuk akun aplikasi).
+
+Isi kolom berikut:
+
+| Kolom | Wajib? | Keterangan |
+|---|---|---|
+| Nomor Induk Pekerja | Ya | 4–32 digit angka (NIP/NIK). Tidak boleh duplikat. |
+| Nama Lengkap | Ya | Nama yang tampil di daftar pekerja. |
+| Email | Bersyarat | Wajib bila ingin pekerja **login sendiri di HP**. |
+| Kata Sandi Login | Bersyarat | Min. 8 karakter. Isi email **dan** sandi untuk membuat akun login. |
+| Departemen / Area Kerja / Shift | Opsional | Area Kerja aktif setelah Departemen dipilih. |
+| Jabatan | Opsional | Contoh: Operator, Ketua Regu. |
+
+Dua kemungkinan hasil:
+
+- **Email + sandi diisi** → aplikasi membuat **data pekerja + akun login**
+  sekaligus di server. Pekerja bisa masuk di HP sendiri memakai email dan sandi
+  tersebut. Akun langsung aktif. Jika nomor induk/email sudah terdaftar, Simpan
+  ditolak dengan pesan duplikat — tidak ada akun setengah jadi.
+- **Sandi dikosongkan** → hanya **data pekerja** yang dibuat. Pekerja ini
+  belum punya login; pemeriksa yang menjalankan tes atas namanya dari menu
+  Pekerja.
+
+> Kata sandi bisa dikosongkan untuk pekerja yang tidak perlu membuka aplikasi.
+> Bila Anda mengisi sandi tanpa email, aplikasi akan meminta email terlebih
+> dahulu.
+
+---
+
+## 6. Pemeriksaan Pekerja (Alur Utama)
 
 Alur singkat:
 
@@ -127,7 +163,7 @@ Langkah rinci:
 
 1. **Buka menu Pekerja** (ikon orang di bawah).
 2. **Cari pekerja** dengan nama/nomor induk, atau gunakan filter departemen
-   dan shift. Anda juga dapat memindai NIK/QR (lihat bagian 6).
+   dan shift. Anda juga dapat memindai NIK/QR (lihat bagian 7).
 3. Ketuk nama pekerja untuk membuka **Detail Pekerja**.
 4. Ketuk **Mulai Tes**.
 5. **Pilih jenis tes** pada dialog:
@@ -147,7 +183,7 @@ Langkah rinci:
 
 ---
 
-## 6. Menggunakan Pemindai NIK/QR
+## 7. Menggunakan Pemindai NIK/QR
 
 1. Dari Beranda atau menu Pekerja, buka **Identifikasi** / tombol pindai.
 2. **Izinkan akses kamera** saat diminta (hanya saat pertama kali).
@@ -163,7 +199,7 @@ Langkah rinci:
 
 ---
 
-## 7. Memahami Hasil Pemeriksaan
+## 8. Memahami Hasil Pemeriksaan
 
 Setelah tes selesai, Anda melihat ringkasan hasil:
 
@@ -184,7 +220,7 @@ menyesatkan).
 > **metrik pengamatan** (akurasi, kelalaian) dan tidak digabung menjadi satu
 > skor.
 
-### 7.1 Skrining Kesehatan (Paramedis)
+### 8.1 Skrining Kesehatan (Paramedis)
 
 Selain tes waktu reaksi, petugas paramedis dapat mencatat pemeriksaan fisik
 pada sesi yang sama. Dari layar hasil, ketuk **Skrining Kesehatan
@@ -217,7 +253,7 @@ kondisi terburuk: **Layak bekerja**, **Layak dengan catatan**, atau
 
 ---
 
-## 8. Mode Pemeriksaan
+## 9. Mode Pemeriksaan
 
 | Mode | Deskripsi | Klasifikasi |
 |---|---|---|
@@ -231,7 +267,7 @@ dilakukan oleh Super Admin.
 
 ---
 
-## 9. Riwayat & Detail Sesi
+## 10. Riwayat & Detail Sesi
 
 - **Menu Riwayat** menampilkan daftar pemeriksaan (Semua / 7 / 30 / 90 hari),
   dengan filter departemen, shift, status, dan kategori.
@@ -244,7 +280,7 @@ dilakukan oleh Super Admin.
 
 ---
 
-## 10. Bekerja Tanpa Internet (Offline)
+## 11. Bekerja Tanpa Internet (Offline)
 
 RATIG dirancang **offline-first**:
 
@@ -270,7 +306,7 @@ RATIG dirancang **offline-first**:
 
 ---
 
-## 11. Halaman Super Admin
+## 12. Halaman Super Admin
 
 **Dasbor Super Admin** menampilkan: pekerja aktif, total pengguna, sesi hari
 ini/total, hal yang perlu perhatian, klasifikasi hasil, sesi per
@@ -281,6 +317,8 @@ departemen/shift, dan tren harian.
 - **Pengguna** — kelola akun: setujui, nonaktifkan, ubah peran, dan **tambah
   pengguna** (tombol **+**). Super Admin boleh membuat akun Admin maupun
   Pengguna.
+- **Pekerja** — seperti Admin, dapat menambah pekerja sekaligus akun login
+  lewat **Pekerja → (+)** (lihat §5).
 - **Protokol Uji** — daftar & pengaturan protokol pemeriksaan.
 - **Aturan Klasifikasi** — ambang batas kategori kelelahan (dapat divalidasi
   perusahaan; versi terpisah).
@@ -290,21 +328,24 @@ departemen/shift, dan tren harian.
 
 ---
 
-## 12. Halaman Admin
+## 13. Halaman Admin
 
-Admin melihat **Dasbor Admin** (pemantauan: sesi, tren, per departemen/shift)
-dan dapat:
+Admin melihat **Dasbor Admin** (pemantauan: sesi, tren, klasifikasi hasil,
+per departemen/shift) dan dapat:
 
-- **Mengelola pengguna** (menu Pengguna): menyetujui, menonaktifkan,
+- **Mengelola pekerja** (menu Pekerja): menambah, mencari, mengubah, dan
+  menonaktifkan data pekerja — termasuk membuat akun login bila diperlukan
+  (lihat §5).
+- **Mengelola pengguna** (Profil → Pengguna): menyetujui, menonaktifkan,
   mengaktifkan kembali, dan **menambah akun Pengguna** (bukan Admin).
-- **Laporan** & **Jadwal** & **Tindak Lanjut**.
+- **Laporan** & **Jadwal & Shift** & **Tindak Lanjut**.
 
 > Admin **tidak** dapat mengubah Protokol/Aturan/Data Master — itu wewenang
-> Super Admin.
+> Super Admin. Aturan ini berlaku baik lewat aplikasi maupun lewat API.
 
 ---
 
-## 13. Halaman Pengguna
+## 14. Halaman Pengguna
 
 Peran **Pengguna** (pekerja/pemeriksa lapangan) melihat:
 
@@ -317,7 +358,7 @@ Menu lebih ringkas karena hanya menampilkan fungsi yang relevan.
 
 ---
 
-## 14. Laporan & Ekspor
+## 15. Laporan & Ekspor
 
 1. Buka **Profil → Laporan**.
 2. Pilih **periode** (7/30/90 hari atau kustom) dan filter departemen/shift.
@@ -327,7 +368,7 @@ Menu lebih ringkas karena hanya menampilkan fungsi yang relevan.
 
 ---
 
-## 15. Menangani Masalah (Troubleshooting)
+## 16. Menangani Masalah (Troubleshooting)
 
 | Gejala | Penyebab & Solusi |
 |---|---|
@@ -341,7 +382,7 @@ Menu lebih ringkas karena hanya menampilkan fungsi yang relevan.
 
 ---
 
-## 16. Pertanyaan Umum (FAQ)
+## 17. Pertanyaan Umum (FAQ)
 
 **T: Apakah hasil RATIG menentukan pekerja boleh bekerja?**
 J: Tidak. RATIG hanya alat bantu. Keputusan mengikuti SOP dan pemeriksa.
@@ -357,11 +398,25 @@ J: Ya. NIK disamarkan di layar, akses dibatasi per peran, dan tidak ada kunci
 layanan yang disimpan di aplikasi.
 
 **T: Bagaimana menambah pekerja baru?**
-J: Buka menu **Pekerja → tombol (+)** untuk membuat data pekerja.
+J: Buka menu **Pekerja → tombol (+)**. Isi nomor induk dan nama. Isi **email +
+kata sandi** bila pekerja perlu login di HP sendiri; bila tidak, cukup data
+pekerjanya yang dibuat. Rincian di §5.
 
 **T: Siapa yang boleh menambah akun (pengguna aplikasi)?**
-J: Admin (untuk peran Pengguna) dan Super Admin (termasuk Admin), lewat
-**Pengguna → (+)**.
+J: Admin hanya boleh membuat akun **Pengguna**, lewat **Profil → Pengguna →
+(+)**. Super Admin boleh membuat akun **Admin** maupun **Pengguna**. Untuk
+pekerja sekaligus akun login, gunakan menu **Pekerja → (+)**.
+
+**T: Bolehkah Admin mengubah aturan klasifikasi atau data master?**
+J: Tidak. Menu tersebut hanya untuk Super Admin, dan server menolak percobaan
+akses langsung lewat API. Ini mencegah satu admin mengubah kriteria hasil
+pemeriksaan seluruh perusahaan.
+
+**T: Kenapa grafik di dasbor bisa kosong?**
+J: Grafik mengikuti data yang ada. **Klasifikasi Hasil Pemeriksaan** hanya
+menghitung tes Klasik yang sudah selesai & final; **Sesi per Departemen**
+menghitung sesi yang pekerjanya memiliki departemen. Bila belum ada data /
+pekerja belum ditetapkan departemennya, grafik belum menampilkan batang.
 
 ---
 

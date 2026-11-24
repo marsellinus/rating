@@ -28,14 +28,17 @@ sdk.dir=/path/to/Android/Sdk
 supabase.url=
 # Supabase public anon (publishable) key — NEVER the service_role key.
 supabase.anonKey=
-# Google OAuth 2.0 Web Client ID (serverClientId for Credential Manager).
+# OPTIONAL — leave blank for email/password-only login.
 google.webClientId=
 ```
 
-These are injected into `BuildConfig` (`SUPABASE_URL`, `SUPABASE_ANON_KEY`,
-`GOOGLE_WEB_CLIENT_ID`) and surfaced by `core/config/AppConfig.kt`. If any is
-blank or the URL is not `https://`, `AppConfig.isConfigured` is false and the
-app shows the "not configured" state instead of attempting a broken login.
+Only `supabase.url` and `supabase.anonKey` are required. These values are
+injected into `BuildConfig` (`SUPABASE_URL`, `SUPABASE_ANON_KEY`,
+`GOOGLE_WEB_CLIENT_ID`) and surfaced by `core/config/AppConfig.kt`. If either
+required value is blank or the URL is not `https://`, `AppConfig.isConfigured`
+is false and the app shows the "not configured" state instead of attempting a
+broken login. A blank `google.webClientId` simply hides the optional Google
+button; email/password login remains fully functional.
 
 > **Security:** the anon key is public by design — all data protection is
 > enforced by Row Level Security. The **service-role key must never** be placed
@@ -48,12 +51,20 @@ Apply migrations in order and deploy the Edge Functions — see
 
 ```bash
 supabase link --project-ref <project-ref>
-supabase db push                 # 0001, 0002, 0003
+supabase db push                 # 0001–0013
 supabase functions deploy approve-account
+supabase functions deploy admin-create-user
+supabase functions deploy admin-create-worker
 supabase functions deploy export-report
 ```
 
-Then promote the first admin (see `supabase/README.md` §3).
+If the project already has 0001–0004, paste `supabase/APPLY_ALL.sql`
+(0005–0013, idempotent) into the Supabase SQL Editor instead of re-pushing.
+It includes the worker NIK trigger, operational-mode fixes, data backfills,
+and the RLS lock that stops an `admin` from writing master data or promoting
+users to `admin`.
+
+Then promote the first super admin (see `supabase/README.md` §3).
 
 ## 4. Build
 
@@ -75,19 +86,21 @@ placeholder so CI can produce an installable artifact. Before distributing:
    `app/build.gradle.kts` reading the keystore path/passwords from environment
    variables (never hard-code them).
 3. Point `buildTypes.release.signingConfig` at it.
-4. Register the release SHA-1 in Google Cloud so Google Sign-In works for
-   release builds (see `docs/oauth-setup.md`).
+4. Only if the optional Google button is enabled: register the release SHA-1
+   in Google Cloud (see `docs/oauth-setup.md`). Email/password builds need no
+   Google Cloud configuration.
 
 Release builds have `isMinifyEnabled = true` and `isShrinkResources = true`; if
 reflection-based code breaks after shrinking, extend `proguard-rules.pro`.
 
 ## 6. Verification checklist before shipping
 
-- [ ] `./gradlew :app:testDebugUnitTest` → all green (metrics, classifier,
-      NIK/QR, CSV, sync-failure classification).
+- [ ] `./gradlew :app:testDebugUnitTest` → **138 tests**, all green (metrics,
+      classifier, NIK/QR, CSV, sync-failure, `jsonb`, dashboard parsers).
 - [ ] `./gradlew :app:assembleRelease` succeeds.
 - [ ] `supabase/README.md` §5 RLS scenarios all behave as documented against the
-      target project.
+      target project, including §6: `admin` cannot write master data, cannot
+      promote a user to `admin`, and cannot create an admin via Edge Function.
 - [ ] `finalize_test_session` is idempotent (refinalize returns the stored
       result) — covered by the backend smoke test.
 - [ ] Offline flow: start a test with the device in airplane mode, finalize,
