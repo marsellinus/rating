@@ -107,7 +107,6 @@ class ProfileRepositoryImpl @Inject constructor(
                             accountStatus = AccountStatus.fromRaw(
                                 json["account_status"]?.jsonPrimitive?.content,
                             ),
-                            inviteSent = json["invite_sent"]?.jsonPrimitive?.booleanOrNull ?: false,
                         ),
                     )
                 }

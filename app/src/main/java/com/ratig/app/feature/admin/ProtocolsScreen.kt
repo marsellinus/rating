@@ -291,11 +291,14 @@ private fun ProtocolRowCard(
                 Icon(Icons.Rounded.MoreVert, contentDescription = "Aksi protokol")
             }
             DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                // A protocol can be edited in any state. The edit screen shows
+                // an explicit warning when the protocol is active: the change
+                // is saved to the same version and affects new sessions.
+                DropdownMenuItem(
+                    text = { Text("Ubah") },
+                    onClick = { menuOpen = false; onEdit() },
+                )
                 if (protocol.status == ProtocolStatus.DRAFT) {
-                    DropdownMenuItem(
-                        text = { Text("Ubah") },
-                        onClick = { menuOpen = false; onEdit() },
-                    )
                     DropdownMenuItem(
                         text = { Text("Aktifkan") },
                         onClick = { menuOpen = false; onActivate() },

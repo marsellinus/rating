@@ -22,7 +22,6 @@ import androidx.compose.material.icons.rounded.PersonAdd
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -174,11 +173,7 @@ class UsersViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             creating = false,
-                            actionMessage = if (created.inviteSent) {
-                                "Undangan dikirim ke ${created.email}."
-                            } else {
-                                "Akun ${created.fullName} berhasil dibuat."
-                            },
+                            actionMessage = "Akun ${created.fullName} dibuat. ID login: ${created.email}. Berikan kata sandi sementara langsung ke yang bersangkutan.",
                         )
                     }
                     load()
@@ -540,7 +535,6 @@ private fun CreateUserDialog(
     var password by remember { mutableStateOf("") }
     var role by remember { mutableStateOf(UserRole.USER) }
     var status by remember { mutableStateOf(AccountStatus.ACTIVE) }
-    var sendInvite by remember { mutableStateOf(true) }
     var localError by remember { mutableStateOf<String?>(null) }
 
     // Admins (non super) can only create the "user" role.
@@ -565,7 +559,7 @@ private fun CreateUserDialog(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it; localError = null },
-                    label = { Text("Email") },
+                    label = { Text("ID Login (email)") },
                     singleLine = true,
                     enabled = !creating,
                     modifier = Modifier.fillMaxWidth(),
@@ -597,24 +591,18 @@ private fun CreateUserDialog(
                     )
                     Text("Menunggu", style = MaterialTheme.typography.bodyMedium)
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = sendInvite, onCheckedChange = { sendInvite = it })
-                    Text(
-                        text = "Kirim undangan email (pengguna mengatur kata sandi sendiri)",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-                if (!sendInvite) {
-                    OutlinedTextField(
-                        value = password,
-                        onValueChange = { password = it; localError = null },
-                        label = { Text("Kata sandi sementara (min. 8)") },
-                        singleLine = true,
-                        enabled = !creating,
-                        visualTransformation = PasswordVisualTransformation(),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it; localError = null },
+                    label = { Text("Kata sandi sementara (min. 8)") },
+                    supportingText = {
+                        Text("Berikan langsung ke pengguna. Tidak ada email undangan.")
+                    },
+                    singleLine = true,
+                    enabled = !creating,
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 localError?.let {
                     Text(
                         text = it,
@@ -632,8 +620,8 @@ private fun CreateUserDialog(
                         fullName.trim().length < 2 ->
                             localError = "Nama lengkap wajib diisi."
                         !email.contains("@") || !email.contains(".") ->
-                            localError = "Email tidak valid."
-                        !sendInvite && password.length < 8 ->
+                            localError = "ID login tidak valid. Contoh: nama@ratig.local"
+                        password.length < 8 ->
                             localError = "Kata sandi minimal 8 karakter."
                         else -> onSubmit(
                             CreateUserRequest(
@@ -641,7 +629,7 @@ private fun CreateUserDialog(
                                 fullName = fullName.trim(),
                                 role = role,
                                 accountStatus = status,
-                                password = if (sendInvite) null else password,
+                                password = password,
                             ),
                         )
                     }

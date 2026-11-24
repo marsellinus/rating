@@ -7,7 +7,7 @@
 //   "full_name": "Budi Santoso",
 //   "role": "user",                  // super_admin | admin | user
 //                                    // (only a super_admin may create admin)
-//   "password": "optional-8+chars",  // omit to send an invite/reset email
+//   "password": "min-8-chars",       // required; given to the user directly
 //   "account_status": "active"       // active (default) | pending
 // }
 // Auth: valid Supabase JWT whose profiles.role = 'admin' (403 otherwise).
@@ -15,9 +15,9 @@
 //
 // Behaviour:
 //  - If a user with this email already exists, returns 409 (no silent reuse).
-//  - With `password`: account is created already confirmed and usable.
-//  - Without `password`: account is created unconfirmed and a recovery/invite
-//    email is sent so the user sets their own password (preferred).
+//  - Password is required. The account is created already confirmed and usable.
+//  - NO invitation email is sent. `email` is a unique login id; it may be an
+//    internal address such as `name@ratig.local` (no mail hosting required).
 //  - The `on_auth_user_created` trigger creates the profiles row; this function
 //    then sets role / account_status / full_name explicitly.
 //  - Every creation is written to `audit_logs`.
@@ -122,8 +122,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
   if (!STATUSES[accountStatus]) {
     return json({ error: "account_status harus 'active' atau 'pending'" }, 400);
   }
-  if (password && password.length < 8) {
-    return json({ error: "Kata sandi minimal 8 karakter" }, 400);
+  if (password.length < 8) {
+    return json({ error: "Kata sandi sementara wajib diisi (minimal 8 karakter)" }, 400);
   }
 
   // 4. Reject duplicates explicitly (no silent reuse of an existing account).
@@ -136,12 +136,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return json({ error: "Email sudah terdaftar" }, 409);
   }
 
-  // 5. Create the auth user. With a password it is usable immediately;
-  //    otherwise an invite/recovery email lets the user set their own.
+  // 5. Create the auth user. Password is required, so it is usable immediately
+  //    with no email confirmation or invitation message.
   const { data: created, error: createError } = await admin.auth.admin.createUser({
     email,
-    password: password || undefined,
-    email_confirm: Boolean(password),
+    password,
+    email_confirm: true,
     user_metadata: { full_name: fullName },
   });
 
@@ -172,17 +172,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return json({ error: `Gagal menyimpan profil: ${upsertError.message}` }, 400);
   }
 
-  // 7. Without a password, send the invite so the user sets their own.
-  let inviteSent = false;
-  if (!password) {
-    const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
-      data: { full_name: fullName },
-    });
-    // A failure here is non-fatal: the account exists and can be recovered.
-    inviteSent = !inviteError;
-  }
-
-  // 8. Audit trail.
+  // 7. Audit trail. No email is sent: `email` is only a unique login id.
   await admin.from("audit_logs").insert({
     actor_id: caller.id,
     action: "create_user",
@@ -199,7 +189,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
       full_name: fullName,
       role,
       account_status: accountStatus,
-      invite_sent: inviteSent,
     },
     201,
   );

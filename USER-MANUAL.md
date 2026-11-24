@@ -129,24 +129,27 @@ Isi kolom berikut:
 |---|---|---|
 | Nomor Induk Pekerja | Ya | 4–32 digit angka (NIP/NIK). Tidak boleh duplikat. |
 | Nama Lengkap | Ya | Nama yang tampil di daftar pekerja. |
-| Email | Bersyarat | Wajib bila ingin pekerja **login sendiri di HP**. |
-| Kata Sandi Login | Bersyarat | Min. 8 karakter. Isi email **dan** sandi untuk membuat akun login. |
+| Email login | Opsional | Boleh kosong. Boleh juga pakai ID internal seperti `320123...@ratig.local` — **tidak perlu hosting email**. |
+| Kata Sandi Login | Opsional | Min. 8 karakter. Isi sandi untuk membuat akun login. |
 | Departemen / Area Kerja / Shift | Opsional | Area Kerja aktif setelah Departemen dipilih. |
 | Jabatan | Opsional | Contoh: Operator, Ketua Regu. |
 
 Dua kemungkinan hasil:
 
-- **Email + sandi diisi** → aplikasi membuat **data pekerja + akun login**
-  sekaligus di server. Pekerja bisa masuk di HP sendiri memakai email dan sandi
-  tersebut. Akun langsung aktif. Jika nomor induk/email sudah terdaftar, Simpan
+- **Sandi diisi** → aplikasi membuat **data pekerja + akun login** sekaligus di
+  server. Akun langsung aktif. Jika nomor induk/email sudah terdaftar, Simpan
   ditolak dengan pesan duplikat — tidak ada akun setengah jadi.
-- **Sandi dikosongkan** → hanya **data pekerja** yang dibuat. Pekerja ini
-  belum punya login; pemeriksa yang menjalankan tes atas namanya dari menu
-  Pekerja.
+- **Sandi dikosongkan** → hanya **data pekerja** yang dibuat. Pekerja ini belum
+  punya login; pemeriksa yang menjalankan tes atas namanya dari menu Pekerja.
 
-> Kata sandi bisa dikosongkan untuk pekerja yang tidak perlu membuka aplikasi.
-> Bila Anda mengisi sandi tanpa email, aplikasi akan meminta email terlebih
-> dahulu.
+**ID login tanpa email nyata:** bila sandi diisi tetapi kolom email dikosongkan,
+aplikasi membuat ID otomatis `<nomor induk>@ratig.local` (mis.
+`3201234567890001@ratig.local`). ID ini hanya untuk masuk, tidak ada email yang
+dikirim. Berikan ID + sandi langsung ke pekerja.
+
+> Tidak perlu hosting email atau email kantor. Domain `@ratig.local` sengaja
+> dipakai sebagai pengenal internal; Supabase tetap menerimanya sebagai ID login
+> karena akun sudah dikonfirmasi saat dibuat.
 
 ---
 
@@ -319,7 +322,10 @@ departemen/shift, dan tren harian.
   Pengguna.
 - **Pekerja** — seperti Admin, dapat menambah pekerja sekaligus akun login
   lewat **Pekerja → (+)** (lihat §5).
-- **Protokol Uji** — daftar & pengaturan protokol pemeriksaan.
+- **Protokol Uji** — daftar & pengaturan protokol pemeriksaan. Menu **Ubah**
+  tersedia untuk protokol berstatus apa pun. Untuk protokol **Aktif**, perubahan
+  disimpan pada **versi yang sama** dan langsung berlaku untuk sesi baru; layar
+  edit menampilkan peringatan ini sebelum Anda menyimpan.
 - **Aturan Klasifikasi** — ambang batas kategori kelelahan (dapat divalidasi
   perusahaan; versi terpisah).
 - **Data Master** — departemen, area kerja, dan shift.
@@ -406,6 +412,12 @@ pekerjanya yang dibuat. Rincian di §5.
 J: Admin hanya boleh membuat akun **Pengguna**, lewat **Profil → Pengguna →
 (+)**. Super Admin boleh membuat akun **Admin** maupun **Pengguna**. Untuk
 pekerja sekaligus akun login, gunakan menu **Pekerja → (+)**.
+
+**T: Tidak ada hosting email. Bagaimana cara undangannya?**
+J: **Tidak ada email undangan.** Admin mengisi **ID Login** (boleh alamat
+internal seperti `nama@ratig.local`) dan **kata sandi sementara**, lalu
+menyampaikan keduanya langsung ke orang yang bersangkutan. Akun langsung aktif;
+tidak perlu mail server.
 
 **T: Bolehkah Admin mengubah aturan klasifikasi atau data master?**
 J: Tidak. Menu tersebut hanya untuk Super Admin, dan server menolak percobaan

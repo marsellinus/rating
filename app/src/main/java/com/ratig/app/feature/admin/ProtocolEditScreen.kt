@@ -317,7 +317,15 @@ fun ProtocolEditRoute(
                     enabled = !uiState.saving,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text(if (uiState.saving) "Menyimpan..." else "Simpan sebagai Draf")
+                    Text(
+                        if (uiState.saving) {
+                            "Menyimpan..."
+                        } else if (uiState.existingId == null) {
+                            "Simpan sebagai Draf"
+                        } else {
+                            "Simpan Perubahan"
+                        },
+                    )
                 }
             }
         }

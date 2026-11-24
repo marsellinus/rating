@@ -118,7 +118,7 @@ fun WorkerEditRoute(onDone: () -> Unit) {
             OutlinedTextField(
                 value = state.email,
                 onValueChange = viewModel::onEmailChange,
-                label = { Text("Email (opsional)") },
+                label = { Text("Email login (opsional)") },
                 isError = state.emailError != null,
                 supportingText = state.emailError?.let { { Text(it) } },
                 singleLine = true,
@@ -135,7 +135,11 @@ fun WorkerEditRoute(onDone: () -> Unit) {
                     supportingText = {
                         Text(
                             state.passwordError
-                                ?: "Isi agar pekerja bisa masuk dengan email dan kata sandi di HP sendiri"
+                                ?: if (state.email.isBlank()) {
+                                    "Tanpa email, ID login otomatis: ${state.employeeNumber.trim()}@ratig.local"
+                                } else {
+                                    "Pekerja masuk dengan email dan kata sandi ini di HP sendiri"
+                                }
                         )
                     },
                     visualTransformation = if (state.showPassword) VisualTransformation.None else PasswordVisualTransformation(),

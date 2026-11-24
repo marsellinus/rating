@@ -124,14 +124,10 @@ class WorkerEditViewModel @Inject constructor(
             null
         }
         val trimmedPassword = state.password.trim()
-        val passwordError = if (trimmedPassword.isNotEmpty()) {
-            if (trimmedEmail.isEmpty()) {
-                "Email wajib diisi jika membuat password login."
-            } else if (trimmedPassword.length < 8) {
-                "Password minimal 8 karakter."
-            } else {
-                null
-            }
+        // No email hosting required: when a password is supplied but no email,
+        // the NIP becomes a deterministic local login id (<nip>@ratig.local).
+        val passwordError = if (trimmedPassword.isNotEmpty() && trimmedPassword.length < 8) {
+            "Password minimal 8 karakter."
         } else {
             null
         }
@@ -150,11 +146,15 @@ class WorkerEditViewModel @Inject constructor(
         _uiState.update { it.copy(saving = true, error = null) }
         viewModelScope.launch {
             val current = _uiState.value
+            val nip = current.employeeNumber.trim()
+            val loginEmail = trimmedEmail.ifEmpty {
+                if (trimmedPassword.isNotEmpty()) "$nip@ratig.local" else ""
+            }
             val worker = Worker(
                 id = workerId.orEmpty(),
-                employeeNumber = current.employeeNumber.trim(),
+                employeeNumber = nip,
                 fullName = current.fullName.trim(),
-                email = trimmedEmail.takeIf { it.isNotEmpty() },
+                email = loginEmail.takeIf { it.isNotEmpty() },
                 departmentId = current.departmentId,
                 workAreaId = current.workAreaId,
                 jobTitle = current.jobTitle.trim().takeIf { it.isNotEmpty() },

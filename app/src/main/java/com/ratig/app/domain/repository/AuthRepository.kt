@@ -66,7 +66,7 @@ data class CreateUserRequest(
     val fullName: String,
     val role: UserRole,
     val accountStatus: AccountStatus,
-    /** Blank -> the server emails an invite so the user sets their own password. */
+    /** Temporary password chosen by the admin; shared directly, never emailed. */
     val password: String? = null,
 )
 
@@ -77,5 +77,4 @@ data class CreatedUser(
     val fullName: String,
     val role: UserRole,
     val accountStatus: AccountStatus,
-    val inviteSent: Boolean,
 )

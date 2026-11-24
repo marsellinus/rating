@@ -93,15 +93,20 @@ After that, onboard everyone from the app:
 
 - **Pekerja → (+) Tambah Pekerja** has two paths. With a password, the app
   calls `admin-create-worker`, which creates the worker record **and** a
-  `user` login atomically; email and password are both required there, password
-  is ≥8 characters, duplicate NIP/email are rejected, and the Auth user is
-  rolled back if worker creation fails. Without a password, only the worker
-  record is created and that worker has no app login (the examiner runs tests
-  on their behalf).
+  `user` login atomically; password is required and ≥8 characters, duplicate
+  NIP/email are rejected, and the Auth user is
+  rolled back if worker creation fails. If the email field is blank, the app
+  supplies `<employee_number>@ratig.local` as the login id, so no real mailbox
+  or email hosting is needed. Without a password, only the worker record is
+  created and that worker has no app login (the examiner runs tests on their
+  behalf).
 - **Profil → Pengguna → (+) Tambah Pengguna** uses `admin-create-user` for
   additional application accounts. A `super_admin` may create `admin`/`user`;
   an `admin` may create **only** `user` (enforced in both the Edge Function and
-  RLS — migration 0013).
+  RLS — migration 0013). A temporary password is **required**; the account is
+  created `email_confirm: true` and no invitation email is sent. `email` is a
+  unique login id and may be internal (for example `name@ratig.local`), so no
+  email hosting is needed. Share the id and password directly.
 
 Activating/suspending and role changes are audited automatically. Only a
 `super_admin` may grant the `super_admin` role.

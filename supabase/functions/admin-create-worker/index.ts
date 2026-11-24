@@ -6,8 +6,8 @@
 // POST {
 //   "employee_number": "3201234567890001",
 //   "full_name": "Budi Santoso",
-//   "email": "budi@example.com",
-//   "password": "min 8 chars",
+//   "email": "budi@example.com",   // optional; blank -> <employee_number>@ratig.local
+//   "password": "min 8 chars",       // required for an app login
 //   "department_id": null, "work_area_id": null,
 //   "shift_id": null, "job_title": null, "active_status": true
 // }
@@ -94,8 +94,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const s = (k: string) => typeof body[k] === "string" ? (body[k] as string).trim() : "";
   const employeeNumber = s("employee_number");
   const fullName = s("full_name");
-  const email = s("email").toLowerCase();
   const password = typeof body.password === "string" ? body.password : "";
+  // No email hosting required: a blank email with a password becomes a
+  // deterministic local login id derived from the unique employee number.
+  const email = (s("email") || (password ? `${employeeNumber}@ratig.local` : "")).toLowerCase();
   const departmentId = s("department_id") || null;
   const workAreaId = s("work_area_id") || null;
   const shiftId = s("shift_id") || null;
