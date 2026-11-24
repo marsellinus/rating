@@ -37,6 +37,16 @@ import kotlinx.serialization.json.put
  * direct serialization: missing keys degrade to zero/empty, never crash.
  */
 @Singleton
+/** Reads a list field accepting both snake_case and camelCase keys. */
+internal fun JsonObject.objectList(vararg keys: String): List<JsonObject> {
+    for (key in keys) {
+        val element = this[key] ?: continue
+        val list = (element as? JsonArray)?.mapNotNull { it as? JsonObject }
+        if (!list.isNullOrEmpty()) return list
+    }
+    return emptyList()
+}
+
 class DashboardRepositoryImpl @Inject constructor(
     private val supabase: SupabaseClient,
 ) : DashboardRepository {
@@ -106,9 +116,6 @@ class DashboardRepositoryImpl @Inject constructor(
             (this[key] as? JsonPrimitive)?.takeUnless { it is JsonNull }?.content?.toDoubleOrNull()
         }
 
-    private fun JsonElement?.asObjectList(): List<JsonObject> =
-        (this as? JsonArray)?.mapNotNull { it as? JsonObject } ?: emptyList()
-
     private fun parseAdminStats(o: JsonObject): AdminDashboardStats = AdminDashboardStats(
         activeWorkers = o.num("active_workers", "activeWorkers") ?: 0L,
         totalUsers = o.num("total_users", "totalUsers") ?: 0L,
@@ -117,10 +124,10 @@ class DashboardRepositoryImpl @Inject constructor(
         sessionsToday = o.num("sessions_today", "sessionsToday") ?: 0L,
         unfinishedSessions = o.num("unfinished_sessions", "unfinishedSessions") ?: 0L,
         openFollowUps = o.num("open_follow_ups", "openFollowUps") ?: 0L,
-        classificationCounts = o["classification_counts"].asObjectList().map(::parseClassification),
-        byDepartment = o["by_department"].asObjectList().map(::parseNamedCount),
-        byShift = o["by_shift"].asObjectList().map(::parseNamedCount),
-        trend = o["trend"].asObjectList().map(::parseDailyCount),
+        classificationCounts = o.objectList("classification_counts", "classificationCounts").map(::parseClassification),
+        byDepartment = o.objectList("by_department", "byDepartment").map(::parseNamedCount),
+        byShift = o.objectList("by_shift", "byShift").map(::parseNamedCount),
+        trend = o.objectList("trend", "trend").map(::parseDailyCount),
         sampleSize = o.num("sample_size", "sampleSize") ?: 0L,
     )
 
@@ -128,10 +135,10 @@ class DashboardRepositoryImpl @Inject constructor(
         totalSessions = o.num("total_sessions", "totalSessions") ?: 0L,
         sessionsToday = o.num("sessions_today", "sessionsToday") ?: 0L,
         openFollowUps = o.num("open_follow_ups", "openFollowUps") ?: 0L,
-        classificationCounts = o["classification_counts"].asObjectList().map(::parseClassification),
-        byDepartment = o["by_department"].asObjectList().map(::parseNamedCount),
-        byShift = o["by_shift"].asObjectList().map(::parseNamedCount),
-        trend = o["trend"].asObjectList().map(::parseDailyCount),
+        classificationCounts = o.objectList("classification_counts", "classificationCounts").map(::parseClassification),
+        byDepartment = o.objectList("by_department", "byDepartment").map(::parseNamedCount),
+        byShift = o.objectList("by_shift", "byShift").map(::parseNamedCount),
+        trend = o.objectList("trend", "trend").map(::parseDailyCount),
         sampleSize = o.num("sample_size", "sampleSize") ?: 0L,
     )
 
@@ -140,7 +147,7 @@ class DashboardRepositoryImpl @Inject constructor(
         sessionsToday = o.num("sessions_today", "sessionsToday") ?: 0L,
         sessionsLast7Days = o.num("sessions_last_7_days", "sessionsLast7Days") ?: 0L,
         openFollowUps = o.num("open_follow_ups", "openFollowUps") ?: 0L,
-        recentResults = (o["recent_results"] ?: o["recentResults"]).asObjectList().mapNotNull(::parseRecentResult),
+        recentResults = o.objectList("recent_results", "recentResults").mapNotNull(::parseRecentResult),
     )
 
     private fun parseClassification(o: JsonObject): ClassificationCount = ClassificationCount(

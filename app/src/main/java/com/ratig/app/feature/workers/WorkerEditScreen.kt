@@ -129,13 +129,13 @@ fun WorkerEditRoute(onDone: () -> Unit) {
                 OutlinedTextField(
                     value = state.password,
                     onValueChange = viewModel::onPasswordChange,
-                    label = { Text("Password Login (opsional)") },
-                    placeholder = { Text("Minimal 6 karakter") },
+                    label = { Text("Kata Sandi Login (opsional)") },
+                    placeholder = { Text("Minimal 8 karakter") },
                     isError = state.passwordError != null,
                     supportingText = {
                         Text(
                             state.passwordError
-                                ?: "Isi jika pekerja akan login mandiri di HP-nya sendiri"
+                                ?: "Isi agar pekerja bisa masuk dengan email dan kata sandi di HP sendiri"
                         )
                     },
                     visualTransformation = if (state.showPassword) VisualTransformation.None else PasswordVisualTransformation(),

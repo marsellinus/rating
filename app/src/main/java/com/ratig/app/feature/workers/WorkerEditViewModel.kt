@@ -63,7 +63,7 @@ class WorkerEditViewModel @Inject constructor(
         val passwordError: String? = null,
     )
 
-    private val workerId: String? = savedStateHandle.get<String>("workerId")
+    private val workerId: String? = savedStateHandle.get<String>("workerId")?.takeIf { it.isNotBlank() }
 
     private val _uiState = MutableStateFlow(UiState(isNew = workerId == null))
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
