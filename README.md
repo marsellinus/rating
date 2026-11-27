@@ -169,6 +169,9 @@ Penggunaan**.
 | Dokumen | Isi |
 |---|---|
 | [USER-MANUAL.md](USER-MANUAL.md) | Buku panduan pengguna aplikasi |
+| [docs/guidebook/RATIG-Guidebook.md](docs/guidebook/RATIG-Guidebook.md) | Guidebook operasional (+ `.pdf` A4): peran, onboarding tanpa email, demo checklist |
+| [docs/poster/RATIG-Poster.md](docs/poster/RATIG-Poster.md) | Naskah poster A2 + `RATIG-Poster.png`/`.pdf` siap cetak |
+| [docs/demo/RATIG-Demo.mp4](docs/demo/RATIG-Demo.mp4) | Video demo 1080p, narasi & subtitle Indonesia |
 | [PROPOSAL.md](PROPOSAL.md) | Proposal proyek (juga `.docx`/`.pdf` di `docs/proposal/`) |
 | [docs/architecture.md](docs/architecture.md) | Arsitektur, timing, offline, sync |
 | [docs/deployment.md](docs/deployment.md) | Toolchain, konfigurasi, signing, checklist |

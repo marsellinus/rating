@@ -1,0 +1,35 @@
+1
+00:00:00,450 --> 00:00:10,002
+RATIG. Aplikasi pemeriksaan kelelahan berbasis waktu reaksi. Cepat, objektif, dan tetap berjalan tanpa internet.
+
+2
+00:00:10,852 --> 00:00:21,076
+Kelelahan sering tidak terlihat. Pekerja bisa merasa kuat, padahal refleksnya sudah menurun. Pencatatan manual juga membuat riwayat sulit dibandingkan.
+
+3
+00:00:21,926 --> 00:00:32,990
+RATIG mempersingkat alur pemeriksaan. Petugas memilih pekerja, menjalankan tes, dan hasil langsung tampil. Data tersinkron otomatis saat jaringan tersedia.
+
+4
+00:00:33,840 --> 00:00:47,016
+Empat mode pemeriksaan. Klasik untuk klasifikasi kelelahan. Warna acak, tombol acak, dan fokus go no go untuk metrik pengamatan. Semua mode tidak digabung menjadi satu skor.
+
+5
+00:00:47,866 --> 00:00:58,570
+Setelah tes, hasil menampilkan waktu reaksi, jumlah percobaan valid, dan kategori kelelahan sesuai aturan perusahaan. Hasil final tersimpan permanen untuk audit.
+
+6
+00:00:59,420 --> 00:01:09,500
+Dasbor admin menampilkan sesi hari ini, klasifikasi hasil, sebaran per departemen dan shift, serta tren harian. Laporan dapat diekspor ke CSV.
+
+7
+00:01:10,350 --> 00:01:22,974
+Akses dibagi tiga peran. Super admin untuk konfigurasi, admin untuk operasional dan pengguna, pengguna untuk tes dan riwayat sendiri. Semua ditegakkan di server dengan row level security.
+
+8
+00:01:23,824 --> 00:01:31,264
+RATIG tetap bisa dipakai tanpa sinyal. Data disimpan di perangkat dan dikirim otomatis lewat WorkManager saat online.
+
+9
+00:01:32,114 --> 00:01:39,962
+RATIG adalah alat bantu keputusan, bukan diagnosis medis. Repositori dan dokumentasi tersedia di GitHub.

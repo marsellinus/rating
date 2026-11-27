@@ -1,0 +1,163 @@
+@page {
+  size: A4;
+  margin: 18mm 16mm 20mm;
+}
+
+#title-block-header {
+  display: none;
+}
+
+html {
+  background: #ffffff;
+}
+
+body {
+  max-width: 178mm;
+  margin: 0 auto;
+  color: #24352c;
+  background: #ffffff;
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.55;
+}
+
+h1, h2, h3, h4 {
+  color: #123b2a;
+  font-family: "Segoe UI", Arial, sans-serif;
+  line-height: 1.18;
+}
+
+h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 30pt;
+  margin: 20mm 0 3mm;
+  letter-spacing: -0.5pt;
+}
+
+h1 + p strong:first-child {
+  display: block;
+  font-size: 15pt;
+  line-height: 1.35;
+  color: #123b2a;
+  margin-bottom: 4mm;
+}
+
+h2 {
+  font-size: 18pt;
+  margin: 10mm 0 3mm;
+  padding-bottom: 2mm;
+  border-bottom: 1.2pt solid #c9943a;
+  page-break-after: avoid;
+}
+
+/* Keep the worker registration table on the same page as its heading. */
+#\35-menambah-pekerja--akun-login {
+  page-break-before: always;
+  margin-top: 0;
+}
+
+h3 {
+  font-size: 13pt;
+  margin: 6mm 0 2mm;
+  page-break-after: avoid;
+}
+
+p {
+  margin: 0 0 3mm;
+}
+
+strong {
+  color: #123b2a;
+}
+
+blockquote {
+  margin: 5mm 0;
+  padding: 4mm 5mm;
+  background: #eef2ec;
+  border-left: 3pt solid #123b2a;
+  color: #3d4c42;
+  page-break-inside: avoid;
+}
+
+blockquote p {
+  margin: 0;
+}
+
+ul, ol {
+  margin: 0 0 4mm 5mm;
+  padding-left: 5mm;
+}
+
+li {
+  margin: 1.2mm 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 4mm 0 6mm;
+  font-size: 9.2pt;
+  page-break-inside: avoid;
+}
+
+th {
+  background: #123b2a;
+  color: #ffffff;
+  text-align: left;
+  padding: 2.2mm 2.5mm;
+  font-weight: 600;
+}
+
+td {
+  border-bottom: 0.5pt solid #ddd6c5;
+  padding: 2.2mm 2.5mm;
+  vertical-align: top;
+}
+
+tr:nth-child(even) td {
+  background: #faf8f2;
+}
+
+code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 9pt;
+  background: #f1eee4;
+  padding: 0.3mm 1mm;
+  border-radius: 1mm;
+}
+
+pre {
+  background: #123b2a;
+  color: #f4f1e8;
+  padding: 4mm 5mm;
+  border-radius: 2mm;
+  font-size: 8.5pt;
+  line-height: 1.5;
+  page-break-inside: avoid;
+}
+
+pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+hr {
+  border: none;
+  border-top: 0.7pt solid #ddd6c5;
+  margin: 7mm 0;
+}
+
+a {
+  color: #123b2a;
+  text-decoration: none;
+}
+
+h2 + table, h2 + pre, h2 + blockquote {
+  page-break-before: avoid;
+}
+
+p, li, td {
+  orphans: 3;
+  widows: 3;
+}
