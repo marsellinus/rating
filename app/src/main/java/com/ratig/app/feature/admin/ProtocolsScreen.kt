@@ -50,6 +50,7 @@ import com.ratig.app.core.result.onFailure
 import com.ratig.app.core.result.onSuccess
 import com.ratig.app.domain.model.ProtocolStatus
 import com.ratig.app.domain.model.TestProtocol
+import com.ratig.app.domain.model.formatProtocolVersion
 import com.ratig.app.domain.repository.ProtocolRepository
 import com.ratig.app.ui.components.ConfirmDialog
 import com.ratig.app.ui.components.EmptyState
@@ -273,7 +274,7 @@ private fun ProtocolRowCard(
                     fontWeight = FontWeight.Medium,
                 )
                 Text(
-                    text = "v${protocol.protocolVersion} · ${protocol.trialCount} percobaan · " +
+                    text = "${formatProtocolVersion(protocol.protocolVersion)} · ${protocol.trialCount} percobaan · " +
                         "timeout ${protocol.responseTimeoutMs} ms",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

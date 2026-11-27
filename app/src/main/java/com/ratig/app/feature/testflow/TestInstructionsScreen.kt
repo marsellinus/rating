@@ -40,6 +40,7 @@ import androidx.lifecycle.viewModelScope
 import com.ratig.app.core.result.AppResult
 import com.ratig.app.domain.model.TestMode
 import com.ratig.app.domain.model.TestProtocol
+import com.ratig.app.domain.model.formatProtocolVersion
 import com.ratig.app.domain.model.TestSession
 import com.ratig.app.domain.repository.ProtocolRepository
 import com.ratig.app.domain.repository.TestSessionRepository
@@ -245,7 +246,7 @@ private fun TestInstructionsContent(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
-                Text("Versi protokol: ${protocol.protocolVersion}", style = MaterialTheme.typography.bodyMedium)
+                Text("Versi protokol: ${formatProtocolVersion(protocol.protocolVersion)}", style = MaterialTheme.typography.bodyMedium)
                 Text(
                     text = "Jumlah percobaan: ${protocol.trialCount}",
                     style = MaterialTheme.typography.bodyMedium,

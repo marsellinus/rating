@@ -56,6 +56,7 @@ import com.ratig.app.domain.model.SessionStatus
 import com.ratig.app.domain.model.Shift
 import com.ratig.app.domain.model.TestSession
 import com.ratig.app.domain.model.UserRole
+import com.ratig.app.domain.model.formatProtocolVersion
 import com.ratig.app.domain.repository.AuthRepository
 import com.ratig.app.domain.repository.OrganizationRepository
 import com.ratig.app.domain.repository.SessionState
@@ -371,7 +372,7 @@ private fun SessionRow(session: TestSession, onOpenSession: (String) -> Unit) {
                 Text(
                     text = listOfNotNull(
                         session.protocolName ?: "Protokol",
-                        session.protocolVersion?.let { "v$it" },
+                        session.protocolVersion?.let(::formatProtocolVersion),
                     ).joinToString(" "),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

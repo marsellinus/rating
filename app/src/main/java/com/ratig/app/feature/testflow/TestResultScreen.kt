@@ -39,6 +39,7 @@ import com.ratig.app.core.result.AppResult
 import com.ratig.app.data.local.dao.HealthScreeningDao
 import com.ratig.app.data.local.entity.LocalHealthScreeningEntity
 import com.ratig.app.domain.model.TestResult
+import com.ratig.app.domain.model.formatVersionLabel
 import com.ratig.app.domain.repository.ProtocolRepository
 import com.ratig.app.domain.repository.AuthRepository
 import com.ratig.app.domain.repository.SessionState
@@ -418,7 +419,7 @@ private fun ResultContent(
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 ) {
                     Text(
-                        text = "Aturan v${result.ruleVersion ?: "-"}",
+                        text = "Aturan ${result.ruleVersion?.let(::formatVersionLabel) ?: "-"}",
                         style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                     )

@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<title>RATIG — Poster A2</title>
+<title>RATIG — Poster Ilmiah A2</title>
 <style>
   @page { size: 420mm 594mm; margin: 0; }
   * { box-sizing: border-box; }
@@ -12,182 +12,298 @@
     font-family: "Segoe UI", Arial, sans-serif;
     color: #123B2A;
     background:
-      radial-gradient(circle at 93% 7%, #eee7d5 0 260px, transparent 261px),
+      radial-gradient(circle at 96% 3%, #eee7d5 0 260px, transparent 261px),
       #F4F1E8;
-    position: relative; overflow: hidden;
+    overflow: hidden;
   }
-  .frame { position:absolute; inset:0; padding: 76px 92px 64px; display:flex; flex-direction:column; }
-  .topline { height: 6px; background:#123B2A; width:100%; margin-bottom: 26px; }
+  .frame { height: 100%; padding: 64px 84px 44px; display: flex; flex-direction: column; }
+
   .header {
-    background:#123B2A; color:#F4F1E8; border-radius: 38px;
-    padding: 54px 64px 48px; display:flex; justify-content:space-between;
-    min-height: 720px; position:relative; overflow:hidden;
+    background: #123B2A; color: #F4F1E8; border-radius: 30px;
+    padding: 38px 52px 34px; display: flex; justify-content: space-between; gap: 44px;
+    position: relative; overflow: hidden; flex: none;
   }
-  .header:after { content:""; position:absolute; width:600px; height:600px; border:2px solid rgba(244,241,232,.12); border-radius:50%; right:-160px; top:-230px; }
-  .kicker { font-size: 26px; letter-spacing: 4px; color:#D8AE62; font-weight:700; text-transform:uppercase; }
-  h1 { font-family: Georgia, "Times New Roman", serif; font-size: 236px; line-height: .83; margin: 36px 0 28px; letter-spacing:-4px; }
-  .subtitle { font-size: 61px; line-height:1.12; max-width: 1300px; font-weight: 600; }
-  .tagline { font-size: 34px; line-height:1.35; max-width: 1280px; color:#D8D6C9; margin-top: 26px; }
-  .pills { display:flex; gap:14px; flex-wrap:wrap; margin-top:34px; }
-  .pill { border:1.5px solid rgba(244,241,232,.35); border-radius:999px; padding:10px 20px; font-size:24px; color:#F4F1E8; }
-  .hero-phone { width: 430px; height: 610px; border-radius: 42px; border: 15px solid #08120D; overflow:hidden; background:#08120D; box-shadow: 0 26px 50px rgba(0,0,0,.35); flex:none; margin-top:16px; }
-  .hero-phone img { width:100%; height:100%; object-fit:cover; object-position: top; }
+  .header:after {
+    content: ""; position: absolute; width: 620px; height: 620px;
+    border: 2px solid rgba(244,241,232,.12); border-radius: 50%;
+    right: -180px; top: -250px;
+  }
+  .kicker { font-size: 22px; letter-spacing: 4px; color: #D8AE62; font-weight: 800; }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif; font-size: 168px;
+    line-height: .84; margin: 22px 0 12px; letter-spacing: -3px;
+  }
+  .subtitle { font-size: 48px; font-weight: 650; line-height: 1.05; }
+  .long-title { font-size: 29px; line-height: 1.32; color: #DDD9CA; max-width: 1600px; margin-top: 16px; }
+  .authors { font-size: 24px; color: #D8AE62; margin-top: 16px; font-weight: 600; }
+  .brandbox { width: 360px; flex: none; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; }
+  .monogram {
+    width: 138px; height: 138px; border-radius: 28px; background: #F4F1E8;
+    color: #123B2A; display: flex; align-items: center; justify-content: center;
+    font-family: Georgia, serif; font-size: 92px; font-weight: 800;
+  }
+  .brandbox .meta { text-align: right; font-size: 19px; line-height: 1.45; color: #D8D6C9; }
+  .brandbox .meta b { color: #F4F1E8; }
 
-  .main { display:grid; grid-template-columns: 1.14fr .86fr; gap: 48px; margin-top: 46px; flex:1; min-height:0; }
-  .col { display:flex; flex-direction:column; gap: 34px; min-height:0; }
-  section { background:#fffdf7; border:1px solid #ddd6c5; border-radius: 30px; padding: 34px 38px; }
-  .eyebrow { font-size: 23px; letter-spacing:3px; color:#A7741E; font-weight:800; text-transform:uppercase; margin-bottom:14px; }
-  h2 { font-size: 56px; line-height:1.02; margin:0 0 18px; letter-spacing:-1px; }
-  p, li { font-size: 31px; line-height:1.34; color:#4E5B52; }
-  p { margin: 0; }
-  ul { margin: 4px 0 0; padding-left: 36px; }
-  li { margin: 8px 0; }
-  strong { color:#123B2A; }
+  .abstract {
+    background: #FFFDF7; border: 1px solid #D9D1BE; border-left: 10px solid #C9943A;
+    border-radius: 20px; padding: 22px 30px 20px; margin-top: 26px; flex: none;
+  }
+  .abstract .label { font-size: 20px; letter-spacing: 3px; font-weight: 800; color: #A7741E; }
+  .abstract p { font-size: 27px; line-height: 1.36; color: #34443A; margin: 8px 0 0; text-align: justify; }
+  .abstract .keywords { font-size: 21px; color: #5C665E; margin-top: 9px; }
+  .abstract .keywords b { color: #123B2A; }
 
-  .flow { display:flex; align-items:center; gap: 12px; margin-top: 10px; }
-  .flow .step { flex:1; text-align:center; border-radius:18px; padding: 18px 10px; background:#E8EFE8; font-size: 25px; line-height:1.2; font-weight:700; color:#123B2A; }
-  .flow .arrow { color:#C9943A; font-size: 34px; font-weight:800; }
+  .main {
+    flex: none;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;
+    margin-top: 26px;
+  }
+  .col { display: flex; flex-direction: column; justify-content: flex-start; gap: 24px; min-height: 0; }
+  section {
+    background: #FFFDF7; border: 1px solid #DDD6C5; border-radius: 20px;
+    padding: 20px 23px 19px;
+  }
+  .num { font-size: 18px; letter-spacing: 2.5px; color: #A7741E; font-weight: 800; text-transform: uppercase; }
+  h2 { font-size: 40px; line-height: 1.06; margin: 8px 0 10px; letter-spacing: -.5px; }
+  p { font-size: 25px; line-height: 1.38; color: #445149; margin: 0 0 9px; text-align: justify; }
+  ul, ol { margin: 0 0 2px 22px; padding: 0; }
+  li { font-size: 25px; line-height: 1.36; color: #445149; margin: 0 0 7px; padding-left: 2px; }
+  sup { font-size: 12px; color: #A7741E; font-weight: 700; }
+  strong { color: #123B2A; }
 
-  .modes { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-  .mode { border-radius:20px; padding: 20px 22px; background:#EEF2EC; }
-  .mode:nth-child(1) { background:#123B2A; color:#F4F1E8; }
-  .mode:nth-child(1) .muted { color:#D8D6C9; }
-  .mode b { display:block; font-size:30px; line-height:1.1; margin-bottom: 7px; }
-  .mode .muted { font-size: 23px; color:#5C665E; line-height:1.25; }
+  .targets { display: flex; flex-direction: column; gap: 5px; }
+  .targets div { font-size: 25px; line-height: 1.34; color: #445149; padding-left: 20px; position: relative; }
+  .targets div:before { content: "•"; color: #C9943A; position: absolute; left: 0; font-weight: 800; }
 
-  .stats { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-  .stat { background:#123B2A; color:#F4F1E8; border-radius:22px; padding:24px; }
-  .stat:nth-child(2n) { background:#C9943A; color:#123B2A; }
-  .stat .num { font-family: Georgia, serif; font-size: 76px; line-height: .9; font-weight:700; }
-  .stat .lbl { font-size: 23px; margin-top:10px; line-height:1.2; }
+  .flow { display: flex; flex-direction: column; gap: 7px; margin-top: 7px; }
+  .flow .step { background: #EEF2EC; border-radius: 10px; padding: 9px 12px; font-size: 23px; line-height: 1.24; color: #123B2A; }
+  .flow .step b { color: #A7741E; margin-right: 5px; }
+  .flow .arrow { color: #C9943A; font-size: 18px; line-height: 1; text-align: center; }
 
-  .roles { display:flex; flex-direction:column; gap:11px; margin-top: 8px; }
-  .role { display:grid; grid-template-columns: 230px 1fr; gap:16px; align-items:center; background:#F1EEE4; border-radius:16px; padding:16px 18px; }
-  .role b { font-size: 25px; color:#123B2A; }
-  .role span { font-size: 24px; color:#5C665E; line-height:1.25; }
+  .arch { display: flex; flex-direction: column; gap: 7px; margin-top: 3px; }
+  .arch .box { display: flex; justify-content: space-between; gap: 10px; border-radius: 9px; padding: 9px 12px; font-size: 23px; background: #123B2A; color: #F4F1E8; }
+  .arch .box:nth-child(2) { background: #2E6B4D; }
+  .arch .box:nth-child(3) { background: #3A7C5C; }
+  .arch .box:nth-child(4) { background: #C9943A; color: #123B2A; }
+  .arch small { font-size: 18px; opacity: .85; }
 
-  .arch { margin-top: 8px; display:flex; flex-direction:column; gap:10px; }
-  .arch .box { display:flex; justify-content:space-between; background:#123B2A; color:#F4F1E8; border-radius:14px; padding:13px 18px; font-size:24px; }
-  .arch .box:nth-child(2) { background:#2E6B4D; }
-  .arch .box:nth-child(3) { background:#3A7C5C; }
-  .arch .box:nth-child(4) { background:#C9943A; color:#123B2A; }
-  .arch small { opacity:.8; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin: 7px 0 10px; }
+  .stat { border-radius: 12px; padding: 10px 12px; background: #123B2A; color: #F4F1E8; }
+  .stat:nth-child(2n) { background: #C9943A; color: #123B2A; }
+  .stat .n { font-family: Georgia, serif; font-size: 48px; line-height: .9; font-weight: 700; }
+  .stat .l { font-size: 18px; line-height: 1.15; margin-top: 4px; }
 
-  .devices { margin-top: 34px; display:grid; grid-template-columns: repeat(4, 1fr); gap: 26px; }
-  .device { background:#123B2A; border-radius: 30px; padding: 20px 20px 16px; display:flex; flex-direction:column; align-items:center; gap:14px; }
-  .device .phone { width: 100%; height: 690px; border-radius: 22px; border: 9px solid #08120D; overflow:hidden; background:#08120D; }
-  .device .phone img { display:block; width:100%; height:100%; object-fit:contain; object-position: top; }
-  .device .caption { color:#D8D6C9; font-size:20px; letter-spacing:1.5px; text-align:center; }
+  table { width: 100%; border-collapse: collapse; font-size: 21px; line-height: 1.3; }
+  th { text-align: left; background: #123B2A; color: #F4F1E8; padding: 7px 7px; font-size: 19px; }
+  td { border-bottom: 1px solid #E1DAC9; padding: 6px 7px; color: #445149; vertical-align: top; }
+  td:first-child { color: #123B2A; font-weight: 700; width: 38%; }
 
-  .security p { font-size: 27px; line-height:1.4; }
-  .footer { margin-top: 34px; border-top:2px solid #D9D2C1; padding-top: 20px; display:flex; justify-content:space-between; align-items:flex-end; gap:40px; }
-  .footer .fine { font-size: 21px; line-height:1.45; color:#5C665E; max-width: 1430px; }
-  .footer .repo { text-align:right; font-size:24px; line-height:1.3; font-weight:700; color:#123B2A; }
-  .footer .repo span { display:block; font-size:17px; font-weight:400; letter-spacing:2px; color:#A7741E; margin-bottom:6px; }
+  .gallery {
+    margin-top: 26px; background: #FFFDF7; border: 1px solid #DDD6C5;
+    border-radius: 22px; padding: 20px 26px 14px;
+  }
+  .gallery h2 { font-size: 36px; margin: 4px 0 12px; }
+  .gallery .row { display: flex; gap: 18px; justify-content: center; align-items: flex-start; }
+  .shot { width: 340px; background: #08120D; border-radius: 17px; overflow: hidden; padding: 8px 8px 0; }
+  .shot img { display: block; width: 100%; height: 575px; object-fit: contain; object-position: top; }
+  .shot .cap { color: #D8D6C9; font-size: 18px; letter-spacing: .6px; text-align: center; padding: 8px 0 9px; }
+  .figcap { font-size: 20px; line-height: 1.35; color: #5C665E; margin-top: 8px; }
+
+  .refs { margin: 0; padding-left: 20px; }
+  .refs li { font-size: 20px; line-height: 1.3; margin-bottom: 6px; color: #4B5A50; }
+  .refs li b { color: #123B2A; }
+
+  .callout { background: #EEF2EC; border-radius: 11px; padding: 10px 12px; font-size: 22px; line-height: 1.34; color: #34443A; margin-top: 8px; }
+
+  .footer {
+    flex: none; margin-top: 22px; border-top: 2px solid #D9D1BE; padding-top: 13px;
+    display: flex; justify-content: space-between; align-items: flex-end; gap: 30px;
+  }
+  .footer .fine { font-size: 19px; line-height: 1.38; color: #5C665E; max-width: 1770px; }
+  .footer .fine b { color: #123B2A; }
+  .repo { display: flex; align-items: center; gap: 12px; text-align: right; }
+  .repo img { width: 96px; height: 96px; border-radius: 4px; image-rendering: pixelated; background:#fff; }
+  .repo .txt { font-size: 18px; line-height: 1.25; font-weight: 700; color: #123B2A; }
+  .repo .txt span { display: block; font-size: 13px; letter-spacing: 2px; color: #A7741E; font-weight: 700; margin-bottom: 3px; }
+
+  /* --- perbaikan --- */
+  .col section:last-child { flex: 1; }
+  .gallery { margin-top: 22px; }
+  .refsbox { margin-top: 22px; background: #FFFDF7; border: 1px solid #DDD6C5; border-radius: 20px; padding: 16px 26px 10px; flex: none; }
+  .refsbox .refs { columns: 3; column-gap: 40px; margin: 6px 0 0; padding-left: 22px; }
+  .refsbox .refs li { break-inside: avoid; }
 </style>
 </head>
 <body>
 <div class="frame">
-  <div class="topline"></div>
   <header class="header">
     <div>
-      <div class="kicker">Capstone Project · Informatika UNSIL · 2026</div>
+      <div class="kicker">POSTER ILMIAH · CAPSTONE PROJECT 2026</div>
       <h1>RATIG</h1>
       <div class="subtitle">Reaction Time Fatigue</div>
-      <div class="tagline">Pemeriksaan kelelahan pekerja berbasis waktu reaksi.<br>Cepat, objektif, dan tetap berjalan tanpa internet.</div>
-      <div class="pills"><div class="pill">Android</div><div class="pill">Kotlin · Compose</div><div class="pill">Supabase</div><div class="pill">Offline-first</div></div>
+      <div class="long-title">Sistem Pemeriksaan Kelelahan Pekerja Berbasis Waktu Reaksi dengan Pendekatan Offline-First</div>
+      <div class="authors">Tim Capstone Project RATIG · Program Studi Informatika, Universitas Siliwangi</div>
     </div>
-    <div class="hero-phone"><img src="../proposal/ui/01_login.png" alt="Layar login RATIG"></div>
+    <div class="brandbox">
+      <div class="monogram">R</div>
+      <div class="meta"><b>Android · Kotlin · Compose</b><br>Room · WorkManager<br>Supabase · PostgreSQL · RLS<br><br><b>Prototipe fungsional</b><br>bukan diagnosis medis</div>
+    </div>
   </header>
+
+  <div class="abstract">
+    <div class="label">ABSTRAK</div>
+    <p>Kelelahan kerja menurunkan kewaspadaan dan berkontribusi pada kecelakaan industri. Pemeriksaan manual sering subjektif, memakan waktu, dan sulit diaudit. Penelitian pengembangan ini merancang <b>RATIG</b>, aplikasi Android untuk mengukur waktu reaksi pekerja dengan empat mode tes, klasifikasi berbasis aturan, dan operasi <i>offline-first</i>. Sistem dibangun menggunakan Kotlin/Jetpack Compose, Room/WorkManager, dan Supabase dengan <i>Row Level Security</i> tiga peran. Evaluasi fungsional mencakup 140 unit test JVM, pengujian finalisasi idempoten, sinkronisasi offline, dan matriks akses peran. Hasil menunjukkan prototipe berfungsi sesuai rancangan; validasi klinis dan studi lapangan masih diperlukan sebelum klaim efektivitas.</p>
+    <div class="keywords"><b>Kata kunci:</b> kelelahan kerja · waktu reaksi · PVT · offline-first · Row Level Security · Android</div>
+  </div>
 
   <div class="main">
     <div class="col">
       <section>
-        <div class="eyebrow">01 — Masalah</div>
-        <h2>Kelelahan sering tidak terlihat.</h2>
+        <div class="num">01 · Latar Belakang</div>
+        <h2>Kelelahan sulit terlihat, dampaknya nyata.</h2>
         <ul>
-          <li>Pekerja merasa kuat, padahal <strong>refleksnya menurun</strong>.</li>
-          <li>Pemeriksaan manual lambat dan sulit dibandingkan.</li>
-          <li>Catatan tersebar di kertas/spreadsheet, sulit diaudit.</li>
+          <li>Kelelahan berkontribusi pada kecelakaan industri dan transportasi.<sup>1,2</sup></li>
+          <li><i>Psychomotor vigilance task</i> (PVT) singkat di ponsel dapat menilai penurunan kewaspadaan.<sup>3,4</sup></li>
+          <li>Pencatatan manual menyulitkan pemantauan tren dan audit, terutama di lokasi dengan konektivitas terbatas.</li>
         </ul>
+        <div class="callout"><b>Rumusan masalah:</b> bagaimana merancang pemeriksaan waktu reaksi yang cepat, konsisten, aman, dan dapat dipakai offline?</div>
       </section>
 
       <section>
-        <div class="eyebrow">02 — Solusi</div>
-        <h2>Satu alur, hasil yang jelas.</h2>
-        <div class="flow">
-          <div class="step">Pilih<br>pekerja</div><div class="arrow">→</div>
-          <div class="step">Jalankan<br>tes</div><div class="arrow">→</div>
-          <div class="step">Tinjau<br>hasil</div><div class="arrow">→</div>
-          <div class="step">Sinkron<br>otomatis</div>
+        <div class="num">02 · Tujuan</div>
+        <h2>Prototipe yang dapat diuji.</h2>
+        <div class="targets">
+          <div>Merancang alur pemeriksaan waktu reaksi multi-pekerja di Android.</div>
+          <div>Menyediakan klasifikasi kelelahan yang mengikuti aturan organisasi.</div>
+          <div>Menjaga integritas data melalui pengukuran monotonik dan hasil final yang permanen.</div>
+          <div>Membatasi akses data dengan RLS tiga peran.</div>
         </div>
-        <p style="margin-top:20px">Identifikasi lewat NIK/QR. NIK selalu disamarkan. Hasil final permanen untuk audit.</p>
       </section>
 
       <section>
-        <div class="eyebrow">03 — Empat Mode</div>
-        <h2>Empat cara mengukur respons.</h2>
-        <div class="modes">
-          <div class="mode"><b>Klasik (RGB)</b><div class="muted">Klasifikasi kelelahan</div></div>
-          <div class="mode"><b>Warna Acak</b><div class="muted">Metrik pengamatan</div></div>
-          <div class="mode"><b>Tombol Acak</b><div class="muted">Koordinasi mata–tangan</div></div>
-          <div class="mode"><b>Fokus (Go/No-Go)</b><div class="muted">Kontrol impuls</div></div>
-        </div>
-        <p style="margin-top:20px">Hanya mode Klasik yang dipakai untuk klasifikasi; mode lain tidak digabung menjadi satu skor.</p>
+        <div class="num">03 · Metode</div>
+        <h2>Rekayasa perangkat lunak iteratif.</h2>
+        <p>Pengembangan dilakukan melalui analisis kebutuhan, perancangan arsitektur, implementasi, pengujian unit, dan evaluasi fungsional. Tidak ada klaim uji klinis pada tahap ini.</p>
+        <ul>
+          <li><b>Pengukuran:</b> monotonic clock (<i>elapsedRealtimeNanos</i>), bukan jam dinding.</li>
+          <li><b>Data:</b> trial tidak wajar ditandai, bukan dihapus diam-diam.</li>
+          <li><b>Pengujian:</b> 140 unit test JVM, finalisasi idempoten, RLS, dan sinkronisasi.</li>
+        </ul>
       </section>
 
     </div>
 
     <div class="col">
       <section>
-        <div class="eyebrow">Sekilas</div>
-        <div class="stats">
-          <div class="stat"><div class="num">4</div><div class="lbl">mode pemeriksaan</div></div>
-          <div class="stat"><div class="num">3</div><div class="lbl">peran dengan RLS</div></div>
-          <div class="stat"><div class="num">138</div><div class="lbl">unit test JVM lulus</div></div>
-          <div class="stat"><div class="num">0</div><div class="lbl">service key di APK</div></div>
+        <div class="num">04 · Alur Pemeriksaan</div>
+        <h2>Empat langkah operasional.</h2>
+        <div class="flow">
+          <div class="step"><b>01</b> Identifikasi pekerja melalui NIK/QR (NIK disamarkan).</div>
+          <div class="arrow">▼</div>
+          <div class="step"><b>02</b> Pilih mode dan jalankan tes waktu reaksi.</div>
+          <div class="arrow">▼</div>
+          <div class="step"><b>03</b> Tinjau metrik, trial, dan kategori kelelahan.</div>
+          <div class="arrow">▼</div>
+          <div class="step"><b>04</b> Finalisasi; simpan lokal lalu sinkronkan otomatis.</div>
         </div>
       </section>
 
       <section>
-        <div class="eyebrow">04 — Peran</div>
-        <h2>Batas akses yang tegas.</h2>
-        <div class="roles">
-          <div class="role"><b>Super Admin</b><span>protokol, aturan, data master, akun admin</span></div>
-          <div class="role"><b>Admin</b><span>pekerja, pengguna biasa, jadwal, laporan</span></div>
-          <div class="role"><b>Pengguna</b><span>tes dan riwayat sendiri</span></div>
-        </div>
-        <p style="margin-top:18px">RLS PostgreSQL menolak akses lintas peran, bahkan lewat API langsung.</p>
-      </section>
-
-      <section>
-        <div class="eyebrow">05 — Arsitektur</div>
+        <div class="num">05 · Arsitektur Sistem</div>
+        <h2>Offline-first, server-authoritative.</h2>
         <div class="arch">
           <div class="box"><b>ANDROID</b><small>Kotlin · Compose</small></div>
           <div class="box"><b>ROOM</b><small>cache + outbox</small></div>
-          <div class="box"><b>WORKMANAGER</b><small>sync otomatis</small></div>
+          <div class="box"><b>WORKMANAGER</b><small>sinkronisasi bertahap</small></div>
           <div class="box"><b>SUPABASE</b><small>Postgres · Auth · RLS</small></div>
         </div>
+        <p style="margin-top:8px">Desain <i>local-first</i><sup>5</sup> menjaga tes tetap berjalan saat jaringan tidak tersedia; server tetap menjadi sumber kebenaran.</p>
       </section>
 
-      <section class="security">
-        <div class="eyebrow">06 — Kepercayaan Data</div>
-        <p><strong>Monotonic clock</strong> — waktu reaksi tetap akurat meski jam sistem berubah.</p>
-        <p style="margin-top:12px"><strong>Immutable</strong> — hasil final tidak dapat diubah. <strong>Audit log</strong> mencatat tindakan penting.</p>
+      <section>
+        <div class="num">06 · Hasil</div>
+        <h2>Evaluasi fungsional prototipe.</h2>
+        <div class="stats">
+          <div class="stat"><div class="n">4</div><div class="l">mode pemeriksaan</div></div>
+          <div class="stat"><div class="n">3</div><div class="l">peran dengan RLS</div></div>
+          <div class="stat"><div class="n">140</div><div class="l">unit test JVM lulus</div></div>
+          <div class="stat"><div class="n">0</div><div class="l">service key di APK</div></div>
+        </div>
+        <table>
+          <tr><th>Aspek</th><th>Capaian</th></tr>
+          <tr><td>Pengukuran</td><td>Monotonic clock; trial tidak wajar tetap tercatat</td></tr>
+          <tr><td>Klasifikasi</td><td>Aturan tervalidasi; “Perlu validasi” bila belum</td></tr>
+          <tr><td>Offline</td><td>Room + WorkManager; finalisasi idempoten</td></tr>
+          <tr><td>Keamanan</td><td>RLS server-side; hasil final immutable; audit log</td></tr>
+        </table>
       </section>
+
+    </div>
+
+    <div class="col">
+      <section>
+        <div class="num">07 · Pembahasan</div>
+        <h2>Keputusan desain yang menjaga data.</h2>
+        <ul>
+          <li><b>Waktu monotonik</b> mengurangi galat akibat perubahan jam sistem.</li>
+          <li><b>RLS di server</b> mencegah UI menjadi satu-satunya kontrol akses; Admin tidak dapat mengubah konfigurasi atau mengangkat admin.</li>
+          <li><b>Hasil final immutable</b> dan audit log menjaga ketertelusuran.</li>
+          <li><b>Offline-first</b> memperluas konteks penggunaan, dengan sinkronisasi idempoten saat online.</li>
+        </ul>
+      </section>
+
+      <section>
+        <div class="num">08 · Keterbatasan</div>
+        <h2>Batasan yang harus dibaca.</h2>
+        <ul>
+          <li>Belum ada validasi klinis atau uji lapangan berskala besar.</li>
+          <li>Ambang klasifikasi bergantung pada SOP dan validasi organisasi.</li>
+          <li>Skrining kesehatan paramedis masih disimpan lokal pada perangkat.</li>
+          <li>Perubahan protokol aktif disimpan pada versi yang sama; tata kelola versi perlu diperkuat.</li>
+        </ul>
+      </section>
+
+      <section>
+        <div class="num">09 · Kesimpulan</div>
+        <h2>Layak diuji, belum untuk klaim medis.</h2>
+        <p>RATIG menunjukkan bahwa pemeriksaan waktu reaksi multi-pekerja dapat dirancang sebagai aplikasi Android yang offline-first, terlacak, dan berlapis keamanan. Prototipe ini layak dilanjutkan ke evaluasi kegunaan dan validasi lapangan, tetapi belum dapat menggantikan diagnosis atau keputusan akhir kelayakan kerja.</p>
+      </section>
+
     </div>
   </div>
 
-  <div class="devices">
-    <div class="device"><div class="phone"><img src="../proposal/ui/01_login.png" alt="Login RATIG"></div><div class="caption">01 · LOGIN</div></div>
-    <div class="device"><div class="phone"><img src="../proposal/ui/03_dashboard_superadmin_bawah.png" alt="Dasbor RATIG"></div><div class="caption">02 · DASBOR</div></div>
-    <div class="device"><div class="phone"><img src="../proposal/ui/08_daftar_pekerja.png" alt="Daftar pekerja RATIG"></div><div class="caption">03 · PEKERJA</div></div>
-    <div class="device"><div class="phone"><img src="../proposal/ui/11_detail_sesi.png" alt="Detail sesi RATIG"></div><div class="caption">04 · HASIL</div></div>
+  <div class="gallery">
+    <div class="num">Implementasi Antarmuka</div>
+    <h2>Bukti implementasi prototipe.</h2>
+    <div class="row">
+      <div class="shot"><img src="../proposal/ui/08_daftar_pekerja.png" onerror="this.style.visibility=\'hidden\'" alt="Daftar pekerja"><div class="cap">PEKERJA &amp; FILTER</div></div>
+      <div class="shot"><img src="../proposal/ui/09_detail_pekerja.png" onerror="this.style.visibility=\'hidden\'" alt="Detail pekerja"><div class="cap">DETAIL &amp; MULAI TES</div></div>
+      <div class="shot"><img src="../proposal/ui/11_detail_sesi.png" onerror="this.style.visibility=\'hidden\'" alt="Detail sesi"><div class="cap">HASIL &amp; TRIAL</div></div>
+      <div class="shot"><img src="../proposal/ui/17_protokol.png" onerror="this.style.visibility=\'hidden\'" alt="Protokol uji"><div class="cap">PROTOKOL &amp; VERSI</div></div>
+      <div class="shot"><img src="../proposal/ui/16_audit_log.png" onerror="this.style.visibility=\'hidden\'" alt="Audit log"><div class="cap">AUDIT LOG</div></div>
+    </div>
+    <div class="figcap"><b>Gambar 1.</b> Antarmuka operasional RATIG: identifikasi pekerja, detail hasil/trial, dan konfigurasi protokol. Tangkapan layar dari prototipe.</div>
+  </div>
+
+  <div class="refsbox">
+    <div class="num">10 · Referensi</div>
+    <ol class="refs">
+          <li><b>Dawson, D., et al.</b> (2021). Determining the contributing role of fatigue in industrial and transportation accidents. <i>Sleep Medicine Reviews</i>, 56, 101411.</li>
+          <li><b>Williamson, A., et al.</b> (2011). The compounding link between fatigue, sleep loss, and unintentional industrial accidents. <i>Safety Science</i>, 49(4), 498–515.</li>
+          <li><b>Basner, M., &amp; Dinges, D. F.</b> (2011). Maximizing sensitivity of the psychomotor vigilance test to sleep loss. <i>Sleep</i>, 34(5), 581–591.</li>
+          <li><b>Grant, D. A., et al.</b> (2017). 3-minute smartphone-based and tablet-based psychomotor vigilance tests. <i>Behavior Research Methods</i>, 49(3), 1020–1029.</li>
+          <li><b>Kleppmann, M., et al.</b> (2019). Local-first software: you own your data, in spite of the cloud. <i>Onward! 2019</i>, 154–178.</li>
+          <li><b>Chhetri, B., et al.</b> (2024). Human-in-the-loop AI frameworks for occupational safety decision support. <i>Safety Science</i>, 170, 106360.</li>
+        </ol>
   </div>
 
   <footer class="footer">
-    <div class="fine"><strong>Alat bantu keputusan, bukan diagnosis medis.</strong> Keputusan akhir tetap mengikuti SOP perusahaan dan penilaian pemeriksa yang berwenang. NIK disamarkan; data pribadi dilindungi berlapis.</div>
-    <div class="repo"><span>REPOSITORI</span>github.com/marsellinus/rating</div>
+    <div class="fine"><b>Alat bantu keputusan, bukan diagnosis medis.</b> Keputusan akhir tetap mengikuti SOP perusahaan dan penilaian pemeriksa yang berwenang. NIK disamarkan; data pribadi dilindungi berlapis. Evaluasi ini merupakan pengujian fungsional prototipe, bukan uji klinis.</div>
+    <div class="repo">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPgAAAD4AQAAAADpqhamAAABf0lEQVR4nOWZsbbDIAxDr3ry/7+sN9gG3tINnCYsJWiIHJBsU5mv4/Md/nn8QjGxcEwNjNVufvvjr3itJXTXtJvfCVwSgEHMIxCrd+B3BlduvFxCOPv+dlzGjKNw/v0t+MWI1rJshOWx2s3vQPxan2WQ5Vrt5rcb1zjqmjlwqQm6+e3GMXZmOxyJr8K3n5//K9ypeMBz1s1vv/4jchkUJQAgK2qAdn5ncI1DoHH+JXQXfvvwKzY7zE+QtY/KELr5nfH/OPkWziLwNf1P+L8dppcuWGJ4h/9HqPb6OD5KN78zuKP7mccg67/n6/9atlyE7pWdsNHj97/yflT8YXwuV/Tz4/8ATuM39T0Qil7gDvz24nHPI2yW7l+ZFPv57cXX/m/k/xCCeYH+5/1vub7LA1+x///uf03VgaMK6uZ3IP5h/Gn6UGlQr8j/OaxogkIHUQK/Qf9jWFaVQNRvN78z+T+TgIxdagg93IHfTnze/8bdN6x/AD5f/zP/97y/G/8DVGyzy0wHPWgAAAAASUVORK5CYII=" alt="QR repositori RATIG">
+      <div class="txt"><span>REPOSITORI</span>github.com/marsellinus/rating</div>
+    </div>
   </footer>
 </div>
 </body>

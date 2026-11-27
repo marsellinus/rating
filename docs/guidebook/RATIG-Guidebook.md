@@ -1,332 +1,461 @@
-# RATIG — Guidebook
+# RATIG — Buku Panduan Operasional
 
-**Panduan operasional aplikasi pemeriksaan kelelahan berbasis waktu reaksi**
+**Pemeriksaan Kelelahan Pekerja Berbasis Waktu Reaksi**
 
-Versi dokumen 1.0 · Android · 2026
+Buku kerja untuk petugas pemeriksa, administrator, dan pengelola sistem
 
-> **RATIG adalah alat bantu keputusan.** Hasilnya bukan diagnosis medis dan
-> bukan keputusan akhir kelayakan kerja. Keputusan tetap mengikuti SOP
-> perusahaan dan penilaian pemeriksa yang berwenang.
+Versi 1.0 · Android · 2026
 
----
+Program Studi Informatika · Universitas Siliwangi
+
+> **Alat bantu keputusan, bukan diagnosis medis.** Keputusan akhir tetap
+> mengikuti SOP perusahaan dan penilaian pemeriksa yang berwenang.
+
+<div class="page-break"></div>
+
+## Tentang Buku Ini
+
+Buku ini adalah panduan kerja, bukan manual teknis pengembangan. Isinya
+disusun mengikuti urutan pekerjaan nyata:
+
+1. menyiapkan perangkat dan akun;
+2. memeriksa pekerja;
+3. membaca hasil dan menindaklanjuti;
+4. mengelola pengguna, jadwal, dan laporan;
+5. merawat konfigurasi serta menangani masalah.
+
+Setiap bab dapat dibaca berdiri sendiri. Untuk referensi teknis, lihat
+`docs/architecture.md`; untuk naskah lengkap, lihat
+`docs/manual/RATIG-Manual.pdf`.
+
+## Cara Memakai Buku Ini
+
+| Peran | Bab yang wajib dibaca |
+|---|---|
+| Petugas pemeriksa | 2, 4, 5, 6, 7, 13 |
+| Admin | 2, 4, 8, 9, 10, 13 |
+| Super Admin | 2, 9, 10, 11, 13 |
+| Pengguna/pekerja | 2, 3, 7, 10, 13 |
+| Pengembang/pengelola teknis | seluruh buku + `docs/deployment.md` |
+
+<div class="page-break"></div>
 
 ## Daftar Isi
 
-1. [Tentang RATIG](#1-tentang-ratig)
-2. [Persiapan Perangkat](#2-persiapan-perangkat)
-3. [Setup Awal & Login](#3-setup-awal--login)
-4. [Peran & Hak Akses](#4-peran--hak-akses)
-5. [Menambah Pekerja & Akun Login](#5-menambah-pekerja--akun-login)
-6. [Alur Pemeriksaan](#6-alur-pemeriksaan)
-7. [Memahami Hasil](#7-memahami-hasil)
-8. [Riwayat & Detail Sesi](#8-riwayat--detail-sesi)
-9. [Dasbor Admin](#9-dasbor-admin)
-10. [Konfigurasi Super Admin](#10-konfigurasi-super-admin)
-11. [Offline & Sinkronisasi](#11-offline--sinkronisasi)
-12. [Onboarding Tanpa Email Hosting](#12-onboarding-tanpa-email-hosting)
-13. [Troubleshooting](#13-troubleshooting)
-14. [Keamanan & Privasi](#14-keamanan--privasi)
-15. [Checklist Demo](#15-checklist-demo)
+1. [Persiapan Harian](#1-persiapan-harian)
+2. [Peran & Tanggung Jawab](#2-peran--tanggung-jawab)
+3. [Perangkat, Setup, dan Login](#3-perangkat-setup-dan-login)
+4. [Alur Pemeriksaan](#4-alur-pemeriksaan)
+5. [Mode Tes & Protokol](#5-mode-tes--protokol)
+6. [Membaca Hasil](#6-membaca-hasil)
+7. [Riwayat & Tindak Lanjut](#7-riwayat--tindak-lanjut)
+8. [Admin: Pengguna & Jadwal](#8-admin-pengguna--jadwal)
+9. [Dasbor & Laporan](#9-dasbor--laporan)
+10. [Super Admin: Konfigurasi](#10-super-admin-konfigurasi)
+11. [Onboarding Tanpa Email Hosting](#11-onboarding-tanpa-email-hosting)
+12. [Offline & Sinkronisasi](#12-offline--sinkronisasi)
+13. [Pemecahan Masalah](#13-pemecahan-masalah)
+14. [Checklist & Lembar Kerja](#14-checklist--lembar-kerja)
+15. [Glosarium](#15-glosarium)
 
 ---
 
-## 1. Tentang RATIG
+# 1. Persiapan Harian
 
-RATIG mengukur **waktu reaksi** pekerja sebagai indikator kelelahan. Satu
-petugas dapat memeriksa banyak pekerja dari satu perangkat Android.
+Lakukan pemeriksaan singkat sebelum pekerja pertama datang.
 
-Yang membedakan RATIG:
+## 1.1 Checklist perangkat
 
-- **Cepat** — pemeriksaan berlangsung beberapa menit dan hasil langsung tampil.
-- **Objektif** — waktu diukur dengan monotonic clock, bukan perkiraan.
-- **Offline-first** — tes tetap berjalan tanpa sinyal; data tersinkron kemudian.
-- **Terdokumentasi** — hasil final permanen, perubahan penting masuk audit log.
-- **Aman per peran** — hak akses ditegakkan di server dengan Row Level Security.
+- [ ] Baterai minimal 60% atau perangkat terhubung daya.
+- [ ] Kamera bersih dan izin kamera aktif.
+- [ ] Tanggal & jam perangkat benar (zona waktu Asia/Jakarta).
+- [ ] Aplikasi RATIG versi terbaru.
+- [ ] Ruang penyimpanan cukup.
+- [ ] Jaringan tersedia bila akan sinkronisasi; bila tidak, pastikan mode offline siap.
+
+## 1.2 Checklist akun
+
+- [ ] Akun petugas aktif.
+- [ ] Protokol uji yang dipakai sudah aktif.
+- [ ] Aturan klasifikasi sudah divalidasi (bukan “Perlu validasi”).
+- [ ] Shift sesuai jadwal hari ini.
+- [ ] Perangkat tidak memakai akun bersama tanpa pengawasan.
+
+## 1.3 Checklist area
+
+- [ ] Pencahayaan cukup; layar tidak memantulkan cahaya.
+- [ ] Pekerja duduk nyaman dan tidak terganggu.
+- [ ] Volume perangkat memadai untuk instruksi.
+- [ ] Tidak ada percakapan yang mengganggu saat tes.
 
 ---
 
-## 2. Persiapan Perangkat
+# 2. Peran & Tanggung Jawab
 
-| Item | Kebutuhan |
-|---|---|
-| Sistem | Android 8.0 (API 26) atau lebih baru |
-| Kamera | Untuk pemindai barcode/QR (opsional) |
-| Penyimpanan | ±100 MB ruang kosong |
-| Jaringan | Internet opsional; diperlukan untuk sinkronisasi |
-| Akun | Dibuat administrator; tidak ada pendaftaran mandiri |
+| Peran | Tanggung jawab utama | Batas |
+|---|---|---|
+| **Super Admin** | konfigurasi protokol, aturan, data master, akun admin, audit | tidak menggantikan keputusan medis |
+| **Admin** | pekerja, pengguna biasa, jadwal, laporan, pemantauan | tidak mengubah konfigurasi atau mengangkat admin |
+| **Pengguna** | menjalankan tes dan melihat riwayat sendiri | tidak melihat data pekerja lain |
 
-Pasang APK yang diberikan administrator, lalu buka aplikasi.
+“Satu orang, satu akun.” Jangan memakai akun petugas untuk pekerja, atau
+sebaliknya. RLS di server membatasi data berdasarkan akun dan peran.
 
 ---
 
-## 3. Setup Awal & Login
+# 3. Perangkat, Setup, dan Login
 
-Saat pertama kali dibuka:
+## 3.1 Pertama kali
 
-1. Pilih **Bahasa** — Indonesia atau English.
-2. Pilih **Mode Tampilan** — Ikut Ponsel, Terang, atau Gelap.
-3. Pilih **Ukuran Tulisan** — Normal, Besar, atau Sangat Besar.
-4. Ketuk **Simpan & Lanjut**, lalu ikuti panduan singkat.
+1. Pasang APK dari administrator.
+2. Buka aplikasi.
+3. Pilih bahasa, mode tampilan, dan ukuran tulisan.
+4. Ketuk **Simpan & Lanjut**.
+5. Ikuti panduan singkat.
 
-Semua pilihan dapat diubah lagi dari **Profil → Pengaturan Tampilan**.
+Pengaturan dapat diubah dari **Profil → Pengaturan Tampilan**.
 
-### Login
+## 3.2 Login
 
-1. Masukkan **Email / ID Login** dan **Kata Sandi** dari administrator.
-2. Centang **Ingat saya** bila perangkat dipakai sendiri.
+1. Isi **Email / ID Login**.
+2. Isi **Kata Sandi**.
 3. Ketuk **Masuk**.
 
-> Login memakai email/kata sandi. Email hanya berfungsi sebagai **ID login**;
-> tidak harus berupa mailbox yang aktif. Ini penting untuk organisasi yang
-> belum memiliki hosting email.
+Email adalah ID login. Tidak perlu mailbox aktif. Untuk organisasi tanpa
+hosting email, gunakan ID internal seperti `nama@ratig.local`.
 
-Jika akun berstatus **Menunggu**, hubungi Admin untuk aktivasi.
+![Layar login](../proposal/ui/01_login.png)
 
----
+**Gambar 1.** Login email/kata sandi.
 
-## 4. Peran & Hak Akses
+## 3.3 Jika akun belum aktif
 
-| Peran | Halaman | Bisa melakukan |
-|---|---|---|
-| **Super Admin** | Dasbor Super Admin | semua: akun admin, protokol, aturan klasifikasi, data master, audit, pemantauan |
-| **Admin** | Dasbor Admin | pekerja, akun pengguna biasa, jadwal, tindak lanjut, laporan, pemantauan |
-| **Pengguna** | Beranda Pengguna | tes, riwayat sendiri, profil |
-
-Pembatasan ditegakkan di server:
-
-- Admin **tidak** dapat mengubah protokol, aturan, atau data master.
-- Admin **tidak** dapat mengangkat pengguna menjadi admin.
-- Admin **tidak** dapat membuat akun admin.
-- Pengguna hanya melihat sesi miliknya sendiri.
+Akun dapat berstatus **Menunggu**. Hubungi Admin. Jangan membuat akun sendiri;
+tidak ada pendaftaran mandiri.
 
 ---
 
-## 5. Menambah Pekerja & Akun Login
+# 4. Alur Pemeriksaan
 
-Buka **Pekerja → tombol (+)**. Menu ini untuk **data pekerja**, bukan akun
-aplikasi umum.
-
-| Kolom | Wajib | Catatan |
-|---|---|---|
-| Nomor Induk Pekerja | Ya | 4–32 digit; tidak boleh duplikat |
-| Nama Lengkap | Ya | tampil di daftar pekerja |
-| Email login | Tidak | boleh `nama@ratig.local`; tidak perlu mailbox |
-| Kata Sandi Login | Tidak | min. 8 karakter; isi untuk membuat akun login |
-| Departemen / Area / Shift | Tidak | area kerja mengikuti departemen |
-| Jabatan | Tidak | contoh: Operator |
-
-Dua kemungkinan:
-
-- **Sandi diisi** → data pekerja + akun login dibuat sekaligus. Akun langsung
-  aktif. Bila email dikosongkan, ID login menjadi
-  `<nomor-induk>@ratig.local`.
-- **Sandi kosong** → hanya data pekerja; pemeriksa yang menjalankan tes atas
-  namanya.
-
-Berikan ID login dan sandi **secara langsung** kepada pekerja. Tidak ada email
-undangan yang dikirim.
-
-### Menambah akun aplikasi (Admin/Super Admin)
-
-Buka **Profil → Pengguna → (+)**:
-
-- Admin hanya dapat membuat peran **Pengguna**.
-- Super Admin dapat membuat **Admin** atau **Pengguna**.
-- Isi **ID Login** dan **kata sandi sementara** (min. 8 karakter).
-- Akun langsung aktif; sampaikan kredensial langsung ke pengguna.
-
----
-
-## 6. Alur Pemeriksaan
+## 4.1 Alur singkat
 
 ```
-Pilih pekerja → pilih jenis tes → baca instruksi → tes
-      → tinjau hasil → finalisasi
+Pilih pekerja → pilih tes → baca instruksi → tes
+      → tinjau hasil → finalisasi → sinkronkan
 ```
 
-1. Buka menu **Pekerja**.
-2. Cari nama/nomor induk, gunakan filter, atau pindai QR `RATIG1:<NIK>`.
+## 4.2 Langkah kerja
+
+1. Buka **Pekerja**.
+2. Cari pekerja berdasarkan nama/nomor induk atau pindai QR.
 3. Ketuk pekerja → **Mulai Tes**.
-4. Pilih mode:
-   - **Klasik (RGB)** — untuk klasifikasi kelelahan.
-   - **Warna Acak** — metrik pengamatan.
-   - **Tombol Acak** — koordinasi mata–tangan.
-   - **Fokus (Go/No-Go)** — kontrol impuls.
-5. Bacakan instruksi; centang pemahaman pekerja.
-6. Jalankan tes. Jangan menutup aplikasi atau berpindah aplikasi.
-7. Tinjau hasil, lalu **Selesai/Finalisasi**.
+4. Pilih jenis tes.
+5. Pilih protokol dan shift.
+6. Bacakan instruksi; pastikan pekerja memahami.
+7. Jalankan tes tanpa gangguan.
+8. Tinjau hasil lalu finalisasi.
 
-> Jika aplikasi terhenti karena panggilan/notifikasi saat finalisasi, sesi yang
-> sudah selesai tidak boleh terputus. Gunakan tombol kembali dengan hati-hati.
+![Daftar pekerja](../proposal/ui/08_daftar_pekerja.png)
+
+**Gambar 2.** Daftar pekerja dan filter.
+
+## 4.3 Saat tes berlangsung
+
+- Jangan menutup aplikasi.
+- Jangan berpindah aplikasi.
+- Jangan mengarahkan jawaban pekerja.
+- Catat kejadian luar biasa pada tindak lanjut.
+
+> Jika sesi terputus, gunakan alur pemulihan yang tersedia. Jangan memaksa
+> keluar saat proses finalisasi berjalan.
 
 ---
 
-## 7. Memahami Hasil
+# 5. Mode Tes & Protokol
+
+| Mode | Cocok untuk | Hasil |
+|---|---|---|
+| **Klasik (RGB)** | pemeriksaan standar | klasifikasi kelelahan |
+| **Warna Acak** | variasi stimulus | metrik pengamatan |
+| **Tombol Acak** | koordinasi mata–tangan | akurasi/kelalaian |
+| **Fokus (Go/No-Go)** | kontrol impuls | akurasi/kelalaian |
+
+Hanya mode Klasik yang dipakai untuk klasifikasi. Mode lain tidak digabung
+menjadi satu skor.
+
+## 5.1 Protokol
+
+Protokol menentukan jumlah percobaan, delay stimulus, timeout respons, dan
+konfigurasi tambahan. Super Admin dapat mengubah protokol dari menu
+**Protokol Uji**.
+
+- **Draf** — belum aktif.
+- **Aktif** — dipakai untuk sesi baru.
+- **Ditarik** — tidak dipakai lagi.
+
+Perubahan pada protokol aktif disimpan pada versi yang sama. Layar edit
+menampilkan peringatan. Catat alasan perubahan pada audit/tindak lanjut.
+
+![Protokol](../proposal/ui/17_protokol.png)
+
+**Gambar 3.** Daftar protokol.
+
+---
+
+# 6. Membaca Hasil
 
 | Istilah | Arti |
 |---|---|
-| Mean | rata-rata waktu reaksi (ms) |
+| Mean | rata-rata waktu reaksi |
 | Median | nilai tengah |
 | Std. Deviasi | sebaran respons |
 | Percobaan valid | trial yang dihitung |
 | Respons lambat | respons melewati ambang |
-| Kategori | Normal / Fatigue Ringan / Sedang / Berat |
+| Kategori | Normal / Ringan / Sedang / Berat |
 
-Aturan klasifikasi harus **disetujui perusahaan**. Bila belum, aplikasi
-menampilkan **“Perlu validasi”** — bukan angka yang menyesatkan.
+Bila aturan belum divalidasi, hasil menampilkan **“Perlu validasi”**. Bila data
+valid tidak cukup, menampilkan **“Data tidak cukup”**. Jangan menafsirkan
+keduanya sebagai “Normal”.
 
-Mode non-Klasik menampilkan **metrik pengamatan** (akurasi, kelalaian) dan
-tidak digabung menjadi satu skor kelelahan.
+![Detail hasil](../proposal/ui/11_detail_sesi.png)
 
-### Skrining paramedis
+**Gambar 4.** Detail hasil dan trial.
 
-Pada layar hasil, petugas dapat mengisi tekanan darah, nadi, dan alkohol.
-Temuan serta rekomendasi bersifat saran; keputusan tetap pada pemeriksa.
+## 6.1 Eskalasi
 
----
-
-## 8. Riwayat & Detail Sesi
-
-- **Riwayat** menampilkan sesi berdasarkan periode, shift, status, dan kategori.
-- Admin dapat memfilter departemen; **Pengguna** hanya melihat
-  **Departemen Anda** karena riwayatnya sudah dibatasi ke sesi sendiri.
-- Ketuk sesi untuk melihat:
-  - informasi pekerja, pemeriksa, shift, protokol, waktu;
-  - metrik dan kategori;
-  - rincian trial per nomor;
-  - tindak lanjut (untuk admin).
-
-Hasil yang sudah final tidak dapat diubah.
+- **Normal** — lanjutkan prosedur biasa.
+- **Ringan/Sedang** — pertimbangkan istirahat, rotasi, atau pemeriksaan ulang
+  sesuai SOP.
+- **Berat** — ikuti prosedur eskalasi perusahaan; jangan membuat keputusan
+  medis sendiri.
+- **Perlu validasi / Data tidak cukup** — jangan memakai hasil untuk keputusan;
+  hubungi Super Admin.
 
 ---
 
-## 9. Dasbor Admin
+# 7. Riwayat & Tindak Lanjut
 
-Dasbor Admin menampilkan:
+## 7.1 Riwayat
 
-- pekerja aktif, total pengguna, sesi hari ini/total;
-- sesi belum selesai, tindak lanjut terbuka, akun menunggu;
-- **klasifikasi hasil**;
-- **sesi per departemen** dan **per shift**;
-- tren harian.
+Menu **Riwayat** menampilkan sesi berdasarkan periode, shift, status, kategori,
+dan nama pekerja.
 
-Menu operasional:
+Untuk peran **Pengguna**, riwayat hanya berisi sesi sendiri. Filter departemen
+diganti informasi **Departemen Anda**.
 
-- **Pengguna** — kelola akun pengguna biasa.
-- **Laporan** — pratinjau dan ekspor CSV.
-- **Jadwal & Shift** — lihat dan atur jadwal.
-- **Tindak Lanjut** — catat tindakan atas temuan.
-- **Audit Log** — jejak tindakan penting.
+## 7.2 Detail sesi
 
----
+Berisi identitas pekerja, pemeriksa, shift, protokol, waktu, metrik, rincian
+trial, dan tindak lanjut.
 
-## 10. Konfigurasi Super Admin
+## 7.3 Tindak lanjut
 
-Super Admin dapat:
+1. Buka detail sesi.
+2. Pilih **Tambah Tindak Lanjut**.
+3. Tulis tindakan yang dilakukan.
+4. Tetapkan status (terbuka/selesai).
+5. Simpan.
 
-- **Protokol Uji** — buat/ubah protokol. Menu **Ubah** tersedia untuk semua
-  status. Untuk protokol aktif, perubahan disimpan pada versi yang sama dan
-  berlaku untuk sesi baru — layar edit menampilkan peringatan.
-- **Aturan Klasifikasi** — atur ambang kategori dan validasi aturan.
-- **Data Master** — departemen, area kerja, shift.
-- **Pengguna** — buat admin/pengguna, ubah peran, aktivasi akun.
-- **Audit Log** — periksa perubahan konfigurasi dan akun.
+Tindak lanjut adalah catatan operasional, bukan diagnosis.
 
 ---
 
-## 11. Offline & Sinkronisasi
+# 8. Admin: Pengguna & Jadwal
+
+## 8.1 Menambah pengguna
+
+Buka **Profil → Pengguna → (+)**.
+
+| Kolom | Keterangan |
+|---|---|
+| Nama lengkap | wajib |
+| ID Login | email atau `nama@ratig.local` |
+| Peran | Admin hanya boleh membuat Pengguna |
+| Status | aktif atau menunggu |
+| Kata sandi sementara | min. 8 karakter; wajib |
+
+Tidak ada email undangan. Berikan ID dan sandi langsung kepada pengguna.
+
+## 8.2 Menonaktifkan pengguna
+
+Gunakan menu pengguna → nonaktifkan. Riwayat pekerja tidak dihapus. Akun yang
+nonaktif tidak bisa masuk.
+
+## 8.3 Jadwal & shift
+
+- Super Admin mengelola **shift** di Data Master.
+- Admin/Super Admin mengatur jadwal pemeriksaan.
+- Bila halaman jadwal kosong, belum ada jadwal yang dibuat; itu bukan error.
+- Worker hanya melihat jadwal, tidak dapat mengubahnya.
+
+---
+
+# 9. Dasbor & Laporan
+
+## 9.1 Dasbor Admin
+
+Menampilkan pekerja aktif, total pengguna, sesi hari ini/total, sesi belum
+selesai, tindak lanjut terbuka, akun menunggu, klasifikasi hasil, sebaran
+departemen/shift, dan tren.
+
+![Dasbor](../proposal/ui/03_dashboard_superadmin_bawah.png)
+
+**Gambar 5.** Grafik dasbor.
+
+Jika grafik kosong: belum ada sesi final, atau pekerja belum memiliki
+departemen. Itu bukan kegagalan aplikasi.
+
+## 9.2 Laporan
+
+1. Buka **Profil → Laporan**.
+2. Pilih periode dan filter.
+3. Pratinjau.
+4. Ekspor CSV dan bagikan.
+
+---
+
+# 10. Super Admin: Konfigurasi
+
+## 10.1 Protokol
+
+Buat/ubah protokol, aktifkan draf, atau tarik protokol aktif. Menu **Ubah**
+tersedia untuk semua status.
+
+## 10.2 Aturan klasifikasi
+
+Atur ambang dan label kategori. Validasi aturan sebelum dipakai untuk keputusan.
+Aturan yang belum valid akan menampilkan “Perlu validasi”.
+
+## 10.3 Data master
+
+Kelola departemen, area kerja, dan shift. Perubahan data master memengaruhi
+filter dan laporan.
+
+## 10.4 Audit log
+
+Audit log mencatat pembuatan akun, perubahan peran, persetujuan, dan perubahan
+konfigurasi. Gunakan untuk menelusuri perubahan.
+
+---
+
+# 11. Onboarding Tanpa Email Hosting
+
+## 11.1 Pekerja
+
+1. Buka **Pekerja → (+)**.
+2. Isi NIP dan nama.
+3. Isi kata sandi (min. 8).
+4. Email boleh kosong → ID login `<NIP>@ratig.local`.
+5. Simpan; berikan ID dan sandi langsung.
+
+## 11.2 Pengguna/Admin
+
+1. Buka **Profil → Pengguna → (+)**.
+2. Isi nama, ID Login, sandi sementara.
+3. Simpan; akun langsung aktif.
+4. Berikan kredensial langsung.
+
+> Email hanyalah pengenal unik. Tidak ada email yang dikirim, jadi tidak perlu
+> hosting email.
+
+---
+
+# 12. Offline & Sinkronisasi
 
 1. Tes tetap berjalan tanpa sinyal.
 2. Data disimpan di perangkat.
-3. Saat online, WorkManager mengirim data secara bertahap.
-4. Buka **Status Sinkronisasi** untuk melihat antrean dan kegagalan.
-5. **Sinkronkan sekarang** memaksa pengiriman segera.
-
-Status penting:
+3. WorkManager mengirim otomatis saat online.
+4. Buka **Status Sinkronisasi** untuk melihat antrean.
+5. **Sinkronkan sekarang** memaksa pengiriman.
 
 | Status | Arti |
 |---|---|
-| Menunggu koneksi | tersimpan lokal, menunggu jaringan |
+| Menunggu koneksi | tersimpan lokal |
 | Sedang disinkronkan | sedang dikirim |
-| Tersinkronisasi | sudah diterima server |
+| Tersinkronisasi | diterima server |
 | Gagal, akan dicoba | gangguan sementara |
-| Perlu pemeriksaan | perlu tindakan manual |
+| Perlu pemeriksaan | perlu tindakan admin |
+
+Server tetap sumber kebenaran; hasil final tidak dapat diubah dari perangkat.
 
 ---
 
-## 12. Onboarding Tanpa Email Hosting
+# 13. Pemecahan Masalah
 
-Tidak perlu mail server atau undangan email.
-
-### Untuk pekerja
-
-1. Buka **Pekerja → (+)**.
-2. Isi NIP, nama, dan kata sandi.
-3. Kosongkan email → ID login otomatis `<NIP>@ratig.local`.
-4. Simpan. Berikan ID + sandi langsung ke pekerja.
-
-### Untuk admin/pengguna aplikasi
-
-1. Buka **Profil → Pengguna → (+)**.
-2. Isi nama, **ID Login** (boleh `nama@ratig.local`), dan sandi sementara.
-3. Simpan; akun langsung aktif.
-4. Sampaikan ID + sandi langsung.
-
-> `@ratig.local` adalah pengenal internal. Tidak ada email yang dikirim, jadi
-> tidak memerlukan hosting email.
-
----
-
-## 13. Troubleshooting
-
-| Gejala | Solusi |
+| Gejala | Yang dilakukan |
 |---|---|
-| Tidak bisa login | cek ID login, sandi, status akun; pastikan jaringan untuk login pertama |
-| Tambah pekerja ditolak | NIP/email duplikat, atau sandi < 8 karakter |
-| Tambah pengguna ditolak | email/ID sudah dipakai, atau sandi < 8 karakter |
-| QR tidak dikenali | gunakan format `RATIG1:<NIK>` atau input NIK manual |
-| Kamera tidak muncul | izinkan kamera di Pengaturan Android → RATIG → Izin |
-| Data belum terkirim | buka Status Sinkronisasi; cek jaringan; tekan Sinkronkan sekarang |
-| Grafik dasbor kosong | belum ada sesi final dengan klasifikasi/departemen |
-| Hasil “Perlu validasi” | aturan klasifikasi belum divalidasi; hubungi Super Admin |
-| “Koneksi jaringan bermasalah” | periksa DNS/jaringan perangkat; server mungkin tidak terjangkau |
+| Tidak bisa login | cek ID/sandi, status akun, jaringan |
+| Tambah pekerja ditolak | NIP/email duplikat atau sandi < 8 |
+| Tambah pengguna ditolak | ID login sudah dipakai atau sandi < 8 |
+| QR tidak dikenali | format `RATIG1:<NIK>` atau input manual |
+| Kamera tidak muncul | izin kamera di Pengaturan Android |
+| Data belum terkirim | buka Status Sinkronisasi; cek jaringan |
+| Grafik kosong | belum ada sesi final/departemen |
+| “Perlu validasi” | aturan belum divalidasi; hubungi Super Admin |
+| Hasil terputus | lanjutkan sesi atau ulangi; jangan paksa keluar |
 
 ---
 
-## 14. Keamanan & Privasi
+# 14. Checklist & Lembar Kerja
 
-- NIK adalah kunci bisnis; ditampilkan **disamarkan**.
-- Foreign key memakai UUID, bukan NIK.
-- Service-role key **tidak pernah** disimpan di APK.
-- RLS membatasi data per peran dan per pemilik sesi.
-- Hasil final **immutable**.
-- Audit log mencatat tindakan penting.
-- Skrining kesehatan disimpan lokal di perangkat pada versi ini.
+## 14.1 Checklist sebelum tes
+
+- [ ] Pekerja yang benar sudah dipilih.
+- [ ] Protokol sesuai.
+- [ ] Shift sesuai.
+- [ ] Instruksi sudah dibacakan.
+- [ ] Pekerja memahami dan setuju.
+- [ ] Lingkungan tenang.
+
+## 14.2 Checklist setelah tes
+
+- [ ] Hasil ditinjau.
+- [ ] Trial tidak wajar diperiksa.
+- [ ] Kategori dibaca bersama konteks.
+- [ ] Tindak lanjut dicatat bila perlu.
+- [ ] Sesi difinalisasi.
+- [ ] Sinkronisasi diperiksa.
+
+## 14.3 Lembar catatan harian
+
+| Jam | Nama pekerja | NIP | Mode | Hasil | Tindakan |
+|---|---|---|---|---|---|
+|  |  |  |  |  |  |
+|  |  |  |  |  |  |
+|  |  |  |  |  |  |
+|  |  |  |  |  |  |
+|  |  |  |  |  |  |
+
+## 14.4 Checklist demo presentasi
+
+1. Login Super Admin; tunjukkan dasbor.
+2. Buka Pekerja → detail → Mulai Tes; jelaskan 4 mode.
+3. Buka Riwayat → detail hasil/trial.
+4. Buka Protokol → Ubah; jelaskan versi.
+5. Buka Pengguna → (+) Tambah Pengguna; jelaskan sandi tanpa email.
+6. Buka Audit Log.
+7. Login Pengguna; tunjukkan Riwayat “Departemen Anda”.
+8. Tutup dengan batasan: alat bantu keputusan, bukan diagnosis.
 
 ---
 
-## 15. Checklist Demo
+# 15. Glosarium
 
-Gunakan urutan ini untuk demo 5–7 menit:
-
-1. **Login** sebagai Super Admin.
-2. Tunjukkan **Dasbor** dan grafik klasifikasi/departemen.
-3. Buka **Pekerja → Detail → Mulai Tes**; jelaskan 4 mode.
-4. Tunjukkan **Hasil** dan **Detail Sesi** (metrik + trial).
-5. Buka **Protokol Uji → Ubah**; jelaskan versi dan peringatan.
-6. Buka **Data Master**; tunjukkan departemen/shift.
-7. Buka **Pengguna → (+) Tambah Pengguna**; jelaskan sandi sementara tanpa
-   email undangan.
-8. Buka **Audit Log**; tunjukkan jejak tindakan.
-9. Login sebagai **Pengguna/Worker**; tunjukkan Beranda dan Riwayat
-   (Departemen Anda, tanpa filter departemen).
-10. Tutup dengan batasan: **alat bantu keputusan, bukan diagnosis medis**.
+| Istilah | Arti |
+|---|---|
+| PVT | Psychomotor Vigilance Task; tes waktu reaksi |
+| Monotonic clock | jam yang tidak terpengaruh perubahan waktu sistem |
+| RLS | Row Level Security; pembatasan baris data |
+| Room | database lokal Android |
+| WorkManager | penjadwal sinkronisasi |
+| Immutable | tidak dapat diubah setelah final |
+| Audit log | catatan tindakan penting |
 
 ---
 
 ## Lampiran — Akun Demo
 
-Kata sandi akun demo: **`Ratig-T3st-2026!`** (hanya untuk lingkungan uji).
+Kata sandi: **`Ratig-T3st-2026!`** (hanya lingkungan uji).
 
 | Email | Peran |
 |---|---|
@@ -339,4 +468,4 @@ Kata sandi akun demo: **`Ratig-T3st-2026!`** (hanya untuk lingkungan uji).
 
 ---
 
-*Dokumen ini melengkapi `USER-MANUAL.md` dan `docs/poster/RATIG-Poster.md`.*
+*RATIG — sederhana bagi pengguna, kuat di belakang layar.*

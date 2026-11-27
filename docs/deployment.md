@@ -95,7 +95,7 @@ reflection-based code breaks after shrinking, extend `proguard-rules.pro`.
 
 ## 6. Verification checklist before shipping
 
-- [ ] `./gradlew :app:testDebugUnitTest` → **138 tests**, all green (metrics,
+- [ ] `./gradlew :app:testDebugUnitTest` → **140 tests**, all green (metrics,
       classifier, NIK/QR, CSV, sync-failure, `jsonb`, dashboard parsers).
 - [ ] `./gradlew :app:assembleRelease` succeeds.
 - [ ] `supabase/README.md` §5 RLS scenarios all behave as documented against the

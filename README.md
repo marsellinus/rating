@@ -168,16 +168,24 @@ Penggunaan**.
 
 | Dokumen | Isi |
 |---|---|
-| [USER-MANUAL.md](USER-MANUAL.md) | Buku panduan pengguna aplikasi |
-| [docs/guidebook/RATIG-Guidebook.md](docs/guidebook/RATIG-Guidebook.md) | Guidebook operasional (+ `.pdf` A4): peran, onboarding tanpa email, demo checklist |
-| [docs/poster/RATIG-Poster.md](docs/poster/RATIG-Poster.md) | Naskah poster A2 + `RATIG-Poster.png`/`.pdf` siap cetak |
-| [docs/demo/RATIG-Demo.mp4](docs/demo/RATIG-Demo.mp4) | Video demo 1080p, narasi & subtitle Indonesia |
+| [USER-MANUAL.md](USER-MANUAL.md) | Panduan pengguna ringkas |
+| [docs/manual/RATIG-Manual.pdf](docs/manual/RATIG-Manual.pdf) | **Buku manual 27 halaman** (A4): setup, peran, operasional, admin, troubleshooting |
+| [docs/guidebook/RATIG-Guidebook.pdf](docs/guidebook/RATIG-Guidebook.pdf) | **Buku panduan operasional 24 halaman** (A4) |
+| [docs/poster/RATIG-Poster.md](docs/poster/RATIG-Poster.md) | Poster ilmiah A2 (abstrak–metode–hasil–referensi) + PNG/PDF siap cetak |
+| [docs/demo/RATIG-Demo-Presentasi.mp4](docs/demo/RATIG-Demo-Presentasi.mp4) | Demo presentasi 16:9 dari rekaman UI asli + narasi ElevenLabs |
+| [docs/demo/RATIG-Demo-Penggunaan.mp4](docs/demo/RATIG-Demo-Penggunaan.mp4) | Versi vertikal 1080×2400 untuk ponsel |
+| [docs/index.html](docs/index.html) | Situs dokumentasi (menu hamburger) siap GitHub Pages `/docs` |
 | [PROPOSAL.md](PROPOSAL.md) | Proposal proyek (juga `.docx`/`.pdf` di `docs/proposal/`) |
 | [docs/architecture.md](docs/architecture.md) | Arsitektur, timing, offline, sync |
 | [docs/deployment.md](docs/deployment.md) | Toolchain, konfigurasi, signing, checklist |
 | [docs/oauth-setup.md](docs/oauth-setup.md) | Google OAuth opsional (Credential Manager); tidak dipakai di setup standar |
 | [supabase/README.md](supabase/README.md) | Migrasi 0001–0013, RPC, matriks RLS & peran |
 | [CONTRACT.md](CONTRACT.md) / [CONTRACT-2.md](CONTRACT-2.md) | Kontrak antarmuka & arsitektur |
+
+Situs dokumentasi siap GitHub Pages ada di `docs/index.html`. Untuk
+mengaktifkannya: **Settings → Pages → Source: Deploy from a branch →
+Branch: `main` → Folder: `/docs`**. Situs memakai menu hamburger responsif,
+video demo, poster, manual, dan guidebook.
 
 Galeri antarmuka: `docs/proposal/RATIG-UI-Gallery.pdf` (dan 21 gambar di
 `docs/proposal/ui/`).
@@ -186,7 +194,7 @@ Galeri antarmuka: `docs/proposal/RATIG-UI-Gallery.pdf` (dan 21 gambar di
 
 ## Pengujian
 
-- **138 unit test JVM** mencakup: kalkulasi metrik, klasifikasi kelelahan,
+- **140 unit test JVM** mencakup: kalkulasi metrik, klasifikasi kelelahan,
   validasi & masking NIK, payload QR, klasifikasi kegagalan sinkronisasi,
   penulis CSV, jembatan `jsonb`, dan parser dasbor `camelCase`/`snake_case`.
 

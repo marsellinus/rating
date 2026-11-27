@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="RATIG — aplikasi Android pemeriksaan kelelahan berbasis waktu reaksi. Dokumentasi, poster, manual, dan demo.">
+<meta name="theme-color" content="#123b2a">
+<title>RATIG — Dokumentasi & Demo</title>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Lewati ke konten</a>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#top" aria-label="RATIG beranda">
+      <span class="brand-mark">R</span>
+      <span>RATIG<small>REACTION TIME FATIGUE</small></span>
+    </a>
+
+    <button class="menu-toggle" type="button" aria-label="Buka menu" aria-controls="primary-nav" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="nav" id="primary-nav" aria-label="Navigasi utama">
+      <a href="#ringkasan">Ringkasan</a>
+      <a href="#demo">Demo</a>
+      <a href="#poster">Poster</a>
+      <a href="#dokumen">Dokumen</a>
+      <a href="#keamanan">Keamanan</a>
+      <a href="#arsitektur">Arsitektur</a>
+      <a class="repo-link" href="https://github.com/marsellinus/rating" target="_blank" rel="noreferrer">GitHub ↗</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap" id="top">
+    <section class="hero">
+      <div>
+        <div class="kicker">Capstone Project · Informatika UNSIL · 2026</div>
+        <h1>RATIG</h1>
+        <div class="subtitle">Reaction Time Fatigue</div>
+        <p class="lede">Pemeriksaan kelelahan pekerja berbasis waktu reaksi. Cepat, objektif, dan tetap berjalan tanpa internet.</p>
+        <div class="chips">
+          <span class="chip">Android · Kotlin</span>
+          <span class="chip">Jetpack Compose</span>
+          <span class="chip">Supabase · RLS</span>
+          <span class="chip">Offline-first</span>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="#demo">Tonton demo</a>
+          <a class="btn btn-secondary" href="manual/RATIG-Manual.pdf" target="_blank" rel="noreferrer">Baca manual</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="phone"><img src="proposal/ui/08_daftar_pekerja.png" alt="Daftar pekerja RATIG"></div>
+      </div>
+    </section>
+
+    <div class="stats" aria-label="Angka kunci">
+      <div class="stat"><b>4</b><span>mode pemeriksaan</span></div>
+      <div class="stat"><b>3</b><span>peran dengan RLS</span></div>
+      <div class="stat"><b>140</b><span>unit test JVM lulus</span></div>
+      <div class="stat"><b>0</b><span>service key di APK</span></div>
+    </div>
+
+    <section class="section" id="ringkasan">
+      <div class="section-head">
+        <div>
+          <div class="kicker">01 · Ringkasan</div>
+          <h2>Dari pemeriksaan manual ke data yang bisa dibandingkan.</h2>
+        </div>
+        <p class="note">RATIG adalah alat bantu keputusan, bukan diagnosis medis. Keputusan akhir tetap mengikuti SOP perusahaan.</p>
+      </div>
+      <div class="grid grid-3">
+        <article class="card">
+          <span class="tag">Masalah</span>
+          <h3>Kelelahan sulit terlihat</h3>
+          <p>Pekerja bisa merasa kuat, padahal refleksnya sudah menurun. Pencatatan manual menyulitkan pemantauan dan audit.</p>
+        </article>
+        <article class="card">
+          <span class="tag">Solusi</span>
+          <h3>Satu alur, hasil yang jelas</h3>
+          <p>Pilih pekerja, jalankan tes, tinjau metrik dan kategori, lalu finalisasi. Data tersimpan lokal dan tersinkron otomatis.</p>
+        </article>
+        <article class="card">
+          <span class="tag">Empat mode</span>
+          <h3>Klasik, Warna, Tombol, Fokus</h3>
+          <p>Hanya mode Klasik yang dipakai untuk klasifikasi. Mode lain memberi metrik pengamatan dan tidak digabung menjadi satu skor.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="demo">
+      <div class="section-head">
+        <div>
+          <div class="kicker">02 · Demo</div>
+          <h2>Lihat alurnya, bukan hanya fiturnya.</h2>
+        </div>
+        <p class="note">Video demo memakai rekaman UI asli dan narasi Bahasa Indonesia.</p>
+      </div>
+      <div class="demo-grid">
+        <div class="video-card">
+          <video controls playsinline preload="metadata" poster="poster/RATIG-Poster.png">
+            <source src="demo/RATIG-Demo-Presentasi.mp4" type="video/mp4">
+            <source src="demo/RATIG-Demo-Penggunaan.mp4" type="video/mp4">
+            <source src="demo/RATIG-Demo.mp4" type="video/mp4">
+            Browser Anda tidak mendukung pemutar video.
+          </video>
+          <div class="video-meta">
+            <span>Demo penggunaan · rekaman UI asli · subtitle Indonesia</span>
+            <a href="demo/RATIG-Demo-Penggunaan.srt" download>Unduh subtitle (.srt)</a>
+          </div>
+        </div>
+        <div class="card">
+          <span class="tag">Yang ditunjukkan</span>
+          <h3>Alur operasional</h3>
+          <p>Dasbor Super Admin, daftar pekerja, detail hasil, riwayat, konfigurasi protokol, dan audit log.</p>
+          <p class="small" style="margin-top:14px">Video menggunakan screenshot/recording UI prototipe. Data yang tampil adalah data uji.</p>
+          <div class="actions">
+            <a class="btn btn-secondary" href="demo/storyboard.md">Baca storyboard</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="poster">
+      <div class="section-head">
+        <div>
+          <div class="kicker">03 · Poster</div>
+          <h2>Poster ilmiah A2.</h2>
+        </div>
+        <p class="note">Abstrak, latar belakang, metode, hasil, pembahasan, keterbatasan, kesimpulan, dan referensi.</p>
+      </div>
+      <div class="poster-grid">
+        <div class="poster-frame">
+          <img src="poster/RATIG-Poster.png" alt="Poster ilmiah RATIG A2">
+        </div>
+        <div>
+          <div class="card">
+            <span class="tag">Format</span>
+            <h3>420 × 594 mm · 2480 × 3508 px</h3>
+            <p>Disusun dengan gaya akademik tiga kolom. Referensi memakai sumber PVT, kelelahan industri, dan local-first software.</p>
+            <div class="btn-row">
+              <a class="btn btn-primary" href="poster/RATIG-Poster.pdf" target="_blank" rel="noreferrer">Unduh PDF A2</a>
+              <a class="btn btn-secondary" href="poster/RATIG-Poster.png" download>Unduh PNG</a>
+              <a class="btn btn-secondary" href="poster/RATIG-Poster.md">Sumber Markdown</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="dokumen">
+      <div class="section-head">
+        <div>
+          <div class="kicker">04 · Dokumen</div>
+          <h2>Buku manual & pendukung.</h2>
+        </div>
+        <p class="note">Dokumen ditulis dari perilaku aplikasi yang sudah diuji, termasuk onboarding tanpa email hosting.</p>
+      </div>
+      <div class="grid grid-3">
+        <article class="card doc-card">
+          <span class="tag">Manual</span>
+          <h3>Buku Manual Pengguna</h3>
+          <p>27 halaman: setup, peran, pekerja, tes, hasil, offline, admin, troubleshooting, glosarium.</p>
+          <div class="actions">
+            <a class="btn btn-primary" href="manual/RATIG-Manual.pdf" target="_blank" rel="noreferrer">PDF</a>
+            <a class="btn btn-secondary" href="manual/RATIG-Manual.md">Markdown</a>
+          </div>
+        </article>
+        <article class="card doc-card">
+          <span class="tag">Guidebook</span>
+          <h3>Guidebook Operasional</h3>
+          <p>Ringkasan kerja: peran, alur tes, onboarding, offline, troubleshooting, checklist demo.</p>
+          <div class="actions">
+            <a class="btn btn-primary" href="guidebook/RATIG-Guidebook.pdf" target="_blank" rel="noreferrer">PDF</a>
+            <a class="btn btn-secondary" href="guidebook/RATIG-Guidebook.md">Markdown</a>
+          </div>
+        </article>
+        <article class="card doc-card">
+          <span class="tag">Proyek</span>
+          <h3>Proposal & Arsitektur</h3>
+          <p>Latar belakang, tujuan, ruang lingkup, arsitektur, timing, offline-first, dan deployment.</p>
+          <div class="actions">
+            <a class="btn btn-secondary" href="https://github.com/marsellinus/rating/blob/main/PROPOSAL.md" target="_blank" rel="noreferrer">Proposal</a>
+            <a class="btn btn-secondary" href="architecture.md">Arsitektur</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="keamanan">
+      <div class="section-head">
+        <div>
+          <div class="kicker">05 · Peran & keamanan</div>
+          <h2>Tiga peran, batas yang tegas.</h2>
+        </div>
+        <p class="note">RLS PostgreSQL menolak akses lintas peran, bahkan lewat API langsung.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Peran</th><th>Wewenang</th><th>Batasan</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Super Admin</strong></td><td>protokol, aturan, data master, akun admin, audit</td><td>—</td></tr>
+            <tr><td><strong>Admin</strong></td><td>pekerja, pengguna biasa, jadwal, laporan, pemantauan</td><td>tidak boleh mengubah konfigurasi atau mengangkat admin</td></tr>
+            <tr><td><strong>Pengguna</strong></td><td>tes dan riwayat sendiri</td><td>tidak melihat data pekerja lain</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="grid grid-3" style="margin-top:16px">
+        <div class="card"><h3>Tanpa service key</h3><p>Kunci layanan hanya ada di Edge Function sisi server; APK tidak pernah memuatnya.</p></div>
+        <div class="card"><h3>Hasil immutable</h3><p>Hasil final tidak dapat diubah dari perangkat. Perubahan penting masuk audit log.</p></div>
+        <div class="card"><h3>NIK disamarkan</h3><p>NIK adalah kunci bisnis; tampilan disamarkan dan bukan foreign key.</p></div>
+      </div>
+    </section>
+
+    <section class="section" id="arsitektur">
+      <div class="section-head">
+        <div>
+          <div class="kicker">06 · Arsitektur</div>
+          <h2>Offline-first, server-authoritative.</h2>
+        </div>
+        <p class="note">Tes tetap jalan tanpa sinyal; server tetap menjadi sumber kebenaran.</p>
+      </div>
+      <div class="architecture">
+        <div class="arch-box"><b>ANDROID</b><span>Kotlin · Compose</span></div>
+        <div class="arch-box"><b>ROOM</b><span>cache + outbox</span></div>
+        <div class="arch-box"><b>WORKMANAGER</b><span>sinkronisasi bertahap</span></div>
+        <div class="arch-box"><b>SUPABASE</b><span>Postgres · Auth · RLS</span></div>
+      </div>
+      <div class="grid grid-2" style="margin-top:16px">
+        <div class="card"><h3>Pengukuran</h3><p>Monotonic clock (<code>elapsedRealtimeNanos</code>); trial tidak wajar ditandai, bukan dihapus diam-diam.</p></div>
+        <div class="card"><h3>Sinkronisasi</h3><p>Room + WorkManager; finalisasi idempoten dan tahan retry. Status terlihat di halaman sinkronisasi.</p></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <b>RATIG — Reaction Time Fatigue</b>
+      <p class="small">Alat bantu keputusan, bukan diagnosis medis. Keputusan akhir mengikuti SOP perusahaan dan penilaian pemeriksa yang berwenang. Data pada demo adalah data uji.</p>
+    </div>
+    <div class="qr">
+      <img src="poster/repo-qr.png" alt="QR repositori GitHub RATIG">
+      <div><b>Repositori</b><br><a href="https://github.com/marsellinus/rating" target="_blank" rel="noreferrer">github.com/marsellinus/rating</a></div>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+</body>
+</html>

@@ -52,6 +52,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ratig.app.domain.model.TestMode
 import com.ratig.app.domain.model.Worker
+import com.ratig.app.domain.model.formatProtocolVersion
 import com.ratig.app.ui.components.ErrorState
 import com.ratig.app.ui.components.LoadingState
 
@@ -413,7 +414,7 @@ private fun StartTestDialog(
                         options = state.protocols.map { protocol ->
                             DropdownOption(
                                 value = protocol.id,
-                                label = "${protocol.name} (v${protocol.protocolVersion})",
+                                label = "${protocol.name} (${formatProtocolVersion(protocol.protocolVersion)})",
                             )
                         },
                         selectedValue = selectedProtocolId,

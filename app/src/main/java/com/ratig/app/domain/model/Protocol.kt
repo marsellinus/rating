@@ -29,6 +29,14 @@ data class TestProtocol(
     val createdAt: Instant? = null,
 )
 
+/** Display helper: versions may be stored as "1" or "v1"; never show "vv1". */
+fun formatVersionLabel(version: String): String {
+    val trimmed = version.trim()
+    return if (trimmed.startsWith("v", ignoreCase = true)) trimmed else "v$trimmed"
+}
+
+fun formatProtocolVersion(version: String): String = formatVersionLabel(version)
+
 @Serializable
 enum class ProtocolStatus {
     @SerialName("draft") DRAFT,

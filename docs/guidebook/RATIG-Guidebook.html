@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc 3.10.2" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>RATIG — Guidebook</title>
+  <title>RATIG — Buku Panduan Operasional</title>
   <style>
     /* Default styles provided by pandoc.
     ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -28,258 +28,278 @@
     }
     .display.math{display: block; text-align: center; margin: 0.5rem auto;}
   </style>
-  <link rel="stylesheet" href="guidebook.css" />
+  <link rel="stylesheet" href="../manual/manual.css" />
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">RATIG — Guidebook</h1>
+<h1 class="title">RATIG — Buku Panduan Operasional</h1>
 </header>
-<h1 id="ratig--guidebook">RATIG — Guidebook</h1>
-<p><strong>Panduan operasional aplikasi pemeriksaan kelelahan berbasis
-waktu reaksi</strong></p>
-<p>Versi dokumen 1.0 · Android · 2026</p>
+<h1 id="ratig--buku-panduan-operasional">RATIG — Buku Panduan
+Operasional</h1>
+<p><strong>Pemeriksaan Kelelahan Pekerja Berbasis Waktu
+Reaksi</strong></p>
+<p>Buku kerja untuk petugas pemeriksa, administrator, dan pengelola
+sistem</p>
+<p>Versi 1.0 · Android · 2026</p>
+<p>Program Studi Informatika · Universitas Siliwangi</p>
 <blockquote>
-<p><strong>RATIG adalah alat bantu keputusan.</strong> Hasilnya bukan
-diagnosis medis dan bukan keputusan akhir kelayakan kerja. Keputusan
-tetap mengikuti SOP perusahaan dan penilaian pemeriksa yang
-berwenang.</p>
+<p><strong>Alat bantu keputusan, bukan diagnosis medis.</strong>
+Keputusan akhir tetap mengikuti SOP perusahaan dan penilaian pemeriksa
+yang berwenang.</p>
 </blockquote>
-<hr />
-<h2 id="daftar-isi">Daftar Isi</h2>
+<div class="page-break"></div>
+
+<h2 id="tentang-buku-ini">Tentang Buku Ini</h2>
+<p>Buku ini adalah panduan kerja, bukan manual teknis pengembangan.
+Isinya disusun mengikuti urutan pekerjaan nyata:</p>
 <ol type="1">
-<li><a href="#1-tentang-ratig">Tentang RATIG</a></li>
-<li><a href="#2-persiapan-perangkat">Persiapan Perangkat</a></li>
-<li><a href="#3-setup-awal--login">Setup Awal &amp; Login</a></li>
-<li><a href="#4-peran--hak-akses">Peran &amp; Hak Akses</a></li>
-<li><a href="#5-menambah-pekerja--akun-login">Menambah Pekerja &amp;
-Akun Login</a></li>
-<li><a href="#6-alur-pemeriksaan">Alur Pemeriksaan</a></li>
-<li><a href="#7-memahami-hasil">Memahami Hasil</a></li>
-<li><a href="#8-riwayat--detail-sesi">Riwayat &amp; Detail Sesi</a></li>
-<li><a href="#9-dasbor-admin">Dasbor Admin</a></li>
-<li><a href="#10-konfigurasi-super-admin">Konfigurasi Super
-Admin</a></li>
-<li><a href="#11-offline--sinkronisasi">Offline &amp;
-Sinkronisasi</a></li>
-<li><a href="#12-onboarding-tanpa-email-hosting">Onboarding Tanpa Email
-Hosting</a></li>
-<li><a href="#13-troubleshooting">Troubleshooting</a></li>
-<li><a href="#14-keamanan--privasi">Keamanan &amp; Privasi</a></li>
-<li><a href="#15-checklist-demo">Checklist Demo</a></li>
+<li>menyiapkan perangkat dan akun;</li>
+<li>memeriksa pekerja;</li>
+<li>membaca hasil dan menindaklanjuti;</li>
+<li>mengelola pengguna, jadwal, dan laporan;</li>
+<li>merawat konfigurasi serta menangani masalah.</li>
 </ol>
-<hr />
-<h2 id="1-tentang-ratig">1. Tentang RATIG</h2>
-<p>RATIG mengukur <strong>waktu reaksi</strong> pekerja sebagai
-indikator kelelahan. Satu petugas dapat memeriksa banyak pekerja dari
-satu perangkat Android.</p>
-<p>Yang membedakan RATIG:</p>
-<ul>
-<li><strong>Cepat</strong> — pemeriksaan berlangsung beberapa menit dan
-hasil langsung tampil.</li>
-<li><strong>Objektif</strong> — waktu diukur dengan monotonic clock,
-bukan perkiraan.</li>
-<li><strong>Offline-first</strong> — tes tetap berjalan tanpa sinyal;
-data tersinkron kemudian.</li>
-<li><strong>Terdokumentasi</strong> — hasil final permanen, perubahan
-penting masuk audit log.</li>
-<li><strong>Aman per peran</strong> — hak akses ditegakkan di server
-dengan Row Level Security.</li>
-</ul>
-<hr />
-<h2 id="2-persiapan-perangkat">2. Persiapan Perangkat</h2>
-<table>
-<thead>
-<tr>
-<th>Item</th>
-<th>Kebutuhan</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Sistem</td>
-<td>Android 8.0 (API 26) atau lebih baru</td>
-</tr>
-<tr>
-<td>Kamera</td>
-<td>Untuk pemindai barcode/QR (opsional)</td>
-</tr>
-<tr>
-<td>Penyimpanan</td>
-<td>±100 MB ruang kosong</td>
-</tr>
-<tr>
-<td>Jaringan</td>
-<td>Internet opsional; diperlukan untuk sinkronisasi</td>
-</tr>
-<tr>
-<td>Akun</td>
-<td>Dibuat administrator; tidak ada pendaftaran mandiri</td>
-</tr>
-</tbody>
-</table>
-<p>Pasang APK yang diberikan administrator, lalu buka aplikasi.</p>
-<hr />
-<h2 id="3-setup-awal--login">3. Setup Awal &amp; Login</h2>
-<p>Saat pertama kali dibuka:</p>
-<ol type="1">
-<li>Pilih <strong>Bahasa</strong> — Indonesia atau English.</li>
-<li>Pilih <strong>Mode Tampilan</strong> — Ikut Ponsel, Terang, atau
-Gelap.</li>
-<li>Pilih <strong>Ukuran Tulisan</strong> — Normal, Besar, atau Sangat
-Besar.</li>
-<li>Ketuk <strong>Simpan &amp; Lanjut</strong>, lalu ikuti panduan
-singkat.</li>
-</ol>
-<p>Semua pilihan dapat diubah lagi dari <strong>Profil → Pengaturan
-Tampilan</strong>.</p>
-<h3 id="login">Login</h3>
-<ol type="1">
-<li>Masukkan <strong>Email / ID Login</strong> dan <strong>Kata
-Sandi</strong> dari administrator.</li>
-<li>Centang <strong>Ingat saya</strong> bila perangkat dipakai
-sendiri.</li>
-<li>Ketuk <strong>Masuk</strong>.</li>
-</ol>
-<blockquote>
-<p>Login memakai email/kata sandi. Email hanya berfungsi sebagai
-<strong>ID login</strong>; tidak harus berupa mailbox yang aktif. Ini
-penting untuk organisasi yang belum memiliki hosting email.</p>
-</blockquote>
-<p>Jika akun berstatus <strong>Menunggu</strong>, hubungi Admin untuk
-aktivasi.</p>
-<hr />
-<h2 id="4-peran--hak-akses">4. Peran &amp; Hak Akses</h2>
+<p>Setiap bab dapat dibaca berdiri sendiri. Untuk referensi teknis,
+lihat <code>docs/architecture.md</code>; untuk naskah lengkap, lihat
+<code>docs/manual/RATIG-Manual.pdf</code>.</p>
+<h2 id="cara-memakai-buku-ini">Cara Memakai Buku Ini</h2>
 <table>
 <thead>
 <tr>
 <th>Peran</th>
-<th>Halaman</th>
-<th>Bisa melakukan</th>
+<th>Bab yang wajib dibaca</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Petugas pemeriksa</td>
+<td>2, 4, 5, 6, 7, 13</td>
+</tr>
+<tr>
+<td>Admin</td>
+<td>2, 4, 8, 9, 10, 13</td>
+</tr>
+<tr>
+<td>Super Admin</td>
+<td>2, 9, 10, 11, 13</td>
+</tr>
+<tr>
+<td>Pengguna/pekerja</td>
+<td>2, 3, 7, 10, 13</td>
+</tr>
+<tr>
+<td>Pengembang/pengelola teknis</td>
+<td>seluruh buku + <code>docs/deployment.md</code></td>
+</tr>
+</tbody>
+</table>
+<div class="page-break"></div>
+
+<h2 id="daftar-isi">Daftar Isi</h2>
+<ol type="1">
+<li><a href="#1-persiapan-harian">Persiapan Harian</a></li>
+<li><a href="#2-peran--tanggung-jawab">Peran &amp; Tanggung
+Jawab</a></li>
+<li><a href="#3-perangkat-setup-dan-login">Perangkat, Setup, dan
+Login</a></li>
+<li><a href="#4-alur-pemeriksaan">Alur Pemeriksaan</a></li>
+<li><a href="#5-mode-tes--protokol">Mode Tes &amp; Protokol</a></li>
+<li><a href="#6-membaca-hasil">Membaca Hasil</a></li>
+<li><a href="#7-riwayat--tindak-lanjut">Riwayat &amp; Tindak
+Lanjut</a></li>
+<li><a href="#8-admin-pengguna--jadwal">Admin: Pengguna &amp;
+Jadwal</a></li>
+<li><a href="#9-dasbor--laporan">Dasbor &amp; Laporan</a></li>
+<li><a href="#10-super-admin-konfigurasi">Super Admin:
+Konfigurasi</a></li>
+<li><a href="#11-onboarding-tanpa-email-hosting">Onboarding Tanpa Email
+Hosting</a></li>
+<li><a href="#12-offline--sinkronisasi">Offline &amp;
+Sinkronisasi</a></li>
+<li><a href="#13-pemecahan-masalah">Pemecahan Masalah</a></li>
+<li><a href="#14-checklist--lembar-kerja">Checklist &amp; Lembar
+Kerja</a></li>
+<li><a href="#15-glosarium">Glosarium</a></li>
+</ol>
+<hr />
+<h1 id="1-persiapan-harian">1. Persiapan Harian</h1>
+<p>Lakukan pemeriksaan singkat sebelum pekerja pertama datang.</p>
+<h2 id="11-checklist-perangkat">1.1 Checklist perangkat</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />Baterai minimal 60% atau perangkat
+terhubung daya.</label></li>
+<li><label><input type="checkbox" />Kamera bersih dan izin kamera
+aktif.</label></li>
+<li><label><input type="checkbox" />Tanggal &amp; jam perangkat benar
+(zona waktu Asia/Jakarta).</label></li>
+<li><label><input type="checkbox" />Aplikasi RATIG versi
+terbaru.</label></li>
+<li><label><input type="checkbox" />Ruang penyimpanan
+cukup.</label></li>
+<li><label><input type="checkbox" />Jaringan tersedia bila akan
+sinkronisasi; bila tidak, pastikan mode offline siap.</label></li>
+</ul>
+<h2 id="12-checklist-akun">1.2 Checklist akun</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />Akun petugas aktif.</label></li>
+<li><label><input type="checkbox" />Protokol uji yang dipakai sudah
+aktif.</label></li>
+<li><label><input type="checkbox" />Aturan klasifikasi sudah divalidasi
+(bukan “Perlu validasi”).</label></li>
+<li><label><input type="checkbox" />Shift sesuai jadwal hari
+ini.</label></li>
+<li><label><input type="checkbox" />Perangkat tidak memakai akun bersama
+tanpa pengawasan.</label></li>
+</ul>
+<h2 id="13-checklist-area">1.3 Checklist area</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />Pencahayaan cukup; layar tidak
+memantulkan cahaya.</label></li>
+<li><label><input type="checkbox" />Pekerja duduk nyaman dan tidak
+terganggu.</label></li>
+<li><label><input type="checkbox" />Volume perangkat memadai untuk
+instruksi.</label></li>
+<li><label><input type="checkbox" />Tidak ada percakapan yang mengganggu
+saat tes.</label></li>
+</ul>
+<hr />
+<h1 id="2-peran--tanggung-jawab">2. Peran &amp; Tanggung Jawab</h1>
+<table>
+<thead>
+<tr>
+<th>Peran</th>
+<th>Tanggung jawab utama</th>
+<th>Batas</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><strong>Super Admin</strong></td>
-<td>Dasbor Super Admin</td>
-<td>semua: akun admin, protokol, aturan klasifikasi, data master, audit,
-pemantauan</td>
+<td>konfigurasi protokol, aturan, data master, akun admin, audit</td>
+<td>tidak menggantikan keputusan medis</td>
 </tr>
 <tr>
 <td><strong>Admin</strong></td>
-<td>Dasbor Admin</td>
-<td>pekerja, akun pengguna biasa, jadwal, tindak lanjut, laporan,
-pemantauan</td>
+<td>pekerja, pengguna biasa, jadwal, laporan, pemantauan</td>
+<td>tidak mengubah konfigurasi atau mengangkat admin</td>
 </tr>
 <tr>
 <td><strong>Pengguna</strong></td>
-<td>Beranda Pengguna</td>
-<td>tes, riwayat sendiri, profil</td>
+<td>menjalankan tes dan melihat riwayat sendiri</td>
+<td>tidak melihat data pekerja lain</td>
 </tr>
 </tbody>
 </table>
-<p>Pembatasan ditegakkan di server:</p>
-<ul>
-<li>Admin <strong>tidak</strong> dapat mengubah protokol, aturan, atau
-data master.</li>
-<li>Admin <strong>tidak</strong> dapat mengangkat pengguna menjadi
-admin.</li>
-<li>Admin <strong>tidak</strong> dapat membuat akun admin.</li>
-<li>Pengguna hanya melihat sesi miliknya sendiri.</li>
-</ul>
+<p>“Satu orang, satu akun.” Jangan memakai akun petugas untuk pekerja,
+atau sebaliknya. RLS di server membatasi data berdasarkan akun dan
+peran.</p>
 <hr />
-<h2 id="5-menambah-pekerja--akun-login">5. Menambah Pekerja &amp; Akun
-Login</h2>
-<p>Buka <strong>Pekerja → tombol (+)</strong>. Menu ini untuk
-<strong>data pekerja</strong>, bukan akun aplikasi umum.</p>
+<h1 id="3-perangkat-setup-dan-login">3. Perangkat, Setup, dan Login</h1>
+<h2 id="31-pertama-kali">3.1 Pertama kali</h2>
+<ol type="1">
+<li>Pasang APK dari administrator.</li>
+<li>Buka aplikasi.</li>
+<li>Pilih bahasa, mode tampilan, dan ukuran tulisan.</li>
+<li>Ketuk <strong>Simpan &amp; Lanjut</strong>.</li>
+<li>Ikuti panduan singkat.</li>
+</ol>
+<p>Pengaturan dapat diubah dari <strong>Profil → Pengaturan
+Tampilan</strong>.</p>
+<h2 id="32-login">3.2 Login</h2>
+<ol type="1">
+<li>Isi <strong>Email / ID Login</strong>.</li>
+<li>Isi <strong>Kata Sandi</strong>.</li>
+<li>Ketuk <strong>Masuk</strong>.</li>
+</ol>
+<p>Email adalah ID login. Tidak perlu mailbox aktif. Untuk organisasi
+tanpa hosting email, gunakan ID internal seperti
+<code>nama@ratig.local</code>.</p>
+<p><img src="../proposal/ui/01_login.png" alt="Layar login" /></p>
+<p><strong>Gambar 1.</strong> Login email/kata sandi.</p>
+<h2 id="33-jika-akun-belum-aktif">3.3 Jika akun belum aktif</h2>
+<p>Akun dapat berstatus <strong>Menunggu</strong>. Hubungi Admin. Jangan
+membuat akun sendiri; tidak ada pendaftaran mandiri.</p>
+<hr />
+<h1 id="4-alur-pemeriksaan">4. Alur Pemeriksaan</h1>
+<h2 id="41-alur-singkat">4.1 Alur singkat</h2>
+<pre><code>Pilih pekerja → pilih tes → baca instruksi → tes
+      → tinjau hasil → finalisasi → sinkronkan</code></pre>
+<h2 id="42-langkah-kerja">4.2 Langkah kerja</h2>
+<ol type="1">
+<li>Buka <strong>Pekerja</strong>.</li>
+<li>Cari pekerja berdasarkan nama/nomor induk atau pindai QR.</li>
+<li>Ketuk pekerja → <strong>Mulai Tes</strong>.</li>
+<li>Pilih jenis tes.</li>
+<li>Pilih protokol dan shift.</li>
+<li>Bacakan instruksi; pastikan pekerja memahami.</li>
+<li>Jalankan tes tanpa gangguan.</li>
+<li>Tinjau hasil lalu finalisasi.</li>
+</ol>
+<p><img src="../proposal/ui/08_daftar_pekerja.png"
+alt="Daftar pekerja" /></p>
+<p><strong>Gambar 2.</strong> Daftar pekerja dan filter.</p>
+<h2 id="43-saat-tes-berlangsung">4.3 Saat tes berlangsung</h2>
+<ul>
+<li>Jangan menutup aplikasi.</li>
+<li>Jangan berpindah aplikasi.</li>
+<li>Jangan mengarahkan jawaban pekerja.</li>
+<li>Catat kejadian luar biasa pada tindak lanjut.</li>
+</ul>
+<blockquote>
+<p>Jika sesi terputus, gunakan alur pemulihan yang tersedia. Jangan
+memaksa keluar saat proses finalisasi berjalan.</p>
+</blockquote>
+<hr />
+<h1 id="5-mode-tes--protokol">5. Mode Tes &amp; Protokol</h1>
 <table>
 <thead>
 <tr>
-<th>Kolom</th>
-<th>Wajib</th>
-<th>Catatan</th>
+<th>Mode</th>
+<th>Cocok untuk</th>
+<th>Hasil</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Nomor Induk Pekerja</td>
-<td>Ya</td>
-<td>4–32 digit; tidak boleh duplikat</td>
+<td><strong>Klasik (RGB)</strong></td>
+<td>pemeriksaan standar</td>
+<td>klasifikasi kelelahan</td>
 </tr>
 <tr>
-<td>Nama Lengkap</td>
-<td>Ya</td>
-<td>tampil di daftar pekerja</td>
+<td><strong>Warna Acak</strong></td>
+<td>variasi stimulus</td>
+<td>metrik pengamatan</td>
 </tr>
 <tr>
-<td>Email login</td>
-<td>Tidak</td>
-<td>boleh <code>nama@ratig.local</code>; tidak perlu mailbox</td>
+<td><strong>Tombol Acak</strong></td>
+<td>koordinasi mata–tangan</td>
+<td>akurasi/kelalaian</td>
 </tr>
 <tr>
-<td>Kata Sandi Login</td>
-<td>Tidak</td>
-<td>min. 8 karakter; isi untuk membuat akun login</td>
-</tr>
-<tr>
-<td>Departemen / Area / Shift</td>
-<td>Tidak</td>
-<td>area kerja mengikuti departemen</td>
-</tr>
-<tr>
-<td>Jabatan</td>
-<td>Tidak</td>
-<td>contoh: Operator</td>
+<td><strong>Fokus (Go/No-Go)</strong></td>
+<td>kontrol impuls</td>
+<td>akurasi/kelalaian</td>
 </tr>
 </tbody>
 </table>
-<p>Dua kemungkinan:</p>
+<p>Hanya mode Klasik yang dipakai untuk klasifikasi. Mode lain tidak
+digabung menjadi satu skor.</p>
+<h2 id="51-protokol">5.1 Protokol</h2>
+<p>Protokol menentukan jumlah percobaan, delay stimulus, timeout
+respons, dan konfigurasi tambahan. Super Admin dapat mengubah protokol
+dari menu <strong>Protokol Uji</strong>.</p>
 <ul>
-<li><strong>Sandi diisi</strong> → data pekerja + akun login dibuat
-sekaligus. Akun langsung aktif. Bila email dikosongkan, ID login menjadi
-<code>&lt;nomor-induk&gt;@ratig.local</code>.</li>
-<li><strong>Sandi kosong</strong> → hanya data pekerja; pemeriksa yang
-menjalankan tes atas namanya.</li>
+<li><strong>Draf</strong> — belum aktif.</li>
+<li><strong>Aktif</strong> — dipakai untuk sesi baru.</li>
+<li><strong>Ditarik</strong> — tidak dipakai lagi.</li>
 </ul>
-<p>Berikan ID login dan sandi <strong>secara langsung</strong> kepada
-pekerja. Tidak ada email undangan yang dikirim.</p>
-<h3 id="menambah-akun-aplikasi-adminsuper-admin">Menambah akun aplikasi
-(Admin/Super Admin)</h3>
-<p>Buka <strong>Profil → Pengguna → (+)</strong>:</p>
-<ul>
-<li>Admin hanya dapat membuat peran <strong>Pengguna</strong>.</li>
-<li>Super Admin dapat membuat <strong>Admin</strong> atau
-<strong>Pengguna</strong>.</li>
-<li>Isi <strong>ID Login</strong> dan <strong>kata sandi
-sementara</strong> (min. 8 karakter).</li>
-<li>Akun langsung aktif; sampaikan kredensial langsung ke pengguna.</li>
-</ul>
+<p>Perubahan pada protokol aktif disimpan pada versi yang sama. Layar
+edit menampilkan peringatan. Catat alasan perubahan pada audit/tindak
+lanjut.</p>
+<p><img src="../proposal/ui/17_protokol.png" alt="Protokol" /></p>
+<p><strong>Gambar 3.</strong> Daftar protokol.</p>
 <hr />
-<h2 id="6-alur-pemeriksaan">6. Alur Pemeriksaan</h2>
-<pre><code>Pilih pekerja → pilih jenis tes → baca instruksi → tes
-      → tinjau hasil → finalisasi</code></pre>
-<ol type="1">
-<li>Buka menu <strong>Pekerja</strong>.</li>
-<li>Cari nama/nomor induk, gunakan filter, atau pindai QR
-<code>RATIG1:&lt;NIK&gt;</code>.</li>
-<li>Ketuk pekerja → <strong>Mulai Tes</strong>.</li>
-<li>Pilih mode:
-<ul>
-<li><strong>Klasik (RGB)</strong> — untuk klasifikasi kelelahan.</li>
-<li><strong>Warna Acak</strong> — metrik pengamatan.</li>
-<li><strong>Tombol Acak</strong> — koordinasi mata–tangan.</li>
-<li><strong>Fokus (Go/No-Go)</strong> — kontrol impuls.</li>
-</ul></li>
-<li>Bacakan instruksi; centang pemahaman pekerja.</li>
-<li>Jalankan tes. Jangan menutup aplikasi atau berpindah aplikasi.</li>
-<li>Tinjau hasil, lalu <strong>Selesai/Finalisasi</strong>.</li>
-</ol>
-<blockquote>
-<p>Jika aplikasi terhenti karena panggilan/notifikasi saat finalisasi,
-sesi yang sudah selesai tidak boleh terputus. Gunakan tombol kembali
-dengan hati-hati.</p>
-</blockquote>
-<hr />
-<h2 id="7-memahami-hasil">7. Memahami Hasil</h2>
+<h1 id="6-membaca-hasil">6. Membaca Hasil</h1>
 <table>
 <thead>
 <tr>
@@ -290,7 +310,7 @@ dengan hati-hati.</p>
 <tbody>
 <tr>
 <td>Mean</td>
-<td>rata-rata waktu reaksi (ms)</td>
+<td>rata-rata waktu reaksi</td>
 </tr>
 <tr>
 <td>Median</td>
@@ -310,82 +330,160 @@ dengan hati-hati.</p>
 </tr>
 <tr>
 <td>Kategori</td>
-<td>Normal / Fatigue Ringan / Sedang / Berat</td>
+<td>Normal / Ringan / Sedang / Berat</td>
 </tr>
 </tbody>
 </table>
-<p>Aturan klasifikasi harus <strong>disetujui perusahaan</strong>. Bila
-belum, aplikasi menampilkan <strong>“Perlu validasi”</strong> — bukan
-angka yang menyesatkan.</p>
-<p>Mode non-Klasik menampilkan <strong>metrik pengamatan</strong>
-(akurasi, kelalaian) dan tidak digabung menjadi satu skor kelelahan.</p>
-<h3 id="skrining-paramedis">Skrining paramedis</h3>
-<p>Pada layar hasil, petugas dapat mengisi tekanan darah, nadi, dan
-alkohol. Temuan serta rekomendasi bersifat saran; keputusan tetap pada
-pemeriksa.</p>
-<hr />
-<h2 id="8-riwayat--detail-sesi">8. Riwayat &amp; Detail Sesi</h2>
+<p>Bila aturan belum divalidasi, hasil menampilkan <strong>“Perlu
+validasi”</strong>. Bila data valid tidak cukup, menampilkan
+<strong>“Data tidak cukup”</strong>. Jangan menafsirkan keduanya sebagai
+“Normal”.</p>
+<p><img src="../proposal/ui/11_detail_sesi.png"
+alt="Detail hasil" /></p>
+<p><strong>Gambar 4.</strong> Detail hasil dan trial.</p>
+<h2 id="61-eskalasi">6.1 Eskalasi</h2>
 <ul>
-<li><strong>Riwayat</strong> menampilkan sesi berdasarkan periode,
-shift, status, dan kategori.</li>
-<li>Admin dapat memfilter departemen; <strong>Pengguna</strong> hanya
-melihat <strong>Departemen Anda</strong> karena riwayatnya sudah
-dibatasi ke sesi sendiri.</li>
-<li>Ketuk sesi untuk melihat:
-<ul>
-<li>informasi pekerja, pemeriksa, shift, protokol, waktu;</li>
-<li>metrik dan kategori;</li>
-<li>rincian trial per nomor;</li>
-<li>tindak lanjut (untuk admin).</li>
-</ul></li>
-</ul>
-<p>Hasil yang sudah final tidak dapat diubah.</p>
-<hr />
-<h2 id="9-dasbor-admin">9. Dasbor Admin</h2>
-<p>Dasbor Admin menampilkan:</p>
-<ul>
-<li>pekerja aktif, total pengguna, sesi hari ini/total;</li>
-<li>sesi belum selesai, tindak lanjut terbuka, akun menunggu;</li>
-<li><strong>klasifikasi hasil</strong>;</li>
-<li><strong>sesi per departemen</strong> dan <strong>per
-shift</strong>;</li>
-<li>tren harian.</li>
-</ul>
-<p>Menu operasional:</p>
-<ul>
-<li><strong>Pengguna</strong> — kelola akun pengguna biasa.</li>
-<li><strong>Laporan</strong> — pratinjau dan ekspor CSV.</li>
-<li><strong>Jadwal &amp; Shift</strong> — lihat dan atur jadwal.</li>
-<li><strong>Tindak Lanjut</strong> — catat tindakan atas temuan.</li>
-<li><strong>Audit Log</strong> — jejak tindakan penting.</li>
+<li><strong>Normal</strong> — lanjutkan prosedur biasa.</li>
+<li><strong>Ringan/Sedang</strong> — pertimbangkan istirahat, rotasi,
+atau pemeriksaan ulang sesuai SOP.</li>
+<li><strong>Berat</strong> — ikuti prosedur eskalasi perusahaan; jangan
+membuat keputusan medis sendiri.</li>
+<li><strong>Perlu validasi / Data tidak cukup</strong> — jangan memakai
+hasil untuk keputusan; hubungi Super Admin.</li>
 </ul>
 <hr />
-<h2 id="10-konfigurasi-super-admin">10. Konfigurasi Super Admin</h2>
-<p>Super Admin dapat:</p>
+<h1 id="7-riwayat--tindak-lanjut">7. Riwayat &amp; Tindak Lanjut</h1>
+<h2 id="71-riwayat">7.1 Riwayat</h2>
+<p>Menu <strong>Riwayat</strong> menampilkan sesi berdasarkan periode,
+shift, status, kategori, dan nama pekerja.</p>
+<p>Untuk peran <strong>Pengguna</strong>, riwayat hanya berisi sesi
+sendiri. Filter departemen diganti informasi <strong>Departemen
+Anda</strong>.</p>
+<h2 id="72-detail-sesi">7.2 Detail sesi</h2>
+<p>Berisi identitas pekerja, pemeriksa, shift, protokol, waktu, metrik,
+rincian trial, dan tindak lanjut.</p>
+<h2 id="73-tindak-lanjut">7.3 Tindak lanjut</h2>
+<ol type="1">
+<li>Buka detail sesi.</li>
+<li>Pilih <strong>Tambah Tindak Lanjut</strong>.</li>
+<li>Tulis tindakan yang dilakukan.</li>
+<li>Tetapkan status (terbuka/selesai).</li>
+<li>Simpan.</li>
+</ol>
+<p>Tindak lanjut adalah catatan operasional, bukan diagnosis.</p>
+<hr />
+<h1 id="8-admin-pengguna--jadwal">8. Admin: Pengguna &amp; Jadwal</h1>
+<h2 id="81-menambah-pengguna">8.1 Menambah pengguna</h2>
+<p>Buka <strong>Profil → Pengguna → (+)</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Kolom</th>
+<th>Keterangan</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nama lengkap</td>
+<td>wajib</td>
+</tr>
+<tr>
+<td>ID Login</td>
+<td>email atau <code>nama@ratig.local</code></td>
+</tr>
+<tr>
+<td>Peran</td>
+<td>Admin hanya boleh membuat Pengguna</td>
+</tr>
+<tr>
+<td>Status</td>
+<td>aktif atau menunggu</td>
+</tr>
+<tr>
+<td>Kata sandi sementara</td>
+<td>min. 8 karakter; wajib</td>
+</tr>
+</tbody>
+</table>
+<p>Tidak ada email undangan. Berikan ID dan sandi langsung kepada
+pengguna.</p>
+<h2 id="82-menonaktifkan-pengguna">8.2 Menonaktifkan pengguna</h2>
+<p>Gunakan menu pengguna → nonaktifkan. Riwayat pekerja tidak dihapus.
+Akun yang nonaktif tidak bisa masuk.</p>
+<h2 id="83-jadwal--shift">8.3 Jadwal &amp; shift</h2>
 <ul>
-<li><strong>Protokol Uji</strong> — buat/ubah protokol. Menu
-<strong>Ubah</strong> tersedia untuk semua status. Untuk protokol aktif,
-perubahan disimpan pada versi yang sama dan berlaku untuk sesi baru —
-layar edit menampilkan peringatan.</li>
-<li><strong>Aturan Klasifikasi</strong> — atur ambang kategori dan
-validasi aturan.</li>
-<li><strong>Data Master</strong> — departemen, area kerja, shift.</li>
-<li><strong>Pengguna</strong> — buat admin/pengguna, ubah peran,
-aktivasi akun.</li>
-<li><strong>Audit Log</strong> — periksa perubahan konfigurasi dan
-akun.</li>
+<li>Super Admin mengelola <strong>shift</strong> di Data Master.</li>
+<li>Admin/Super Admin mengatur jadwal pemeriksaan.</li>
+<li>Bila halaman jadwal kosong, belum ada jadwal yang dibuat; itu bukan
+error.</li>
+<li>Worker hanya melihat jadwal, tidak dapat mengubahnya.</li>
 </ul>
 <hr />
-<h2 id="11-offline--sinkronisasi">11. Offline &amp; Sinkronisasi</h2>
+<h1 id="9-dasbor--laporan">9. Dasbor &amp; Laporan</h1>
+<h2 id="91-dasbor-admin">9.1 Dasbor Admin</h2>
+<p>Menampilkan pekerja aktif, total pengguna, sesi hari ini/total, sesi
+belum selesai, tindak lanjut terbuka, akun menunggu, klasifikasi hasil,
+sebaran departemen/shift, dan tren.</p>
+<p><img src="../proposal/ui/03_dashboard_superadmin_bawah.png"
+alt="Dasbor" /></p>
+<p><strong>Gambar 5.</strong> Grafik dasbor.</p>
+<p>Jika grafik kosong: belum ada sesi final, atau pekerja belum memiliki
+departemen. Itu bukan kegagalan aplikasi.</p>
+<h2 id="92-laporan">9.2 Laporan</h2>
+<ol type="1">
+<li>Buka <strong>Profil → Laporan</strong>.</li>
+<li>Pilih periode dan filter.</li>
+<li>Pratinjau.</li>
+<li>Ekspor CSV dan bagikan.</li>
+</ol>
+<hr />
+<h1 id="10-super-admin-konfigurasi">10. Super Admin: Konfigurasi</h1>
+<h2 id="101-protokol">10.1 Protokol</h2>
+<p>Buat/ubah protokol, aktifkan draf, atau tarik protokol aktif. Menu
+<strong>Ubah</strong> tersedia untuk semua status.</p>
+<h2 id="102-aturan-klasifikasi">10.2 Aturan klasifikasi</h2>
+<p>Atur ambang dan label kategori. Validasi aturan sebelum dipakai untuk
+keputusan. Aturan yang belum valid akan menampilkan “Perlu
+validasi”.</p>
+<h2 id="103-data-master">10.3 Data master</h2>
+<p>Kelola departemen, area kerja, dan shift. Perubahan data master
+memengaruhi filter dan laporan.</p>
+<h2 id="104-audit-log">10.4 Audit log</h2>
+<p>Audit log mencatat pembuatan akun, perubahan peran, persetujuan, dan
+perubahan konfigurasi. Gunakan untuk menelusuri perubahan.</p>
+<hr />
+<h1 id="11-onboarding-tanpa-email-hosting">11. Onboarding Tanpa Email
+Hosting</h1>
+<h2 id="111-pekerja">11.1 Pekerja</h2>
+<ol type="1">
+<li>Buka <strong>Pekerja → (+)</strong>.</li>
+<li>Isi NIP dan nama.</li>
+<li>Isi kata sandi (min. 8).</li>
+<li>Email boleh kosong → ID login
+<code>&lt;NIP&gt;@ratig.local</code>.</li>
+<li>Simpan; berikan ID dan sandi langsung.</li>
+</ol>
+<h2 id="112-penggunaadmin">11.2 Pengguna/Admin</h2>
+<ol type="1">
+<li>Buka <strong>Profil → Pengguna → (+)</strong>.</li>
+<li>Isi nama, ID Login, sandi sementara.</li>
+<li>Simpan; akun langsung aktif.</li>
+<li>Berikan kredensial langsung.</li>
+</ol>
+<blockquote>
+<p>Email hanyalah pengenal unik. Tidak ada email yang dikirim, jadi
+tidak perlu hosting email.</p>
+</blockquote>
+<hr />
+<h1 id="12-offline--sinkronisasi">12. Offline &amp; Sinkronisasi</h1>
 <ol type="1">
 <li>Tes tetap berjalan tanpa sinyal.</li>
 <li>Data disimpan di perangkat.</li>
-<li>Saat online, WorkManager mengirim data secara bertahap.</li>
-<li>Buka <strong>Status Sinkronisasi</strong> untuk melihat antrean dan
-kegagalan.</li>
-<li><strong>Sinkronkan sekarang</strong> memaksa pengiriman segera.</li>
+<li>WorkManager mengirim otomatis saat online.</li>
+<li>Buka <strong>Status Sinkronisasi</strong> untuk melihat
+antrean.</li>
+<li><strong>Sinkronkan sekarang</strong> memaksa pengiriman.</li>
 </ol>
-<p>Status penting:</p>
 <table>
 <thead>
 <tr>
@@ -396,7 +494,7 @@ kegagalan.</li>
 <tbody>
 <tr>
 <td>Menunggu koneksi</td>
-<td>tersimpan lokal, menunggu jaringan</td>
+<td>tersimpan lokal</td>
 </tr>
 <tr>
 <td>Sedang disinkronkan</td>
@@ -404,7 +502,7 @@ kegagalan.</li>
 </tr>
 <tr>
 <td>Tersinkronisasi</td>
-<td>sudah diterima server</td>
+<td>diterima server</td>
 </tr>
 <tr>
 <td>Gagal, akan dicoba</td>
@@ -412,123 +510,199 @@ kegagalan.</li>
 </tr>
 <tr>
 <td>Perlu pemeriksaan</td>
-<td>perlu tindakan manual</td>
+<td>perlu tindakan admin</td>
 </tr>
 </tbody>
 </table>
+<p>Server tetap sumber kebenaran; hasil final tidak dapat diubah dari
+perangkat.</p>
 <hr />
-<h2 id="12-onboarding-tanpa-email-hosting">12. Onboarding Tanpa Email
-Hosting</h2>
-<p>Tidak perlu mail server atau undangan email.</p>
-<h3 id="untuk-pekerja">Untuk pekerja</h3>
-<ol type="1">
-<li>Buka <strong>Pekerja → (+)</strong>.</li>
-<li>Isi NIP, nama, dan kata sandi.</li>
-<li>Kosongkan email → ID login otomatis
-<code>&lt;NIP&gt;@ratig.local</code>.</li>
-<li>Simpan. Berikan ID + sandi langsung ke pekerja.</li>
-</ol>
-<h3 id="untuk-adminpengguna-aplikasi">Untuk admin/pengguna aplikasi</h3>
-<ol type="1">
-<li>Buka <strong>Profil → Pengguna → (+)</strong>.</li>
-<li>Isi nama, <strong>ID Login</strong> (boleh
-<code>nama@ratig.local</code>), dan sandi sementara.</li>
-<li>Simpan; akun langsung aktif.</li>
-<li>Sampaikan ID + sandi langsung.</li>
-</ol>
-<blockquote>
-<p><code>@ratig.local</code> adalah pengenal internal. Tidak ada email
-yang dikirim, jadi tidak memerlukan hosting email.</p>
-</blockquote>
-<hr />
-<h2 id="13-troubleshooting">13. Troubleshooting</h2>
+<h1 id="13-pemecahan-masalah">13. Pemecahan Masalah</h1>
 <table>
 <thead>
 <tr>
 <th>Gejala</th>
-<th>Solusi</th>
+<th>Yang dilakukan</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Tidak bisa login</td>
-<td>cek ID login, sandi, status akun; pastikan jaringan untuk login
-pertama</td>
+<td>cek ID/sandi, status akun, jaringan</td>
 </tr>
 <tr>
 <td>Tambah pekerja ditolak</td>
-<td>NIP/email duplikat, atau sandi &lt; 8 karakter</td>
+<td>NIP/email duplikat atau sandi &lt; 8</td>
 </tr>
 <tr>
 <td>Tambah pengguna ditolak</td>
-<td>email/ID sudah dipakai, atau sandi &lt; 8 karakter</td>
+<td>ID login sudah dipakai atau sandi &lt; 8</td>
 </tr>
 <tr>
 <td>QR tidak dikenali</td>
-<td>gunakan format <code>RATIG1:&lt;NIK&gt;</code> atau input NIK
-manual</td>
+<td>format <code>RATIG1:&lt;NIK&gt;</code> atau input manual</td>
 </tr>
 <tr>
 <td>Kamera tidak muncul</td>
-<td>izinkan kamera di Pengaturan Android → RATIG → Izin</td>
+<td>izin kamera di Pengaturan Android</td>
 </tr>
 <tr>
 <td>Data belum terkirim</td>
-<td>buka Status Sinkronisasi; cek jaringan; tekan Sinkronkan
-sekarang</td>
+<td>buka Status Sinkronisasi; cek jaringan</td>
 </tr>
 <tr>
-<td>Grafik dasbor kosong</td>
-<td>belum ada sesi final dengan klasifikasi/departemen</td>
+<td>Grafik kosong</td>
+<td>belum ada sesi final/departemen</td>
 </tr>
 <tr>
-<td>Hasil “Perlu validasi”</td>
-<td>aturan klasifikasi belum divalidasi; hubungi Super Admin</td>
+<td>“Perlu validasi”</td>
+<td>aturan belum divalidasi; hubungi Super Admin</td>
 </tr>
 <tr>
-<td>“Koneksi jaringan bermasalah”</td>
-<td>periksa DNS/jaringan perangkat; server mungkin tidak terjangkau</td>
+<td>Hasil terputus</td>
+<td>lanjutkan sesi atau ulangi; jangan paksa keluar</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="14-keamanan--privasi">14. Keamanan &amp; Privasi</h2>
-<ul>
-<li>NIK adalah kunci bisnis; ditampilkan
-<strong>disamarkan</strong>.</li>
-<li>Foreign key memakai UUID, bukan NIK.</li>
-<li>Service-role key <strong>tidak pernah</strong> disimpan di APK.</li>
-<li>RLS membatasi data per peran dan per pemilik sesi.</li>
-<li>Hasil final <strong>immutable</strong>.</li>
-<li>Audit log mencatat tindakan penting.</li>
-<li>Skrining kesehatan disimpan lokal di perangkat pada versi ini.</li>
+<h1 id="14-checklist--lembar-kerja">14. Checklist &amp; Lembar
+Kerja</h1>
+<h2 id="141-checklist-sebelum-tes">14.1 Checklist sebelum tes</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />Pekerja yang benar sudah
+dipilih.</label></li>
+<li><label><input type="checkbox" />Protokol sesuai.</label></li>
+<li><label><input type="checkbox" />Shift sesuai.</label></li>
+<li><label><input type="checkbox" />Instruksi sudah
+dibacakan.</label></li>
+<li><label><input type="checkbox" />Pekerja memahami dan
+setuju.</label></li>
+<li><label><input type="checkbox" />Lingkungan tenang.</label></li>
 </ul>
-<hr />
-<h2 id="15-checklist-demo">15. Checklist Demo</h2>
-<p>Gunakan urutan ini untuk demo 5–7 menit:</p>
+<h2 id="142-checklist-setelah-tes">14.2 Checklist setelah tes</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />Hasil ditinjau.</label></li>
+<li><label><input type="checkbox" />Trial tidak wajar
+diperiksa.</label></li>
+<li><label><input type="checkbox" />Kategori dibaca bersama
+konteks.</label></li>
+<li><label><input type="checkbox" />Tindak lanjut dicatat bila
+perlu.</label></li>
+<li><label><input type="checkbox" />Sesi difinalisasi.</label></li>
+<li><label><input type="checkbox" />Sinkronisasi diperiksa.</label></li>
+</ul>
+<h2 id="143-lembar-catatan-harian">14.3 Lembar catatan harian</h2>
+<table>
+<thead>
+<tr>
+<th>Jam</th>
+<th>Nama pekerja</th>
+<th>NIP</th>
+<th>Mode</th>
+<th>Hasil</th>
+<th>Tindakan</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="144-checklist-demo-presentasi">14.4 Checklist demo
+presentasi</h2>
 <ol type="1">
-<li><strong>Login</strong> sebagai Super Admin.</li>
-<li>Tunjukkan <strong>Dasbor</strong> dan grafik
-klasifikasi/departemen.</li>
-<li>Buka <strong>Pekerja → Detail → Mulai Tes</strong>; jelaskan 4
-mode.</li>
-<li>Tunjukkan <strong>Hasil</strong> dan <strong>Detail Sesi</strong>
-(metrik + trial).</li>
-<li>Buka <strong>Protokol Uji → Ubah</strong>; jelaskan versi dan
-peringatan.</li>
-<li>Buka <strong>Data Master</strong>; tunjukkan departemen/shift.</li>
-<li>Buka <strong>Pengguna → (+) Tambah Pengguna</strong>; jelaskan sandi
-sementara tanpa email undangan.</li>
-<li>Buka <strong>Audit Log</strong>; tunjukkan jejak tindakan.</li>
-<li>Login sebagai <strong>Pengguna/Worker</strong>; tunjukkan Beranda
-dan Riwayat (Departemen Anda, tanpa filter departemen).</li>
-<li>Tutup dengan batasan: <strong>alat bantu keputusan, bukan diagnosis
-medis</strong>.</li>
+<li>Login Super Admin; tunjukkan dasbor.</li>
+<li>Buka Pekerja → detail → Mulai Tes; jelaskan 4 mode.</li>
+<li>Buka Riwayat → detail hasil/trial.</li>
+<li>Buka Protokol → Ubah; jelaskan versi.</li>
+<li>Buka Pengguna → (+) Tambah Pengguna; jelaskan sandi tanpa
+email.</li>
+<li>Buka Audit Log.</li>
+<li>Login Pengguna; tunjukkan Riwayat “Departemen Anda”.</li>
+<li>Tutup dengan batasan: alat bantu keputusan, bukan diagnosis.</li>
 </ol>
 <hr />
+<h1 id="15-glosarium">15. Glosarium</h1>
+<table>
+<thead>
+<tr>
+<th>Istilah</th>
+<th>Arti</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PVT</td>
+<td>Psychomotor Vigilance Task; tes waktu reaksi</td>
+</tr>
+<tr>
+<td>Monotonic clock</td>
+<td>jam yang tidak terpengaruh perubahan waktu sistem</td>
+</tr>
+<tr>
+<td>RLS</td>
+<td>Row Level Security; pembatasan baris data</td>
+</tr>
+<tr>
+<td>Room</td>
+<td>database lokal Android</td>
+</tr>
+<tr>
+<td>WorkManager</td>
+<td>penjadwal sinkronisasi</td>
+</tr>
+<tr>
+<td>Immutable</td>
+<td>tidak dapat diubah setelah final</td>
+</tr>
+<tr>
+<td>Audit log</td>
+<td>catatan tindakan penting</td>
+</tr>
+</tbody>
+</table>
+<hr />
 <h2 id="lampiran--akun-demo">Lampiran — Akun Demo</h2>
-<p>Kata sandi akun demo: <strong><code>Ratig-T3st-2026!</code></strong>
-(hanya untuk lingkungan uji).</p>
+<p>Kata sandi: <strong><code>Ratig-T3st-2026!</code></strong> (hanya
+lingkungan uji).</p>
 <table>
 <thead>
 <tr>
@@ -559,7 +733,6 @@ medis</strong>.</li>
 <p>Ganti/hapus akun demo sebelum produksi.</p>
 </blockquote>
 <hr />
-<p><em>Dokumen ini melengkapi <code>USER-MANUAL.md</code> dan
-<code>docs/poster/RATIG-Poster.md</code>.</em></p>
+<p><em>RATIG — sederhana bagi pengguna, kuat di belakang layar.</em></p>
 </body>
 </html>

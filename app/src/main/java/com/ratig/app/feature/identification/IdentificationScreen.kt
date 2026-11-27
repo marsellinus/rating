@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ratig.app.core.time.TimeProvider
+import com.ratig.app.domain.model.formatProtocolVersion
 import com.ratig.app.feature.identification.WorkerCandidate
 import com.ratig.app.ui.components.ConfirmDialog
 import com.ratig.app.ui.components.MetricTile
@@ -692,7 +693,7 @@ private fun SessionSetupSection(
                                         style = MaterialTheme.typography.bodyLarge,
                                     )
                                     Text(
-                                        "v${protocol.protocolVersion} · " +
+                                        "${formatProtocolVersion(protocol.protocolVersion)} · " +
                                             "${protocol.trialCount} kali percobaan",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,

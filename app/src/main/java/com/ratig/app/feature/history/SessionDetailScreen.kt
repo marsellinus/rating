@@ -67,6 +67,8 @@ import com.ratig.app.domain.model.TestSession
 import com.ratig.app.domain.model.TrialRecord
 import com.ratig.app.domain.model.TrialStatus
 import com.ratig.app.domain.model.UserRole
+import com.ratig.app.domain.model.formatProtocolVersion
+import com.ratig.app.domain.model.formatVersionLabel
 import com.ratig.app.domain.repository.AuthRepository
 import com.ratig.app.domain.repository.FollowUpRepository
 import com.ratig.app.domain.repository.OrganizationRepository
@@ -200,7 +202,7 @@ private fun SessionInfoCard(
                 "Protokol",
                 listOfNotNull(
                     session.protocolName ?: "-",
-                    session.protocolVersion?.let { "v$it" },
+                    session.protocolVersion?.let(::formatProtocolVersion),
                 ).joinToString(" "),
             )
             InfoRow("Dimulai", TimeProvider.formatForDisplay(session.startedAt))
@@ -380,7 +382,7 @@ private fun ResultCard(result: TestResult) {
                 )
                 result.ruleVersion?.let { version ->
                     Text(
-                        text = "Aturan: v$version",
+                        text = "Aturan: ${formatVersionLabel(version)}",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

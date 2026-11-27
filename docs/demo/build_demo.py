@@ -7,9 +7,13 @@ Run from the repository root:
 
 from __future__ import annotations
 
+import hashlib
+import json
+import os
 import shutil
 import subprocess
 import sys
+import urllib.request
 import wave
 from dataclasses import dataclass
 from pathlib import Path
@@ -172,6 +176,11 @@ SCENES = (
         "dokumentasi tersedia di GitHub.",
     ),
 )
+
+
+NARRATION_PATH = OUT / "narration.json"
+NARRATION = json.loads(NARRATION_PATH.read_text(encoding="utf-8")) if NARRATION_PATH.exists() else {}
+NARRATION_LINES = NARRATION.get("lines", [])
 
 
 def font(path: str, size: int) -> ImageFont.FreeTypeFont:

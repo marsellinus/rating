@@ -1,0 +1,31 @@
+1
+00:00:00,350 --> 00:00:05,969
+RATIG. Demo penggunaan aplikasi pemeriksaan kelelahan berbasis waktu reaksi.
+
+2
+00:00:06,869 --> 00:00:15,321
+Setelah masuk sebagai Super Admin, dasbor menampilkan ringkasan pekerja, sesi, klasifikasi hasil, dan sebaran departemen.
+
+3
+00:00:16,413 --> 00:00:26,537
+Menu Pekerja digunakan untuk mencari pekerja, membuka detail, dan memulai tes. Petugas memilih jenis tes, protokol, dan shift.
+
+4
+00:00:27,437 --> 00:00:35,750
+Riwayat menampilkan sesi yang sudah selesai. Buka detail untuk melihat metrik, rincian trial, dan kategori kelelahan.
+
+5
+00:00:37,205 --> 00:00:45,796
+Di Manajemen Pengguna, admin dapat menambah akun. Kata sandi sementara wajib diisi dan tidak ada email undangan.
+
+6
+00:00:46,696 --> 00:00:54,962
+Super Admin dapat mengubah protokol. Menu Ubah tersedia untuk semua status, dengan peringatan versi.
+
+7
+00:00:55,862 --> 00:01:01,853
+Audit log mencatat tindakan penting seperti pembuatan akun dan perubahan konfigurasi.
+
+8
+00:01:02,753 --> 00:01:10,741
+RATIG adalah alat bantu keputusan, bukan diagnosis medis. Dokumentasi lengkap tersedia di situs proyek.

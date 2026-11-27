@@ -60,6 +60,7 @@ import com.ratig.app.domain.model.FatigueRule
 import com.ratig.app.domain.model.RuleBand
 import com.ratig.app.domain.model.RuleConfig
 import com.ratig.app.domain.model.TestProtocol
+import com.ratig.app.domain.model.formatProtocolVersion
 import com.ratig.app.domain.repository.ProtocolRepository
 import com.ratig.app.ui.components.ConfirmDialog
 import com.ratig.app.ui.components.EmptyState
@@ -516,14 +517,14 @@ private fun ProtocolSelector(uiState: RulesUiState, onSelect: (String) -> Unit) 
     Box(Modifier.fillMaxWidth()) {
         OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = selected?.let { "${it.name} (v${it.protocolVersion})" } ?: "Pilih protokol",
+                text = selected?.let { "${it.name} (${formatProtocolVersion(it.protocolVersion)})" } ?: "Pilih protokol",
                 modifier = Modifier.weight(1f),
             )
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             uiState.protocols.forEach { protocol ->
                 DropdownMenuItem(
-                    text = { Text("${protocol.name} (v${protocol.protocolVersion})") },
+                    text = { Text("${protocol.name} (${formatProtocolVersion(protocol.protocolVersion)})") },
                     onClick = {
                         onSelect(protocol.id)
                         expanded = false

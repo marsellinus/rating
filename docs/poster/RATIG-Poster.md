@@ -1,165 +1,172 @@
 # RATIG — Reaction Time Fatigue
 
-**Poster Capstone Project · Program Studi Informatika, Universitas Siliwangi**
+**Poster Ilmiah Capstone Project · Program Studi Informatika, Universitas Siliwangi · 2026**
 
-> Format: **A2 portrait (420 × 594 mm)**, margin 18 mm, grid 12 kolom.
-> Gaya: *data-editorial* — latar krem hangat, hijau hutan, aksen amber.
-> Nada: akademik, tenang, operasional. Bukan poster medis; RATIG adalah alat
-> bantu keputusan.
-
----
-
-## Header
-
-**RATIG**
-### Reaction Time Fatigue
-
-Sistem pemeriksaan kelelahan pekerja berbasis **waktu reaksi** — cepat,
-objektif, dan tetap berjalan **tanpa internet**.
-
-`Android` · `Kotlin / Jetpack Compose` · `Supabase` · `Offline-first`
+> **Format cetak:** A2 portrait (420 × 594 mm), 2480 × 3508 px @150 dpi.
+> **Berkas siap pakai:** `RATIG-Poster.png`, `RATIG-Poster.pdf`.
+> **Gaya:** akademik editorial — hijau hutan, krem, amber; tiga kolom.
 
 ---
 
-## Masalah
+## Abstrak
 
-Kelelahan menurunkan kewaspadaan dan memperlambat pengambilan keputusan.
-Namun kelelahan sering tidak terdeteksi karena:
+Kelelahan kerja menurunkan kewaspadaan dan berkontribusi pada kecelakaan
+industri. Pemeriksaan manual sering subjektif, memakan waktu, dan sulit
+diaudit. Penelitian pengembangan ini merancang **RATIG**, aplikasi Android
+untuk mengukur waktu reaksi pekerja dengan empat mode tes, klasifikasi
+berbasis aturan, dan operasi *offline-first*. Sistem dibangun menggunakan
+Kotlin/Jetpack Compose, Room/WorkManager, dan Supabase dengan *Row Level
+Security* tiga peran. Evaluasi fungsional mencakup 140 unit test JVM,
+pengujian finalisasi idempoten, sinkronisasi offline, dan matriks akses
+peran. Hasil menunjukkan prototipe berfungsi sesuai rancangan; validasi
+klinis dan studi lapangan masih diperlukan sebelum klaim efektivitas.
 
-- bersifat **subjektif** — pekerja merasa masih kuat padahal refleks menurun;
-- pemeriksaan manual memakan waktu dan sulit dibandingkan;
-- catatan tersebar di kertas/spreadsheet sehingga sulit diaudit.
-
-**Pertanyaan proyek:** bagaimana membuat pemeriksaan kelelahan yang cepat,
-konsisten, terdokumentasi, dan dapat dipakai di lokasi kerja terpencil?
-
----
-
-## Solusi
-
-RATIG mengukur **waktu reaksi** sebagai indikator objektif kondisi pekerja.
-Pemeriksaan berlangsung beberapa menit dan hasil langsung tampil.
-
-```
-Pilih pekerja → jalankan tes → tinjau hasil → finalisasi
-       → tersimpan lokal → sinkron otomatis saat online
-```
+**Kata kunci:** kelelahan kerja · waktu reaksi · PVT · offline-first ·
+Row Level Security · Android
 
 ---
 
-## Empat Mode Pemeriksaan
+## 01 · Latar Belakang
 
-| Mode | Yang diukur | Peran hasil |
-|---|---|---|
-| **Klasik (RGB)** | reaksi terhadap stimulus warna | **klasifikasi kelelahan** |
-| **Warna Acak** | reaksi terhadap warna acak | metrik pengamatan |
-| **Tombol Acak** | pencarian target pada grid | metrik pengamatan |
-| **Fokus (Go/No-Go)** | menahan respons terhadap distraktor | metrik pengamatan |
+Kelelahan berkontribusi pada kecelakaan industri dan transportasi.¹²
+*Psychomotor vigilance task* (PVT) singkat di ponsel dapat menilai penurunan
+kewaspadaan.³⁴ Pencatatan manual menyulitkan pemantauan tren dan audit,
+terutama di lokasi dengan konektivitas terbatas.
 
-> Hanya mode **Klasik** yang dipakai untuk klasifikasi. Mode lain memberi
-> metrik akurasi/kelalaian dan **tidak digabung** menjadi satu skor.
+> **Rumusan masalah:** bagaimana merancang pemeriksaan waktu reaksi yang
+> cepat, konsisten, aman, dan dapat dipakai offline?
 
 ---
 
-## Akurasi & Kepercayaan Data
+## 02 · Tujuan
 
-- Waktu diukur dengan **monotonic clock** (`elapsedRealtimeNanos`), bukan jam
-  dinding — tetap akurat saat waktu sistem berubah.
-- Trial yang tidak wajar ditandai dan **tetap tercatat** untuk audit.
-- Hasil yang sudah **final bersifat permanen**.
-- Klasifikasi mengikuti aturan yang disetujui perusahaan; bila aturan belum
-  valid, aplikasi menampilkan **“Perlu validasi”**, bukan angka menyesatkan.
-
----
-
-## Offline-First
-
-- Pemeriksaan tetap berjalan **tanpa sinyal**.
-- Data disimpan di **Room** dan dikirim otomatis lewat **WorkManager**.
-- Status sinkronisasi terlihat jelas: menunggu, sedang dikirim, berhasil, atau
-  perlu pemeriksaan administrator.
-- Login offline dibatasi waktu tertentu; server tetap menjadi sumber kebenaran.
+- Merancang alur pemeriksaan waktu reaksi multi-pekerja di Android.
+- Menyediakan klasifikasi kelelahan yang mengikuti aturan organisasi.
+- Menjaga integritas data melalui pengukuran monotonik dan hasil final yang
+  permanen.
+- Membatasi akses data dengan RLS tiga peran.
 
 ---
 
-## Tiga Peran, Ditegakkan di Server
+## 03 · Metode
 
-| Peran | Tanggung jawab |
-|---|---|
-| **Super Admin** | konfigurasi sistem: protokol, aturan klasifikasi, data master, akun admin |
-| **Admin** | operasional: pekerja, pengguna biasa, jadwal, laporan, pemantauan |
-| **Pengguna** | menjalankan tes dan melihat riwayat sendiri |
+Pengembangan dilakukan melalui analisis kebutuhan, perancangan arsitektur,
+implementasi, pengujian unit, dan evaluasi fungsional. **Tidak ada klaim uji
+klinis pada tahap ini.**
 
-**Row Level Security (RLS)** membatasi baca/tulis di PostgreSQL. Admin tidak
-dapat mengubah protokol/aturan/data master atau mengangkat pengguna menjadi
-admin, meskipun memanggil API langsung. Service key **tidak pernah** ada di APK.
+- **Pengukuran:** monotonic clock (`elapsedRealtimeNanos`), bukan jam dinding.
+- **Data:** trial tidak wajar ditandai, bukan dihapus diam-diam.
+- **Pengujian:** 140 unit test JVM, finalisasi idempoten, RLS, dan
+  sinkronisasi.
 
 ---
 
-## Arsitektur
+## 04 · Alur Pemeriksaan
+
+1. **Identifikasi** pekerja melalui NIK/QR; NIK disamarkan.
+2. **Pilih mode** dan jalankan tes waktu reaksi.
+3. **Tinjau** metrik, trial, dan kategori kelelahan.
+4. **Finalisasi**; simpan lokal lalu sinkronkan otomatis.
+
+---
+
+## 05 · Arsitektur Sistem
 
 ```
 Android (Kotlin + Compose)
-  ├── Room             cache + outbox offline
-  ├── WorkManager      sinkronisasi latar belakang
+  ├── Room             cache + outbox
+  ├── WorkManager      sinkronisasi bertahap
   └── MonotonicClock   pengukuran waktu reaksi
-             │
-             ▼
+              │
+              ▼
 Supabase
   ├── PostgreSQL + RLS
-  ├── Auth (email/kata sandi)
-  └── Edge Functions (akun, laporan)
+  ├── Auth
+  └── Edge Functions
 ```
 
-**Stack:** Kotlin · Jetpack Compose Material 3 · Hilt · Room · WorkManager ·
-Supabase (PostgreSQL, Auth, Edge Functions) · CameraX + ML Kit.
+Desain *local-first*⁵ menjaga tes tetap berjalan saat jaringan tidak tersedia;
+server tetap menjadi sumber kebenaran.
 
 ---
 
-## Untuk Pengguna & Admin
+## 06 · Hasil
 
-- Identifikasi pekerja dengan **pemindai QR/barcode** atau NIK manual.
-- NIK selalu **disamarkan** di layar.
-- Tambah pekerja sekaligus akun login: isi NIP + kata sandi; tanpa email nyata,
-  ID login otomatis `<NIP>@ratig.local`.
-- Tambah pengguna aplikasi: admin menentukan **kata sandi sementara**; tidak
-  perlu email hosting dan tidak ada undangan email.
-- Dasbor: sesi, klasifikasi hasil, sebaran departemen/shift, tren, tindak
-  lanjut, audit log, ekspor CSV.
-
----
-
-## Batasan & Etika
-
-RATIG adalah **alat bantu keputusan**, bukan diagnosis medis dan bukan
-keputusan akhir kelayakan kerja. Keputusan tetap mengikuti SOP perusahaan dan
-penilaian pemeriksa yang berwenang.
+| Aspek | Capaian |
+|---|---|
+| Mode | 4 mode (Klasik, Warna Acak, Tombol Acak, Go/No-Go) |
+| Peran | 3 peran dengan RLS: Super Admin, Admin, Pengguna |
+| Pengujian | **140 unit test JVM lulus** |
+| Service key | **0** service key di APK |
+| Pengukuran | Monotonic clock; trial tidak wajar tetap tercatat |
+| Klasifikasi | Aturan tervalidasi; “Perlu validasi” bila belum |
+| Offline | Room + WorkManager; finalisasi idempoten |
+| Keamanan | RLS server-side; hasil final immutable; audit log |
 
 ---
 
-## Hasil Pengujian Internal
+## 07 · Implementasi Antarmuka
 
-- **138 unit test JVM** lulus.
-- Alur finalisasi sesi, RLS tiga peran, dan sinkronisasi offline telah diuji.
-- Aplikasi Android: minSdk 26, targetSdk 36.
-- Repositori: **github.com/marsellinus/rating**
+**Gambar 1.** Antarmuka operasional RATIG: pekerja & filter, detail pekerja,
+hasil/trial, protokol & versi, serta audit log. Tangkapan layar dari prototipe.
+
+---
+
+## 08 · Pembahasan
+
+- **Waktu monotonik** mengurangi galat akibat perubahan jam sistem.
+- **RLS di server** mencegah UI menjadi satu-satunya kontrol akses; Admin
+  tidak dapat mengubah konfigurasi atau mengangkat admin.
+- **Hasil final immutable** dan audit log menjaga ketertelusuran.
+- **Offline-first** memperluas konteks penggunaan, dengan sinkronisasi
+  idempoten saat online.
+
+---
+
+## 09 · Keterbatasan
+
+- Belum ada validasi klinis atau uji lapangan berskala besar.
+- Ambang klasifikasi bergantung pada SOP dan validasi organisasi.
+- Skrining kesehatan paramedis masih disimpan lokal pada perangkat.
+- Perubahan protokol aktif disimpan pada versi yang sama; tata kelola versi
+  perlu diperkuat.
+
+---
+
+## 10 · Kesimpulan
+
+RATIG menunjukkan bahwa pemeriksaan waktu reaksi multi-pekerja dapat
+dirancang sebagai aplikasi Android yang offline-first, terlacak, dan berlapis
+keamanan. Prototipe ini layak dilanjutkan ke evaluasi kegunaan dan validasi
+lapangan, tetapi belum dapat menggantikan diagnosis atau keputusan akhir
+kelayakan kerja.
+
+---
+
+## 11 · Referensi
+
+1. **Dawson, D., et al.** (2021). Determining the contributing role of fatigue
+   in industrial and transportation accidents. *Sleep Medicine Reviews*, 56,
+   101411.
+2. **Williamson, A., et al.** (2011). The compounding link between fatigue,
+   sleep loss, and unintentional industrial accidents. *Safety Science*, 49(4),
+   498–515.
+3. **Basner, M., & Dinges, D. F.** (2011). Maximizing sensitivity of the
+   psychomotor vigilance test to sleep loss. *Sleep*, 34(5), 581–591.
+4. **Grant, D. A., et al.** (2017). 3-minute smartphone-based and tablet-based
+   psychomotor vigilance tests. *Behavior Research Methods*, 49(3), 1020–1029.
+5. **Kleppmann, M., et al.** (2019). Local-first software: you own your data,
+   in spite of the cloud. *Onward! 2019*, 154–178.
+6. **Chhetri, B., et al.** (2024). Human-in-the-loop AI frameworks for
+   occupational safety decision support. *Safety Science*, 170, 106360.
 
 ---
 
 ## Footer
 
-**RATIG — Reaction Time Fatigue** · Capstone Project Informatika · 2026
-`github.com/marsellinus/rating`
+**Alat bantu keputusan, bukan diagnosis medis.** Keputusan akhir tetap
+mengikuti SOP perusahaan dan penilaian pemeriksa yang berwenang. NIK
+disamarkan; data pribadi dilindungi berlapis. Evaluasi ini merupakan pengujian
+fungsional prototipe, bukan uji klinis.
 
-<!--
-PRODUCTION NOTES
-- Hierarki: judul 120–150 pt; subjudul 50–60 pt; section heading 34–40 pt;
-  body 20–22 pt; caption 14–16 pt.
-- Warna: #123B2A (hijau), #F4F1E8 (krem), #C9943A (amber), #5C665E (abu).
-- Gunakan 3–4 tangkapan layar asli dari docs/proposal/ui/:
-  03_dashboard_superadmin_bawah.png, 08_daftar_pekerja.png,
-  11_detail_sesi.png, 17_protokol.png.
-- Hasil render siap cetak: `RATIG-Poster.png` (2480×3508, A2 @150 dpi)
-  dan `RATIG-Poster.pdf` (A2). Sumber tata letak: `RATIG-Poster.html`.
-- Jangan menambahkan grafik/angka yang tidak ada di dokumen proyek.
--->
+QR repositori: `repo-qr.png` · `github.com/marsellinus/rating`
